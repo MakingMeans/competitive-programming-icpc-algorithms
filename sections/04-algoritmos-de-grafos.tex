@@ -1,0 +1,491 @@
+\section{Algoritmos de Grafos}
+
+\subsection{Emparejamiento Bipartito Máximo (Algoritmo de Kuhn)}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Tengo dos conjuntos disjuntos (personas / tareas) y aristas que solo conectan un conjunto con el otro?
+\item ¿Me piden el número máximo de "parejas" o asignaciones simultáneas sin repetir elementos de ningún lado?
+\item ¿El tamaño de ambos lados permite O(V·E) (hasta unos pocos miles)?
+\end{itemize}
+
+¿Para qué sirve? Encontrar el máximo número de aristas seleccionables en un grafo bipartito sin que dos aristas compartan vértice (asignación óptima uno a uno). Ejemplos: asignar trabajadores a tareas, parejas de baile, cobertura de tareas.
+
+Complejidad: O(V · E) con la versión simple de caminos aumentantes, donde V es el lado izquierdo y E el número de aristas.
+
+Fundamento teórico: Se buscan repetidamente "caminos aumentantes": para cada vértice izquierdo se intenta, vía DFS, encontrar una pareja libre o "desalojar" a otro vértice ya emparejado para liberar espacio y aumentar el emparejamiento en 1. Es un caso particular del teorema de Kőnig / flujo máximo en redes.
+
+Ejercicio aplicado
+
+Hay n chicos y m chicas y k parejas de baile posibles. Hallar el número máximo de parejas simultáneas y mostrar una asignación válida.
+
+E/S: n, m ≤ 500 y k ≤ 1000 → entrada pequeña, se usa readline por línea (patrón 1), suficiente y más simple de leer.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+def try_kuhn(u, adj, matched, visited):
+# intenta emparejar el vertice u del lado izquierdo
+    for v in adj[u]:
+        if not visited[v]:
+            visited[v] = True
+# v esta libre, o su pareja actual puede reubicarse...
+            if matched[v] == -1 or try_kuhn(matched[v], adj, matched, visited):
+                matched[v] = u
+                return True
+    return False
+ 
+def solve():
+    n, m, k = map(int, input().split())
+    adj = [[] for _ in range(n)]
+    for _ in range(k):
+        a, b = map(int, input().split())
+        adj[a - 1].append(b - 1)
+ 
+    matched = [-1] * m                  # pareja actual de cada vertice derecho
+    total = 0
+    for u in range(n):
+        visited = [False] * m           # se reinicia en cada intento
+        if try_kuhn(u, adj, matched, visited):
+            total += 1
+ 
+    out = [str(total)]
+    for v in range(m):
+        if matched[v] != -1:
+            out.append(f"{matched[v] + 1} {v + 1}")
+    sys.stdout.write("\n".join(out))
+ 
+solve()
+\end{lstlisting}
+
+
+\subsection{Cobertura Mínima de Vértices en Grafos Bipartitos (Teorema de König)}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Piden el mínimo número de elementos a eliminar para que ningún conflicto (arista) quede activo?
+\item ¿El grafo de conflictos es bipartito (se puede partir en 2 grupos donde todo conflicto va de un grupo al otro)?
+\item ¿Ya sé calcular el emparejamiento máximo de ese grafo (entrada anterior, Kuhn)?
+\end{itemize}
+
+¿Para qué sirve? Calcular la cobertura mínima de vértices (mínimo conjunto de nodos que toca todas las aristas) en un grafo bipartito. En grafos generales este problema es NP-difícil, pero en grafos bipartitos se vuelve polinomial gracias al teorema de König.
+
+Complejidad: O(V · E), la misma del emparejamiento bipartito máximo del que depende.
+
+Fundamento teórico: El teorema de König establece que, en cualquier grafo bipartito, el tamaño de la cobertura mínima de vértices es EXACTAMENTE igual al tamaño del emparejamiento máximo. Basta con correr Kuhn (entrada anterior) y esa cifra ya es la respuesta. Importante: heurísticas locales (como quitar iterativamente puntos de articulación, o dividir el número de vértices con grado \textgreater{} 0 entre 2) NO son válidas para este problema en general — solo coinciden por casualidad en casos muy simples (aristas aisladas, caminos, estrellas) y fallan en cuanto el grafo tiene una estructura más rica (por ejemplo, un grafo bipartito 2-conexo sin puntos de articulación).
+
+Ejercicio aplicado
+
+Dado un tablero N×N con K caballos de ajedrez colocados, hallar el mínimo número de caballos que hay que quitar para que ninguno ataque a otro. El grafo de ataques es bipartito por construcción: cada movimiento de caballo cambia la paridad de (fila + columna), así que alcanza con particionar por esa paridad y correr Kuhn.
+
+E/S: N ≤ 25, K ≤ N² ≤ 625 → entrada pequeña, readline por línea (patrón 1).
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+def try_kuhn(u, adj, matched, visited):
+    for v in adj[u]:
+        if not visited[v]:
+            visited[v] = True
+            if matched[v] == -1 or try_kuhn(matched[v], adj, matched, visited):
+                matched[v] = u
+                return True
+    return False
+ 
+def max_bipartite_matching(left_nodes, n_right, adj):
+    matched = [-1] * n_right
+    total = 0
+    for u in left_nodes:
+        visited = [False] * n_right
+        if try_kuhn(u, adj, matched, visited):
+            total += 1
+    return total
+ 
+def solve():
+    n, k = map(int, input().split())
+    pos = []
+    for _ in range(k):
+        r, c = map(int, input().split())
+        pos.append((r - 1, c - 1))
+ 
+    index = {p: i for i, p in enumerate(pos)}
+    moves = [(1,2),(2,1),(-1,2),(-2,1),(1,-2),(2,-1),(-1,-2),(-2,-1)]
+ 
+    # el ataque de caballo SIEMPRE cambia el color (fila+col) par/impar:
+    # el grafo de ataques es bipartito por construccion, sin necesidad
+    # de demostrarlo -- solo hay que particionar por ese color
+    left_nodes = [i for i, (r, c) in enumerate(pos) if (r + c) % 2 == 0]
+    adj = [[] for _ in range(k)]
+    for i in left_nodes:
+        r, c = pos[i]
+        for dr, dc in moves:
+            j = index.get((r + dr, c + dc))
+            if j is not None:
+                adj[i].append(j)
+ 
+    # Konig: cobertura minima de vertices == emparejamiento maximo
+    print(max_bipartite_matching(left_nodes, k, adj))
+ 
+solve()
+\end{lstlisting}
+
+
+\subsection{Emparejamiento Bipartito por Segmentación de Filas/Columnas}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿La cuadrícula tiene obstáculos que "cortan" el alcance de piezas o rangos dentro de cada fila y columna?
+\item ¿Cada fila y cada columna se puede dividir en segmentos independientes (separados por obstáculos) donde a lo más un elemento puede colocarse por segmento?
+\item ¿Piden el máximo número de elementos colocables sin conflicto entre sí?
+\end{itemize}
+
+¿Para qué sirve? Resolver problemas de colocación de piezas sobre una cuadrícula con obstáculos, donde el conflicto es "compartir fila o columna sin un obstáculo de por medio". En vez de razonar celda por celda, se etiquetan los segmentos libres de cada fila y columna, y el problema se convierte en un emparejamiento bipartito clásico.
+
+Complejidad: O(N²) para etiquetar segmentos, más O(V·E) para el emparejamiento (V, E acotados por N²).
+
+Fundamento teórico: Cada casilla vacía pertenece a exactamente un segmento de fila (corrida maximal de casillas vacías, delimitada por obstáculos o bordes) y a exactamente un segmento de columna. Como a lo más una torre puede ocupar cada segmento (todas sus casillas se atacan entre sí sin obstáculo de por medio), colocar torres sin conflicto equivale a elegir aristas entre segmentos de fila y segmentos de columna sin repetir segmento de ningún lado: exactamente un emparejamiento en el grafo bipartito (segmentos de fila) × (segmentos de columna), donde cada casilla vacía es una arista posible.
+
+Ejercicio aplicado
+
+Dado un tablero N×N con algunas casillas ocupadas por peones, hallar el máximo número de torres que se pueden colocar en casillas vacías sin que se ataquen entre sí (dos torres se atacan si comparten fila o columna sin un peón entre ellas). La entrada trae varios tableros seguidos.
+
+E/S: N ≤ 100, múltiples casos hasta EOF (patrón 4 de la sección de E/S) → lectura total con sys.stdin.read().split() y procesamiento por índice.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def try_kuhn(u, adj, matched, visited):
+    for v in adj[u]:
+        if not visited[v]:
+            visited[v] = True
+            if matched[v] == -1 or try_kuhn(matched[v], adj, matched, visited):
+                matched[v] = u
+                return True
+    return False
+ 
+def solve_board(n, grid):
+    # etiqueta cada corrida maximal de celdas vacias en cada FILA con un id
+    row_id = [[-1] * n for _ in range(n)]
+    row_count = 0
+    for r in range(n):
+        c = 0
+        while c < n:
+            if grid[r][c] == '.':
+                while c < n and grid[r][c] == '.':
+                    row_id[r][c] = row_count
+                    c += 1
+                row_count += 1
+            else:
+                c += 1
+ 
+    # lo mismo por COLUMNAS
+    col_id = [[-1] * n for _ in range(n)]
+    col_count = 0
+    for c in range(n):
+        r = 0
+        while r < n:
+            if grid[r][c] == '.':
+                while r < n and grid[r][c] == '.':
+                    col_id[r][c] = col_count
+                    r += 1
+                col_count += 1
+            else:
+                r += 1
+ 
+    # grafo bipartito: segmentos de fila (izq) -- segmentos de columna (der);
+    # cada celda vacia es una arista posible entre ambos segmentos
+    adj = [[] for _ in range(row_count)]
+    for r in range(n):
+        for c in range(n):
+            if grid[r][c] == '.':
+                adj[row_id[r][c]].append(col_id[r][c])
+ 
+    matched = [-1] * col_count
+    total = 0
+    for u in range(row_count):
+        visited = [False] * col_count
+        if try_kuhn(u, adj, matched, visited):
+            total += 1
+    return total
+ 
+def main():
+    data = sys.stdin.read().split()
+    idx = 0
+    out = []
+    while idx < len(data):
+        n = int(data[idx]); idx += 1
+        grid = data[idx:idx + n]; idx += n
+        out.append(str(solve_board(n, grid)))
+    sys.stdout.write("\n".join(out) + "\n")
+ 
+main()
+\end{lstlisting}
+
+
+\subsection{Componentes Fuertemente Conexas (Algoritmo de Kosaraju)}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Es un grafo dirigido y preguntan por "grupos" donde todo par de nodos es mutuamente alcanzable?
+\item ¿Necesito "condensar" el grafo (contraer cada componente en un nodo) para trabajar luego sobre un DAG?
+\item ¿n puede ser grande (\textasciitilde{}10\textasciicircum{}5), por lo que hay que evitar recursión profunda en Python?
+\end{itemize}
+
+¿Para qué sirve? Particionar un grafo dirigido en componentes fuertemente conexas (SCC): subconjuntos maximales donde cada nodo puede llegar a cualquier otro del mismo subconjunto. Es la base para condensar grafos, resolver 2-SAT y detectar ciclos mutuos.
+
+Complejidad: O(V + E) tiempo y espacio (dos recorridos DFS).
+
+Fundamento teórico: Kosaraju usa dos pasadas de DFS: (1) en el grafo original, registrar el orden de finalización (postorden) de cada nodo; (2) en el grafo transpuesto (aristas invertidas), recorrer los nodos en orden inverso de finalización. Cada árbol de DFS resultante en esta segunda pasada es exactamente una SCC, porque invertir las aristas separa los componentes que antes solo eran alcanzables en una dirección.
+
+Ejercicio aplicado
+
+Un juego tiene n planetas conectados por m teletransportadores dirigidos. Dos planetas pertenecen al mismo "reino" si hay ruta en ambos sentidos entre ellos. Determinar, para cada planeta, a qué reino pertenece.
+
+E/S: n ≤ 10\textasciicircum{}5 y m ≤ 2·10\textasciicircum{}5 → lectura total + tokenización (patrón 2). Además, el DFS se implementa de forma iterativa (con pila explícita) para evitar RecursionError en Python con grafos grandes.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def kosaraju(n, adj):
+    visited = [False] * n
+    order = []                  # orden de finalizacion (postorden)
+    for s in range(n):
+        if visited[s]:
+            continue
+        visited[s] = True
+        stack = [(s, iter(adj[s]))]        # iterador recuerda donde va en i parte de la lista 
+        while stack:
+            node, it = stack[-1]
+            advanced = False
+            for nxt in it:               # DFS iterativo con iteradores
+                if not visited[nxt]:
+                    visited[nxt] = True
+                    stack.append((nxt, iter(adj[nxt])))
+                    advanced = True
+                    break
+            if not advanced:             # no quedan vecinos: cierra el nodo
+                order.append(node)
+                stack.pop()
+ 
+    radj = [[] for _ in range(n)]        # grafo transpuesto (aristas invertidas)
+    for u in range(n):
+        for v in adj[u]:
+            radj[v].append(u)
+ 
+    comp = [0] * n
+    visited = [False] * n
+    c = 0
+    for node in reversed(order):        # orden inverso de finalizacion
+        if visited[node]:
+            continue
+        c += 1
+        visited[node] = True
+        comp[node] = c
+        stack = [node]
+        while stack:
+            u = stack.pop()
+            for v in radj[u]:
+                if not visited[v]:
+                    visited[v] = True
+                    comp[v] = c
+                    stack.append(v)
+    return c, comp
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); m = int(data[idx + 1]); idx += 2
+    adj = [[] for _ in range(n)]
+    for _ in range(m):
+        a = int(data[idx]); b = int(data[idx + 1]); idx += 2
+        adj[a - 1].append(b - 1)
+ 
+    k, comp = kosaraju(n, adj)
+    out = [str(k), " ".join(map(str, comp))]
+    sys.stdout.write("\n".join(out))
+ 
+solve()
+\end{lstlisting}
+
+
+\subsection{Circuito Euleriano (Algoritmo de Hierholzer)}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Piden recorrer TODAS las aristas exactamente una vez (no todos los nodos, como en Hamiltoniano)?
+\item ¿Se pide un camino o circuito que use cada calle/arista una sola vez?
+\item ¿Puedo verificar rápido la condición de existencia (grados pares para circuito; 0 ó 2 nodos de grado impar para camino) antes de construir la ruta?
+\end{itemize}
+
+¿Para qué sirve? Encontrar un recorrido que use cada arista del grafo exactamente una vez (circuito o camino euleriano). Aplicaciones: rutas de reparto/barrido que cubren todas las calles, o cualquier problema de "recorrer cada arista una vez".
+
+Complejidad: O(V + E) con la versión iterativa basada en pila (evita recursión y eliminaciones costosas de aristas).
+
+Fundamento teórico: Existe circuito euleriano si y solo si el grafo es conexo (en aristas) y todos los vértices tienen grado par. El algoritmo de Hierholzer avanza por aristas no usadas hasta atascarse; en ese momento inserta el vértice atascado en la ruta final y retrocede. El resultado, leído en el orden en que se van "atascando" los vértices, es un circuito válido.
+
+Ejercicio aplicado
+
+Dado un mapa de n cruces y m calles bidireccionales, hallar una ruta que empiece y termine en el cruce 1 (oficina postal) y recorra cada calle exactamente una vez, o determinar que es "IMPOSSIBLE".
+
+E/S: n ≤ 10\textasciicircum{}5, m ≤ 2·10\textasciicircum{}5 → lectura total + tokenización (patrón 2). Se evita adj.erase()/remove() (O(n) por operación, como en la versión C++ original) usando un arreglo de punteros ptr[] que salta aristas usadas: así la eliminación es O(1) amortizado.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); m = int(data[idx + 1]); idx += 2
+ 
+    adj = [[] for _ in range(n + 1)]
+    deg = [0] * (n + 1)
+    for e in range(m):
+        a = int(data[idx]); b = int(data[idx + 1]); idx += 2
+        adj[a].append((b, e))
+        adj[b].append((a, e))        # grafo no dirigido: ambos sentidos (e es id de arista)
+        deg[a] += 1
+        deg[b] += 1
+ 
+    if deg[1] == 0 or any(deg[v] % 2 for v in range(1, n + 1)):
+        print("IMPOSSIBLE")
+        return
+ 
+    used = [False] * m
+    ptr = [0] * (n + 1)              # guarda las ids de las aristas
+    path = []
+    stack = [1]
+    while stack:
+        v = stack[-1]
+        while ptr[v] < len(adj[v]) and used[adj[v][ptr[v]][1]]:
+            ptr[v] += 1                 # salta aristas ya usadas (O(1) amortizado)
+        if ptr[v] == len(adj[v]):       # reviso todas las aristas de v y no queda ninguna disponible
+            path.append(v)
+            stack.pop()
+        else:
+            u, eid = adj[v][ptr[v]]
+            used[eid] = True
+            stack.append(u)             # avanza por la arista disponible
+ 
+    if len(path) - 1 != m:              # no se recorrieron todas las aristas
+        print("IMPOSSIBLE")
+        return
+ 
+    sys.stdout.write(" ".join(map(str, path)))
+ 
+ 
+solve()
+\end{lstlisting}
+
+
+\subsection{Puntos de Articulación (Algoritmo de Tarjan)}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Piden identificar nodos cuya eliminación desconecta el grafo (o aumenta el número de componentes)?
+\item ¿El grafo es no dirigido y se pregunta por robustez/conectividad ante fallos de un solo nodo?
+\item ¿n puede ser grande, por lo que hay que evitar recursión profunda en Python?
+\end{itemize}
+
+¿Para qué sirve? Encontrar los vértices de corte (articulation points) de un grafo no dirigido: nodos que, al eliminarse, aumentan el número de componentes conexas. Es la base para analizar robustez de redes (qué nodo, si falla, parte el sistema en pedazos).
+
+Complejidad: O(V + E) con DFS iterativo (un solo recorrido con low-link).
+
+Fundamento teórico: Se hace un DFS calculando, para cada nodo, su tiempo de descubrimiento (disc) y el menor tiempo de descubrimiento alcanzable usando a lo más una arista de retroceso (low). Un nodo u (no raíz) es punto de articulación si tiene un hijo v en el árbol DFS tal que low[v] ≥ disc[u]: eso significa que desde el subárbol de v no hay forma de "escapar" hacia arriba de u sin pasar por u. La raíz del DFS es un caso especial: es punto de articulación si tiene más de un hijo en el árbol.
+
+Ejercicio aplicado
+
+Dadas varias pruebas, cada una con n islas y m puentes bidireccionales (grafo conexo), contar cuántas islas, al hundirse, desconectarían partes de la ciudad. La entrada termina con un caso 0 0.
+
+E/S: Múltiples casos con centinela "0 0" (patrón 3 de la sección de E/S). n ≤ 10\textasciicircum{}4, m ≤ 10\textasciicircum{}5 → lectura total + tokenización, y DFS iterativo con pila explícita (mismo motivo que en Kosaraju: evitar RecursionError/stack overflow).
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def find_articulation_points(n, adj):
+    disc = [0] * n
+    low = [0] * n
+    visited = [False] * n
+    is_ap = [False] * n
+    timer = 1
+ 
+    for start in range(n):
+        if visited[start]:
+            continue
+        visited[start] = True
+        disc[start] = low[start] = timer
+        timer += 1
+        root_children = 0
+        # pila: [nodo, padre, iterador de vecinos, ya_salto_arista_al_padre]
+        stack = [[start, -1, iter(adj[start]), False]]
+        while stack:
+            frame = stack[-1]
+            node, parent, it, _ = frame
+            advanced = False
+            for nxt in it:
+                if nxt == parent and not frame[3]:
+                    frame[3] = True   # salta SOLO una vez la arista de vuelta
+                    continue          # (por si hay aristas paralelas)
+                if not visited[nxt]:
+                    visited[nxt] = True
+                    disc[nxt] = low[nxt] = timer
+                    timer += 1
+                    if node == start:
+                        root_children += 1
+                    stack.append([nxt, node, iter(adj[nxt]), False])
+                    advanced = True
+                    break
+                else:
+                    low[node] = min(low[node], disc[nxt])  # arista de retroceso
+            if not advanced:
+                stack.pop()
+                if stack:
+                    par = stack[-1]
+                    par_node = par[0]
+                    low[par_node] = min(low[par_node], low[node])
+                    # condicion clasica de punto de articulacion (no raiz)
+                    if par_node != start and low[node] >= disc[par_node]:
+                        is_ap[par_node] = True
+        if root_children > 1:        # caso especial: la raiz del DFS
+            is_ap[start] = True
+ 
+    return is_ap
+ 
+def main():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    out = []
+    while True:
+        n = int(data[idx]); m = int(data[idx + 1]); idx += 2
+        if n == 0 and m == 0:        # centinela de fin
+            break
+        adj = [[] for _ in range(n)]
+        for _ in range(m):
+            u = int(data[idx]) - 1; v = int(data[idx + 1]) - 1; idx += 2
+            adj[u].append(v)
+            adj[v].append(u)
+        is_ap = find_articulation_points(n, adj)
+        out.append(str(sum(is_ap)))
+    sys.stdout.write("\n".join(out) + "\n")
+ 
+main()
+\end{lstlisting}

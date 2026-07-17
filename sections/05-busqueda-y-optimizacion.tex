@@ -1,0 +1,133 @@
+\section{Búsqueda y Optimización}
+
+\subsection{Búsqueda Binaria sobre la Respuesta + Two Pointers}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿La respuesta es un número y existe una condición monótona (si X funciona, todo valor mayor/menor también funciona)?
+\item ¿Puedo verificar en O(n) o O(n log n) si un valor candidato "cumple" la condición pedida?
+\item ¿Dentro de esa verificación necesito contar pares/elementos con una condición de suma sobre un arreglo ordenado? (ahí entra Two Pointers)
+\end{itemize}
+
+¿Para qué sirve? Cuando no es fácil calcular la respuesta directamente pero sí verificar si un candidato es válido, y esa validez es monótona, se "busca" la respuesta con búsqueda binaria sobre el rango de valores posibles. Two Pointers acelera el conteo en arreglos ordenados de O(n²) a O(n).
+
+Complejidad: Búsqueda binaria: O(log(rango)) iteraciones. Cada verificación con Two Pointers: O(n). Total: O(n log(rango)).
+
+Fundamento teórico: La búsqueda binaria sobre la respuesta funciona porque el conjunto de valores "válidos" forma un intervalo continuo (monotonía), reduciendo el espacio de búsqueda a la mitad en cada paso. Two Pointers explota que, en un arreglo ordenado, mover un extremo cambia la condición de suma de forma predecible, evitando recorrer todas las parejas.
+
+Ejercicio aplicado
+
+Dados N precios de categorías de joyas, un cliente que es el K-ésimo en la fila debe comprar dos joyas de categorías distintas sin repetir una combinación ya usada por otro cliente. Hallar el mínimo dinero que garantiza poder comprar: la K-ésima suma más pequeña entre todos los pares de categorías distintas.
+
+E/S: N no está acotado explícitamente pero puede ser grande → lectura total + tokenización (patrón 2) para el arreglo de precios.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def count_pairs_leq(prices, n, limit):
+    # cuenta cuantos pares cumplen arr[i] + arr[j] <= limit
+    # usando dos punteros sobre un arreglo YA ORDENADO
+    count = 0
+    left, right = 0, n - 1
+    while left < right:
+        if prices[left] + prices[right] <= limit:
+            count += right - left       # todos los pares con "left" fijo
+            left += 1
+        else:
+            right -= 1
+    return count
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); k = int(data[1])
+    prices = list(map(int, data[2:2 + n]))
+    prices.sort()
+ 
+    low = prices[0] + prices[1]         # menor suma posible
+    high = prices[n - 2] + prices[n - 1]  # mayor suma posible
+ 
+    while low < high:
+        mid = low + (high - low) // 2
+        if count_pairs_leq(prices, n, mid) >= k:
+            high = mid                    # mid cumple: intenta algo menor
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=Python]
+        else:
+            low = mid + 1                # mid no cumple: sube el limite
+ 
+    print(low)
+ 
+solve()
+\end{lstlisting}
+
+
+\subsection{------NEED: Enumeración por Máscaras de Bits (Bitmask Brute Force)}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Hay un pequeño número (≤ \textasciitilde{}20) de decisiones binarias desconocidas (bits, elecciones sí/no) y hace falta probar combinaciones?
+\item ¿El espacio total de combinaciones (2\textasciicircum{}k) es lo bastante chico para probarlas todas dentro del límite de tiempo?
+\item ¿Cada combinación se puede armar y evaluar rápido a partir de su representación binaria?
+\end{itemize}
+
+¿Para qué sirve? Representar y recorrer exhaustivamente todas las configuraciones posibles de un conjunto pequeño de decisiones binarias. Cada máscara de bits codifica una asignación distinta de valores, permitiendo generar candidatos de forma sistemática y verificar cuál satisface la condición del problema.
+
+Complejidad: O(2\textasciicircum{}k · costo de evaluar una combinación), con k = número de incógnitas binarias.
+
+Fundamento teórico: Cualquier asignación de k bits desconocidos corresponde biunívocamente a un entero entre 0 y 2\textasciicircum{}k−1. Recorriendo ese rango y extrayendo el bit j con (mascara \textgreater{}\textgreater{} j) \& 1, se reconstruye cada combinación posible sin necesidad de recursión ni backtracking explícito. Es la enumeración más directa de un espacio de búsqueda combinatorio pequeño.
+
+Ejercicio aplicado
+
+Un mensaje M' y un divisor N' se recibieron con hasta 16 bits en total marcados como perdidos ('*'). Reconstruir un mensaje M compatible (M completando los '*' de M') tal que exista un N (completando los '*' de N') donde N divide a M exactamente.
+
+E/S: |M'| ≤ 500 pero el total de '*' (en M' y N' combinados) es ≤ 16 → lectura total con readline es más que suficiente; el costo real está en las 2\textasciicircum{}16 combinaciones, no en la entrada.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+
+input = sys.stdin.readline
+
+
+def generate(strings):
+    pos = []            # posiciones donde existen bits desconocidos
+    for i, c in enumerate(strings):
+        if c == '*':
+            pos.append(i)
+    k = len(pos)
+
+    ans = []
+    for mask in range(1 << k):          # cada mascara representa una asignacion distinta de los k bits perdidos
+        cur = strings[:]
+        for j in range(k):
+            if (mask >> j) & 1:
+                cur[pos[j]] = '1'
+            else:
+                cur[pos[j]] = '0'
+        ans.append(''.join(cur))
+    return ans
+
+M = list(input().strip())
+N = list(input().strip())
+
+messages = generate(M)
+divisors = generate(N)
+
+for m in messages:              # probar todas las combinaciones posibles
+    value_m = int(m, 2)
+    for n in divisors:
+        value_n = int(n, 2)
+
+        if value_n == 0:
+            continue            # la division entre cero no existe
+        if value_m % value_n == 0:        # la primera combinacion valida es respuesta
+            print(m)
+            sys.exit()
+\end{lstlisting}

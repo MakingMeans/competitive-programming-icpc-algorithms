@@ -1,0 +1,203 @@
+\section{Construcción y Combinatoria}
+
+\subsection{Algoritmos Constructivos: Invariantes y Paridad}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿El problema pide construir explícitamente una configuración (o probar que es imposible), en vez de optimizar o contar?
+\item ¿Puedo idear una construcción simple (simetrías, intercambios, patrones repetidos) en vez de buscar entre todas las opciones?
+\item ¿La imposibilidad de otros valores se puede demostrar con un invariante (paridad, módulo, suma fija) que ninguna elección puede romper?
+\end{itemize}
+
+¿Para qué sirve? Resolver problemas donde no hace falta ningún algoritmo de búsqueda: basta con proponer una construcción explícita y justificar, con un argumento de invariante, que el resultado contrario (o cualquier otro valor puntual) nunca puede ocurrir sin importar qué elecciones se hagan.
+
+Complejidad: O(n) por caso — construir y emitir la respuesta.
+
+Fundamento teórico: Se particiona \{1,...,n\} en pares consecutivos (2k−1, 2k) y se intercambian entre sí. Cada par contribuye al contador un valor relacionado con V\_k = (2k−1)(2k), que siempre es par; y ese aporte entra a la suma final como −V\_k, 0 o V\_k (las tres opciones son pares). Como la suma de términos pares es par, el resultado nunca puede ser impar — en particular, nunca puede ser 1.
+
+Ejercicio aplicado
+
+(Codeforces 2246A — farmpiggie and Subset Sum) Dado un entero par n, construir una permutación p de longitud n tal que, sin importar qué signo (sumar, restar o ignorar) se le asigne a cada término i·p\_i al acumular un contador, el resultado final nunca pueda ser exactamente 1.
+
+E/S: t ≤ 25, n ≤ 50 (par) → entrada pequeña, readline por línea (patrón 1) es suficiente.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+t = int(input())
+out = []
+for _ in range(t):
+    n = int(input())
+    p = []
+    for i in range(1, n + 1):
+        # empareja (1,2), (3,4), ..., (n-1,n) e intercambia cada pareja:
+        # el aporte de cada pareja al contador siempre es par (ver teoria)
+        if i % 2 == 1:
+            p.append(i + 1)      # posicion impar -> apunta a la siguiente
+        else:
+            p.append(i - 1)      # posicion par -> apunta a la anterior
+    out.append(' '.join(map(str, p)))
+sys.stdout.write('\n'.join(out) + '\n')
+\end{lstlisting}
+
+
+\subsection{Algoritmos Constructivos: Construcción Explícita}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Piden construir explícitamente n valores con una relación de divisibilidad o proporción exacta entre ellos y su suma?
+\item ¿La condición se puede reescribir como una ecuación entre fracciones que deben sumar exactamente 1?
+\item ¿Existe una descomposición numérica conocida (como una fracción egipcia) que se pueda extender o escalar para cualquier n?
+\end{itemize}
+
+¿Para qué sirve? Construir directamente arreglos o valores que cumplan una condición de divisibilidad o proporción exacta, usando descomposiciones numéricas conocidas en vez de búsquedas o heurísticas. Es frecuente en problemas "constructivos" donde la solución es una fórmula cerrada, no un algoritmo de recorrido.
+
+Complejidad: O(n) por caso.
+
+Fundamento teórico: Si cada a\_i = S / k\_i (S = suma total), la condición "S divisible por cada a\_i" equivale a que los k\_i sean enteros positivos distintos con Σ(1/k\_i) = 1. Partiendo de la identidad 1 = 1/2 + 1/3 + 1/6 y extendiendo el término 1/6 con una cadena de potencias de 2, se obtiene una familia de k\_i distintos para cualquier n ≥ 3: la construcción cerrada \{1, 2, 3, 6, 12, 24, ..., 3·2\textasciicircum{}(n−3)\}. Los casos n=1 y n=2 se resuelven aparte (trivial e imposible, respectivamente).
+
+Ejercicio aplicado
+
+(Codeforces 2246B — ezraft and Array) Dado n, construir un arreglo de n enteros positivos distintos tal que la suma total sea divisible por cada uno de sus elementos, o determinar que no es posible.
+
+E/S: t ≤ 50, n ≤ 50 → entrada pequeña, readline por línea (patrón 1).
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+t = int(input())
+out = []
+for _ in range(t):
+    n = int(input())
+    if n == 1:
+        out.append('1')                 # caso base: un unico elemento
+    elif n == 2:
+        out.append('-1')                # a1|a2 y a2|a1 con ambos positivos
+                                         # obliga a1 == a2 (no son distintos)
+    else:
+        # construccion cerrada a partir de 1 = 1/2 + 1/3 + 1/6:
+        # {1, 2} mas una cadena de potencias de 2 escaladas por 3,
+        # que nunca "chocan" con los divisores de 1 o 2
+        vals = [1, 2] + [3 * (1 << k) for k in range(n - 2)]
+        out.append(' '.join(map(str, vals)))
+sys.stdout.write('\n'.join(out) + '\n')
+\end{lstlisting}
+
+
+\subsection{Combinatoria: Conteo por Simetría de Binomios}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Piden contar subconjuntos o subsecuencias que cumplen una condición de suma o balance?
+\item ¿Hay valores repetidos en la entrada, de forma que agruparlos por valor simplifique el conteo?
+\item ¿Se puede usar C(c, par) = C(c, impar) = 2\textasciicircum{}(c-1) para separar el conteo por grupo y combinar con una potencia de 2?
+\end{itemize}
+
+¿Para qué sirve? Contar eficientemente subconjuntos o subsecuencias que satisfacen una condición combinatoria, evitando enumerar los 2\textasciicircum{}n subconjuntos, aprovechando la simetría de los coeficientes binomiales para reducir el problema a una subsecuencia mucho más pequeña: solo los valores distintos.
+
+Complejidad: O(n) por caso (la entrada ya viene no-decreciente).
+
+Fundamento teórico: Dentro de un grupo de c copias iguales, elegir una cantidad par de ellas no cambia la suma alternada acumulada (aporta 0) y elegir una cantidad impar sí la cambia (aporta ±valor). Como C(c,par) = C(c,impar) = 2\textasciicircum{}(c−1), cada grupo aporta el mismo peso sin importar el modo elegido, así que el problema se reduce a contar subconjuntos de suma alternada 0 sobre los valores DISTINTOS, multiplicando el resultado por 2\textasciicircum{}(n−m) al final (m = cantidad de valores distintos). En esa secuencia reducida, agrupando términos de dos en dos se demuestra que la única forma de obtener alternada 0 con más de un elemento es usando exactamente 3 valores: −1 y un par de enteros positivos consecutivos.
+
+Ejercicio aplicado
+
+(Codeforces 2246C — 0mar and Alternating Sums) Dado un arreglo no decreciente de n valores (cada uno −1 o un entero positivo), contar cuántas subsecuencias tienen suma alternada (primer término positivo, segundo negativo, tercero positivo, ...) igual a 0, módulo 10\textasciicircum{}9+7.
+
+E/S: t ≤ 10\textasciicircum{}4, Σn ≤ 2·10\textasciicircum{}5 → volumen moderado; se usa readline por línea (patrón 1), adecuado porque el costo dominante está en el procesamiento O(n), no en la lectura.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+MOD = 10**9 + 7
+ 
+t = int(input())
+out = []
+for _ in range(t):
+    n = int(input())
+    a = list(map(int, input().split()))
+ 
+    # el arreglo ya viene no-decreciente: colapsar a valores distintos.
+    # cada grupo de c repetidos aporta un factor 2^(c-1) independiente
+    # del resto (C(c,par) == C(c,impar) == 2^(c-1))
+    distinct = []
+    for x in a:
+        if not distinct or distinct[-1] != x:
+            distinct.append(x)
+ 
+    m = len(distinct)
+    has_neg1 = 1 if distinct[0] == -1 else 0   # -1 es el unico valor <= 0 posible
+ 
+    pos = [v for v in distinct if v > 0]
+    count_consec = 0
+    for i in range(len(pos) - 1):
+        if pos[i + 1] - pos[i] == 1:            # pares de enteros positivos consecutivos
+            count_consec += 1
+ 
+    # en la secuencia reducida, la suma alternada solo puede dar 0 con:
+    # el subconjunto vacio, o exactamente {-1, v, v+1} para cada pareja
+    # consecutiva (si hay un -1 disponible)
+    reduced = (1 + (count_consec if has_neg1 else 0)) % MOD
+    ans = reduced * pow(2, n - m, MOD) % MOD    # reincorpora los repetidos
+    out.append(str(ans))
+ 
+sys.stdout.write('\n'.join(out) + '\n')
+\end{lstlisting}
+
+
+\subsection{+Verificación de Factibilidad por Invariante de Clases------}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Los elementos están agrupados en clases (colores, tipos) y solo se permiten intercambios DENTRO de la misma clase?
+\item ¿Se pregunta si una configuración objetivo es alcanzable, en vez de contarlas o construirlas?
+\item ¿La clase de cada posición es invariante (no cambia con los intercambios permitidos), y solo importa qué elemento termina en cada posición?
+\end{itemize}
+
+¿Para qué sirve? Verificar si una configuración objetivo es alcanzable cuando las únicas operaciones permitidas son intercambios dentro de una misma clase (color, grupo). Como los intercambios dentro de una clase permiten CUALQUIER permutación entre sus posiciones, el problema se reduce a comparar, para cada posición, si la clase requerida coincide con la clase disponible.
+
+Complejidad: O(n log n) por el ordenamiento.
+
+Fundamento teórico: Intercambiar repetidamente elementos de una misma clase genera el grupo simétrico completo sobre las posiciones de esa clase: cualquier permutación interna es alcanzable. Por lo tanto, la clase (color) de cada posición es un invariante que ningún intercambio permitido puede romper. La configuración ordenada es alcanzable si y solo si, al ordenar los elementos por su valor objetivo, la clase que le corresponde a cada uno coincide con la clase original de esa posición.
+
+Ejercicio aplicado
+
+Una secuencia de n bloques, cada uno con un número distinto (1..n) y un color, se puede reordenar intercambiando bloques del mismo color. Determinar si es posible dejar la secuencia ordenada ascendentemente por número.
+
+E/S: n ≤ 10\textasciicircum{}5 → lectura línea a línea (patrón 1) es aceptable dado que el costo dominante es el ordenamiento, no la lectura.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+def solve():
+    n, k = map(int, input().split())
+    color_at_position = [0] * n     # color de cada posicion (invariante)
+    blocks = []                     # (numero, color) de cada bloque
+    for i in range(n):
+        num, c = map(int, input().split())
+        color_at_position[i] = c
+        blocks.append((num, c))
+ 
+    blocks.sort()                   # ordena por numero: donde deberia quedar cada uno
+    # si el color del bloque que llega a la posicion i coincide con el color
+    # que YA tenia esa posicion, es alcanzable (el color nunca cambia de lugar)
+    ok = all(blocks[i][1] == color_at_position[i] for i in range(n))
+    print('Y' if ok else 'N')
+ 
+solve()
+\end{lstlisting}

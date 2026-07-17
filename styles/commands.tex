@@ -1,0 +1,24 @@
+\newcommand{\codeinline}[1]{\texttt{#1}}
+\newcommand{\topic}[1]{%
+    \vspace{0.5em}
+    \noindent
+    {\large\bfseries\textcolor{TitleBlue}{#1}}
+    \vspace{0.3em}
+}
+\newcommand{\bigO}[1]{\ensuremath{\mathcal{O}(#1)}}
+\newcommand{\pow}[2]{\ensuremath{#1^{#2}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\titleformat{\section}
+  {\Large\bfseries\color{TitleBlue}} % formato
+  {\thesection}                      % número
+  {0.5em}                            % separación
+  {}                                 % antes del título
+\titleformat{\subsection}
+  {\large\bfseries\color{TitleBlue}}
+  {\thesubsection}
+  {0.5em}
+  {}
+% Ignore IEEE numbering for subsubsections
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}

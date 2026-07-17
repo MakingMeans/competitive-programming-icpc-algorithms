@@ -1,0 +1,73 @@
+\section{Estructuras de Datos}
+
+\subsection{Fenwick Tree (Árbol de Índices Binarios / BIT)}
+
+Preguntas guía — ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Necesito sumas o conteos acumulados sobre un rango que cambia con actualizaciones puntuales?
+\item ¿Los updates son de un solo índice y las queries son sobre prefijos o rangos [l, r]?
+\item ¿Si no hay updates "online", puedo resolver offline ordenando las queries (p. ej. por su extremo derecho)?
+\end{itemize}
+
+¿Para qué sirve? Mantener sumas de prefijo (o cualquier operación invertible) sobre un arreglo con actualizaciones puntuales, respondiendo consultas de rango en tiempo logarítmico. Es la base de técnicas como conteo de elementos distintos por rango, inversiones en un arreglo y frecuencias acumuladas.
+
+Complejidad: Construcción \bigO{n}. Update puntual \bigO{log n}. Query de prefijo \bigO{log n}. Espacio \bigO{n}.
+
+Fundamento teórico: Cada posición i del arreglo interno almacena la suma de un bloque de tamaño (i \& -i), el bit menos significativo de i. Al actualizar se "sube" sumando (i \& -i); al consultar un prefijo se "baja" restando (i \& -i). Esto aprovecha la representación binaria de los índices para cubrir cualquier prefijo con solo \bigO{log n} bloques.
+
+Ejercicio aplicado
+
+Dado un arreglo de n números y q consultas (i, j), responder para cada una cuántos valores distintos hay en el subarreglo [i, j]. Técnica: procesar las consultas offline ordenadas por extremo derecho r, recorriendo el arreglo de izquierda a derecha y manteniendo en el BIT un "1" solo en la última aparición de cada valor.
+
+E/S: n ≤ 30 000 y q ≤ 200 000 → hasta \textasciitilde{}430 000 tokens de entrada: se usa lectura total + tokenización (patrón 2) en vez de readline por línea.
+
+Código solución
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def solve():
+    data = sys.stdin.buffer.readline
+    n = int(data())
+    nums = list(map(int, data().split()))
+    q = int(data())
+ 
+    queries = []
+    for i in range(q):
+        l, r = map(int, data().split())
+        queries.append((r, l, i))       # se ordena por r (offline)
+    queries.sort()
+ 
+    bit = [0] * (n + 1)
+ 
+    def update(i, val):
+        while i <= n:
+            bit[i] += val
+            i += i & (-i) 	# ultimo bit encendido
+ 
+    def query(i):
+        res = 0
+        while i > 0:
+            res += bit[i]
+            i -= i & (-i)
+        return res
+ 
+    last = {}                           # ultima posicion vista de cada valor
+    ans = [0] * q
+    cur = 0
+    for r, l, qi in queries:
+        while cur < r:                  # avanza el puntero hasta r
+            cur += 1
+            x = nums[cur - 1]
+            prev = last.get(x)
+            if prev:
+                update(prev, -1)        # desactiva la aparicion anterior
+            update(cur, 1)              # activa la aparicion actual
+            last[x] = cur
+        ans[qi] = query(r) - query(l - 1)
+ 
+    sys.stdout.write("\n".join(map(str, ans)))
+ 
+solve()
+\end{lstlisting}

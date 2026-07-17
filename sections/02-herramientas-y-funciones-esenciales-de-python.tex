@@ -1,0 +1,113 @@
+\section{Herramientas y Funciones Esenciales de Python}
+
+Funciones y módulos de la librería estándar que aparecen todo el tiempo en soluciones de ICPC. No son algoritmos en sí, pero escribir código correcto y rápido depende de conocerlas bien.
+
+enumerate(), zip(), iter(), any() / all(), reversed()
+
+enumerate(it, start=0) recorre con índice sin llevar un contador aparte; zip(a, b, ...) recorre varias listas en paralelo y se detiene en la más corta; iter(x) crea un iterador manual útil para consumir tokens uno a uno; any()/all() verifican una condición sobre un iterable, cortando en cuanto se decide el resultado; reversed(seq) recorre de atrás hacia adelante sin copiar la secuencia.
+
+\begin{lstlisting}[language=Python]
+for i, x in enumerate(arr):        # i arranca en 0
+    ...
+for i, x in enumerate(arr, 1):     # i arranca en 1 (util en 1-indexado)
+    ...
+ 
+for x, y in zip(a, b):             # recorre a y b en paralelo
+    ...
+pares = list(zip(a, b))            # combina en tuplas (a[i], b[i])
+ 
+it = iter(data)                    # consumir tokens sin indice manual
+n = int(next(it))
+arr = [int(next(it)) for _ in range(n)]
+ 
+if any(x % 2 == 0 for x in arr):   # hay al menos un par
+    ...
+if all(x > 0 for x in arr):        # todos son positivos
+    ...
+ 
+for x in reversed(arr):            # recorre de atras hacia adelante
+    ...                            # (mas barato que arr[::-1], no copia)
+\end{lstlisting}
+
+Expresiones regulares (módulo re)
+
+Útiles para extraer números o tokens de strings con formato irregular, validar patrones, o separar por delimitadores complejos. Funciones clave: re.match (busca solo al inicio), re.search (busca en cualquier parte, primer match), re.findall (todas las coincidencias como lista), re.sub (reemplaza) y re.split (separa usando el patrón como delimitador).
+
+Patrones comunes: \textbackslash{}d dígito, \textbackslash{}D no-dígito, \textbackslash{}w alfanumérico + guion bajo, \textbackslash{}s espacio en blanco; + una o más, * cero o más, ? cero o una, \{n,m\} entre n y m repeticiones; [...] conjunto de caracteres, [\textasciicircum{}...] negación; \textasciicircum{} inicio y \$ fin de string; (...) grupo de captura.
+
+\begin{lstlisting}[language=Python]
+import re
+ 
+nums = re.findall(r'-?\d+', s)        # todos los enteros (con signo) del string
+nums = list(map(int, nums))
+ 
+tokens = re.split(r'\s+', s.strip())  # separa por cualquier cantidad de espacios
+ 
+m = re.match(r'^(\d+)-(\d+)$', s)    # valida "3-5" y captura ambos numeros
+if m:
+    a, b = int(m.group(1)), int(m.group(2))
+ 
+limpio = re.sub(r'[^a-zA-Z0-9]', '', s)  # deja solo alfanumericos
+\end{lstlisting}
+
+dict y defaultdict
+
+defaultdict evita chequear si una clave existe antes de usarla: crea automáticamente un valor por defecto (int → 0, list → [], set → vacío) la primera vez que se accede a una clave nueva.
+
+\begin{lstlisting}[language=Python]
+from collections import defaultdict
+ 
+freq = {}
+freq[x] = freq.get(x, 0) + 1        # patron clasico sin defaultdict
+ 
+freq = defaultdict(int)             # no hace falta chequear si la clave existe
+freq[x] += 1
+ 
+grupos = defaultdict(list)          # agrupar elementos por clave
+for x in arr:
+    grupos[x % 3].append(x)
+ 
+freq.get(x, valor_default)          # no lanza KeyError si x no existe
+x in freq                           # O(1) para chequear existencia
+sorted(freq.items(), key=lambda kv: -kv[1])  # ordenar por frecuencia desc
+\end{lstlisting}
+
+replace() y split()
+
+\begin{lstlisting}[language=Python]
+s.replace("a", "b")        # reemplaza TODAS las ocurrencias de "a" por "b"
+s.replace("a", "b", 1)     # reemplaza solo la primera ocurrencia
+ 
+s.split()                  # separa por espacios en blanco (ignora vacios)
+s.split(",")                # separa por delimitador exacto (puede dar strings vacios)
+s.strip()                  # quita espacios/saltos de linea al inicio y final
+s.split("\n")              # separar por lineas manualmente
+\end{lstlisting}
+
+Precisión de números y formatos
+
+round() puede fallar por representación binaria de decimales; para imprimir con una cantidad exacta de decimales es más seguro formatear directamente. Cuando el punto flotante no alcanza (aritmética exacta con fracciones), usar el módulo fractions.
+
+\begin{lstlisting}[language=Python]
+round(3.14159, 2)          # 3.14 (cuidado: no siempre es exacto)
+f"{x:.2f}"                 # formatea con exactamente 2 decimales
+f"{x:.10f}"                # 10 decimales, util si el juez pide tolerancia 1e-9
+ 
+from fractions import Fraction    # aritmetica EXACTA con fracciones
+Fraction(1, 3) + Fraction(1, 6)   # -> Fraction(1, 2), sin error de redondeo
+ 
+x // y                     # division entera, redondea hacia -infinito
+-7 // 2                    # -4 (no -3): distinto a otros lenguajes
+\end{lstlisting}
+
+sys.setrecursionlimit(n)
+
+\begin{lstlisting}[language=Python]
+import sys
+sys.setrecursionlimit(200000)   # el limite por defecto (~1000) es muy bajo
+                                 # para DFS recursivo en grafos/arboles grandes
+ 
+# aun asi, Python puede hacer stack overflow real (crash) con recursion muy
+# profunda (~10^4-10^5), sin importar el limite configurado. Para n grande,
+# preferir SIEMPRE DFS iterativo con pila explicita (ver seccion II, SCC).
+\end{lstlisting}

@@ -1,0 +1,67 @@
+\section{Entrada/Salida Rápida en Python}
+
+Antes de entrar en los algoritmos: en Python la I/O es el cuello de botella más común en ICPC. Estas son las 4 situaciones típicas y el patrón recomendado para cada una.
+
+\subsection{Lectura línea a línea (caso general)}
+
+Cuando cada línea tiene una cantidad de datos conocida y el número de líneas no es extremo (hasta \pow{10}{5}). Es el patrón por defecto.
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+n = int(input())
+arr = list(map(int, input().split()))
+\end{lstlisting}
+
+\subsection{Lectura total + tokenización (máxima velocidad)}
+
+Cuando hay muchísimos números sueltos (\pow{10}{5}--\pow{10}{6}+) sin importar en cuántas líneas están repartidos. Es la forma más rápida en Python: una sola llamada al sistema.
+
+\begin{lstlisting}[language=Python]
+import sys
+data = sys.stdin.buffer.read().split()
+idx = 0
+n = int(data[idx]); idx += 1
+arr = list(map(int, data[idx:idx + n])); idx += n
+\end{lstlisting}
+
+\subsection{Casos con centinela / bandera}
+
+El input termina cuando aparece un valor especial (p. ej. "0 0"). No se sabe de antemano cuántos casos hay.
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+while True:
+    a, b = map(int, input().split())
+    if a == 0 and b == 0:   # centinela de fin
+        break
+    # ... procesar caso ...
+\end{lstlisting}
+
+\subsection{Casos hasta EOF (sin contador T)}
+
+No hay número de casos declarado; se procesa hasta que el flujo se acaba.
+
+\begin{lstlisting}[language=Python]
+import sys
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    # ... procesar linea ...
+# alternativa igual de rapida:
+# data = sys.stdin.buffer.read().split()
+# idx = 0
+# while idx < len(data): ...
+\end{lstlisting}
+
+\subsection{Salida rápida}
+
+Nunca usar print() dentro de un loop grande: acumula resultados en una lista y escribe todo de una sola vez.
+
+\begin{lstlisting}[language=Python]
+ans = []
+# ans.append(resultado) dentro del loop
+sys.stdout.write("\n".join(map(str, ans)) + "\n")
+\end{lstlisting}
