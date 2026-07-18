@@ -1,0 +1,299 @@
+\subsection{Diccionarios: dict, defaultdict y Counter}
+
+Los diccionarios son una de las estructuras de datos más utilizadas en programación competitiva. 
+Permiten almacenar pares \texttt{clave : valor} con acceso promedio en tiempo constante.
+
+En Python, la implementación utiliza una tabla hash, por lo que la mayoría de operaciones tienen complejidad promedio
+\bigO{1} aunque en el peor caso pueden degradarse a \bigO{n}
+
+si existen muchas colisiones.
+
+\vspace{0.3cm}
+
+\subsubsection{Crear un diccionario}
+
+\begin{lstlisting}[language=Python]
+freq = {}
+persona = {"nombre": "David", "edad": 20}
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Acceso y recuperación}
+
+Acceder directamente mediante corchetes genera un \texttt{KeyError} si la clave no existe.
+
+\begin{lstlisting}[language=Python]
+x = freq["a"]
+\end{lstlisting}
+
+Por ello normalmente es preferible utilizar \texttt{get()}.
+
+\begin{lstlisting}[language=Python]
+freq.get("a")
+freq.get("a", 0)
+freq.get("a", [])
+\end{lstlisting}
+
+\vspace{0.2cm}
+
+Las funciones principales de recuperación son:
+
+\begin{center}
+\begin{tabular}{|l|p{6cm}|}
+\hline
+Función & Descripción \\ \hline
+get() & Obtiene un valor sin lanzar excepción. \\ \hline
+keys() & Devuelve todas las claves. \\ \hline
+values() & Devuelve todos los valores. \\ \hline
+items() & Devuelve pares (clave, valor). \\ \hline
+\end{tabular}
+\end{center}
+
+Ejemplos:
+
+\begin{lstlisting}[language=Python]
+for k in freq.keys():
+    ...
+for v in freq.values():
+    ...
+for k, v in freq.items():
+    ...
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Modificar un diccionario}
+
+Insertar o modificar una clave.
+
+\begin{lstlisting}[language=Python]
+freq["a"] = 5
+\end{lstlisting}
+
+Actualizar múltiples valores.
+
+\begin{lstlisting}[language=Python]
+a = {"x":1}; b = {"y":2}
+a.update(b)
+\end{lstlisting}
+
+Crear una clave únicamente si no existe.
+
+\begin{lstlisting}[language=Python]
+freq.setdefault("python", [])
+freq["python"].append(10)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Eliminar elementos}
+
+Eliminar una clave.
+
+\begin{lstlisting}[language=Python]
+freq.pop("a")
+\end{lstlisting}
+
+Eliminar devolviendo un valor por defecto.
+
+\begin{lstlisting}[language=Python]
+freq.pop("a", 0)
+\end{lstlisting}
+
+Eliminar el último elemento insertado.
+
+\begin{lstlisting}[language=Python]
+freq.popitem()
+\end{lstlisting}
+
+Vaciar completamente el diccionario.
+
+\begin{lstlisting}[language=Python]
+freq.clear()
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Funciones integradas}
+
+Cantidad de elementos.
+
+\begin{lstlisting}[language=Python]
+len(freq)
+\end{lstlisting}
+
+Copiar un diccionario.
+
+\begin{lstlisting}[language=Python]
+nuevo = freq.copy()
+\end{lstlisting}
+
+Comprobar existencia.
+
+\begin{lstlisting}[language=Python]
+if "python" in freq:
+    ...
+\end{lstlisting}
+
+Eliminar una copia sin modificar el original.
+
+\begin{lstlisting}[language=Python]
+nuevo = dict(freq)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Ordenar un diccionario}
+
+Ordenar por clave.
+
+\begin{lstlisting}[language=Python]
+sorted(freq.items())
+\end{lstlisting}
+
+Ordenar por valor.
+
+\begin{lstlisting}[language=Python]
+sorted(freq.items(), key=lambda kv: kv[1])
+\end{lstlisting}
+
+Orden descendente.
+
+\begin{lstlisting}[language=Python]
+sorted(freq.items(), key=lambda kv: -kv[1])
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{defaultdict}
+
+Normalmente antes de incrementar una frecuencia se necesita comprobar si la clave existe.
+
+\begin{lstlisting}[language=Python]
+freq = {}
+freq[x] = freq.get(x, 0) + 1
+\end{lstlisting}
+
+Con \texttt{defaultdict} esto desaparece.
+
+\begin{lstlisting}[language=Python]
+from collections import defaultdict
+
+freq = defaultdict(int)
+
+freq[x] += 1
+\end{lstlisting}
+
+También puede utilizarse para listas.
+
+\begin{lstlisting}[language=Python]
+grupos = defaultdict(list)
+for x in arr:
+    grupos[x % 3].append(x)
+\end{lstlisting}
+
+Con conjuntos.
+
+\begin{lstlisting}[language=Python]
+adj = defaultdict(set)
+adj[u].add(v)
+\end{lstlisting}
+
+Y con cualquier función.
+
+\begin{lstlisting}[language=Python]
+from collections import defaultdict
+d = defaultdict(lambda: -1)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Counter}
+
+Cuando únicamente interesa contar frecuencias, la clase \texttt{Counter} simplifica mucho el código.
+
+\begin{lstlisting}[language=Python]
+from collections import Counter
+freq = Counter(arr)
+\end{lstlisting}
+
+Obtener el elemento más frecuente.
+
+\begin{lstlisting}[language=Python]
+freq.most_common(1)
+\end{lstlisting}
+
+Los tres más frecuentes.
+
+\begin{lstlisting}[language=Python]
+freq.most_common(3)
+\end{lstlisting}
+
+Frecuencia de un elemento.
+
+\begin{lstlisting}[language=Python]
+freq[x]
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Aplicaciones frecuentes en ICPC}
+
+Contar frecuencias.
+\begin{lstlisting}[language=Python]
+freq = defaultdict(int)
+for x in arr:
+    freq[x] += 1
+\end{lstlisting}
+
+Agrupar elementos.
+\begin{lstlisting}[language=Python]
+g = defaultdict(list)
+for x in arr:
+    g[x % k].append(x)
+\end{lstlisting}
+
+Construir listas de adyacencia.
+\begin{lstlisting}[language=Python]
+adj = defaultdict(list)
+for u, v in edges:
+    adj[u].append(v)
+\end{lstlisting}
+
+Construir grafos sin comprobar existencia.
+
+\begin{lstlisting}[language=Python]
+adj = defaultdict(set)
+adj[u].add(v)
+\end{lstlisting}
+
+Contar caracteres.
+
+\begin{lstlisting}[language=Python]
+Counter(s)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection*{Resumen}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Función & Uso principal \\ \hline
+get() & Obtener valor sin KeyError \\ \hline
+keys() & Recorrer claves \\ \hline
+values() & Recorrer valores \\ \hline
+items() & Recorrer clave y valor \\ \hline
+update() & Actualizar con otro diccionario \\ \hline
+setdefault() & Crear si no existe \\ \hline
+pop() & Eliminar una clave \\ \hline
+popitem() & Eliminar último elemento \\ \hline
+clear() & Vaciar el diccionario \\ \hline
+copy() & Copia superficial \\ \hline
+len() & Número de elementos \\ \hline
+defaultdict & Valor por defecto automático \\ \hline
+Counter & Conteo automático de frecuencias \\ \hline
+\end{tabular}
+\end{center}

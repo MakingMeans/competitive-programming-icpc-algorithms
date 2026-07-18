@@ -1,0 +1,70 @@
+\subsection{Circuito Euleriano (Algoritmo de Hierholzer)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden recorrer TODAS las aristas exactamente una vez (no todos los nodos, como en Hamiltoniano)?
+\item ¿Se pide un camino o circuito que use cada calle/arista una sola vez?
+\item ¿Puedo verificar rápido la condición de existencia (grados pares para circuito; 0 ó 2 nodos de grado impar para camino) antes de construir la ruta?
+\end{itemize}
+
+\graybold{Utilidad:} Encontrar un recorrido que use cada arista del grafo exactamente una vez (circuito o camino euleriano). Aplicaciones: rutas de reparto/barrido que cubren todas las calles, o cualquier problema de "recorrer cada arista una vez".
+
+\graybold{Complejidad:} O(V + E) con la versión iterativa basada en pila (evita recursión y eliminaciones costosas de aristas).
+
+\graybold{Fundamento teórico:} Existe circuito euleriano si y solo si el grafo es conexo (en aristas) y todos los vértices tienen grado par. El algoritmo de Hierholzer avanza por aristas no usadas hasta atascarse; en ese momento inserta el vértice atascado en la ruta final y retrocede. El resultado, leído en el orden en que se van "atascando" los vértices, es un circuito válido.
+
+\graybold{Ejercicio aplicado}
+
+Dado un mapa de n cruces y m calles bidireccionales, hallar una ruta que empiece y termine en el cruce 1 (oficina postal) y recorra cada calle exactamente una vez, o determinar que es "IMPOSSIBLE".
+
+\graybold{I/O:} n ≤ 10\textasciicircum{}5, m ≤ 2·10\textasciicircum{}5 → lectura total + tokenización (patrón 2). Se evita adj.erase()/remove() (O(n) por operación, como en la versión C++ original) usando un arreglo de punteros ptr[] que salta aristas usadas: así la eliminación es O(1) amortizado.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); m = int(data[idx + 1]); idx += 2
+ 
+    adj = [[] for _ in range(n + 1)]
+    deg = [0] * (n + 1)
+    for e in range(m):
+        a = int(data[idx]); b = int(data[idx + 1]); idx += 2
+        adj[a].append((b, e))
+        adj[b].append((a, e))        # grafo no dirigido: ambos sentidos (e es id de arista)
+        deg[a] += 1
+        deg[b] += 1
+ 
+    if deg[1] == 0 or any(deg[v] % 2 for v in range(1, n + 1)):
+        print("IMPOSSIBLE")
+        return
+ 
+    used = [False] * m
+    ptr = [0] * (n + 1)              # guarda las ids de las aristas
+    path = []
+    stack = [1]
+    while stack:
+        v = stack[-1]
+        while ptr[v] < len(adj[v]) and used[adj[v][ptr[v]][1]]:
+            ptr[v] += 1                 # salta aristas ya usadas (O(1) amortizado)
+        if ptr[v] == len(adj[v]):       # reviso todas las aristas de v y no queda ninguna disponible
+            path.append(v)
+            stack.pop()
+        else:
+            u, eid = adj[v][ptr[v]]
+            used[eid] = True
+            stack.append(u)             # avanza por la arista disponible
+ 
+    if len(path) - 1 != m:              # no se recorrieron todas las aristas
+        print("IMPOSSIBLE")
+        return
+ 
+    sys.stdout.write(" ".join(map(str, path)))
+ 
+ 
+solve()
+\end{lstlisting}

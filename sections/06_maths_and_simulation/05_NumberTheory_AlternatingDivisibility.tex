@@ -1,0 +1,60 @@
+\subsection{+Teoría de Números: Regla de Divisibilidad Alternada----}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El problema pide verificar o forzar divisibilidad por (base ± 1) de un número representado por dígitos?
+\item ¿Se puede aprovechar que base ≡ −1 (mod base+1), lo que convierte la suma ponderada de dígitos en una suma ALTERNADA módulo (base+1)?
+\item ¿Se pide además construir/ajustar un dígito específico para lograr esa divisibilidad?
+\end{itemize}
+
+\graybold{Utilidad:} Generalizar la clásica regla de divisibilidad por 11 en base 10 (suma alterna de dígitos) a cualquier base B, para verificar o forzar divisibilidad por B+1 sin operar con el número completo (que puede tener hasta 2·10\textasciicircum{}5 dígitos).
+
+\graybold{Complejidad:} O(L), con L = cantidad de dígitos.
+
+\graybold{Fundamento teórico:} Como B ≡ −1 (mod B+1), cada potencia B\textasciicircum{}i ≡ (−1)\textasciicircum{}i (mod B+1). Por lo tanto, el valor del número módulo B+1 es exactamente la suma alternada de sus dígitos (sumando los de posición par, restando los de posición impar). Para forzar que esa suma sea 0 módulo B+1 cambiando un solo dígito D\_i por un valor MENOR, se despeja cuánto debe valer ese dígito para anular el residuo actual, y se verifica que el nuevo valor sea válido (entre 0 y el dígito original, sin aumentarlo).
+
+\graybold{Ejercicio aplicado}
+
+Dado un número N de L dígitos en base B, encontrar un dígito que se pueda reducir (nunca aumentar) para que el número resultante sea múltiplo de B+1, priorizando el menor valor final posible, o determinar que no existe solución.
+
+\graybold{I/O:} L ≤ 2·10\textasciicircum{}5 → aunque el código usa input() estándar por simplicidad (ya venía así y funciona), para esta escala también sería válido leer con sys.stdin.buffer.read().split() (patrón 2) si se buscara el máximo rendimiento.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+# Lee la base B y la cantidad de digitos L
+basedig = list(map(int, input().split()))
+nums = list(map(int, input().split()))   # digitos D_1..D_L, de mas a menos significativo
+ 
+base = basedig[0]
+div = basedig[0] + 1                     # queremos que N sea multiplo de base+1
+dig = basedig[1]                         # L = cantidad de digitos
+ 
+# suma alternada de digitos == N mod (base+1), porque base = -1 mod (base+1)
+n = 0
+for i in range(len(nums)):
+    if (dig - 1 - i) % 2 == 0:
+        n += nums[i]
+    else:
+        n -= nums[i]
+n %= div
+ 
+if n == 0:
+    print("0 0")                         # ya es multiplo, no hace falta cambiar nada
+    exit()
+ 
+# buscar el primer digito (de izquierda a derecha) que se pueda REDUCIR
+# para anular el residuo n, segun la paridad de su posicion
+res = 0
+for i in range(len(nums)):
+    if (dig - 1 - i) % 2 == 0:
+        res = n                          # esta posicion suma: hay que restarle 'n'
+    else:
+        res = div - n                    # esta posicion resta: se compensa distinto
+    if 1 <= res <= nums[i]:              # solo vale si es una reduccion real (no negativa)
+        print(f"{i + 1} {nums[i] - res}")
+        exit()
+ 
+print("-1 -1")                           # ningun digito puede arreglarlo
+\end{lstlisting}

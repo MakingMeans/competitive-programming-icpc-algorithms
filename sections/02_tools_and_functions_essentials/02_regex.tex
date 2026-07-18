@@ -1,0 +1,212 @@
+\subsection{Expresiones Regulares (módulo re)}
+
+El módulo \texttt{re} permite buscar, validar, reemplazar y extraer información de cadenas mediante patrones.
+
+En programación competitiva suele utilizarse cuando la entrada posee un formato irregular, contiene separadores complejos o es necesario validar cadenas.
+
+\begin{lstlisting}[language=Python]
+import re
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Funciones principales}
+
+\begin{center}
+\begin{tabular}{|l|p{5cm}|}
+\hline
+Función & Descripción \\ \hline
+re.match() & Busca únicamente al inicio del string. \\ \hline
+re.search() & Busca la 1ra coincidencia en cualquier posición. \\ \hline
+re.findall() & Devuelve todas las coincidencias en una lista. \\ \hline
+re.finditer() & Devuelve un iter con todos los matches. \\ \hline
+re.fullmatch() & Verifica que toda la cadena cumpla patrón. \\ \hline
+re.sub() & Reemplaza coincidencias. \\ \hline
+re.split() & Divide una cadena utilizando un patrón. \\ \hline
+re.compile() & Compila una regex para reutilizarla. \\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{0.3cm}
+
+\subsubsection{Símbolos más utilizados}
+
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+Patrón & Significado \\ \hline
+. & Cualquier carácter excepto salto de línea \\ \hline
+\regex{\textbackslash d} & Dígito \\ \hline
+\regex{\textbackslash D} & No dígito \\ \hline
+\regex{\textbackslash w} & Letra, número o \_ \\ \hline
+\regex{\textbackslash W} & No alfanumérico \\ \hline
+\regex{\textbackslash s} & Espacio en blanco \\ \hline
+\regex{\textbackslash S} & No espacio \\ \hline
++ & Una o más repeticiones \\ \hline
+* & Cero o más repeticiones \\ \hline
+? & Cero o una repetición \\ \hline
+\{n\} & Exactamente n repeticiones \\ \hline
+\{n,m\} & Entre n y m repeticiones \\ \hline
+[] & Conjunto de caracteres \\ \hline
+[\^{}] & Negación del conjunto \\ \hline
+() & Grupo de captura \\ \hline
+(?:) & Grupo sin captura \\ \hline
+| & OR lógico \\ \hline
+\^{} & Inicio del string \\ \hline
+\$ & Final del string \\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{0.3cm}
+
+\subsubsection{Ejemplos básicos}
+
+\begin{lstlisting}[language=Python]
+import re
+nums = re.findall(r'-?\d+', s)
+nums = list(map(int, nums))
+tokens = re.split(r'\s+', s.strip())
+m = re.match(r'^(\d+)-(\d+)$', s)
+if m:
+    a = int(m.group(1))
+    b = int(m.group(2))
+limpio = re.sub(r'[^a-zA-Z0-9]', '', s)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Patrones útiles para ICPC}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Patrón & Detecta \\ \hline
+\texttt{\textbackslash d+} & Enteros positivos \\ \hline
+\texttt{-?\textbackslash d+} & Enteros con signo \\ \hline
+\texttt{\textbackslash d+\textbackslash.\textbackslash d+} & Números decimales \\ \hline
+\texttt{[A-Za-z]+} & Palabras \\ \hline
+\texttt{[A-Za-z0-9]+} & Alfanuméricos \\ \hline
+\texttt{[aeiou]} & Vocales \\ \hline
+\regex{[\string^aeiou]} & Todo excepto vocales \\ \hline
+\texttt{\textbackslash s+} & Uno o más espacios \\ \hline
+\texttt{\textbackslash w+} & Identificadores \\ \hline
+\texttt{.+} & Cualquier texto \\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{0.3cm}
+
+\subsubsection{Combinaciones frecuentes}
+
+Extraer todos los enteros.
+
+\begin{lstlisting}[language=Python]
+re.findall(r'-?\d+', s)
+\end{lstlisting}
+
+Extraer únicamente números positivos.
+
+\begin{lstlisting}[language=Python]
+re.findall(r'\d+', s)
+\end{lstlisting}
+
+Extraer palabras.
+
+\begin{lstlisting}[language=Python]
+re.findall(r'[A-Za-z]+', s)
+\end{lstlisting}
+
+Extraer palabras y números.
+
+\begin{lstlisting}[language=Python]
+re.findall(r'\w+', s)
+\end{lstlisting}
+
+Separar por múltiples espacios.
+
+\begin{lstlisting}[language=Python]
+re.split(r'\s+', s.strip())
+\end{lstlisting}
+
+Eliminar caracteres especiales.
+
+\begin{lstlisting}[language=Python]
+re.sub(r'[^A-Za-z0-9]', '', s)
+\end{lstlisting}
+
+Eliminar espacios repetidos.
+
+\begin{lstlisting}[language=Python]
+re.sub(r'\s+', ' ', s)
+\end{lstlisting}
+
+Validar un correo electrónico sencillo.
+
+\begin{lstlisting}[language=Python]
+re.fullmatch(r'\w+@\w+\.\w+', s)
+\end{lstlisting}
+
+Validar una fecha DD/MM/AAAA.
+
+\begin{lstlisting}[language=Python]
+re.fullmatch(r'\d{2}/\d{2}/\d{4}', s)
+\end{lstlisting}
+
+Validar un entero.
+
+\begin{lstlisting}[language=Python]
+re.fullmatch(r'-?\d+', s)
+\end{lstlisting}
+
+Buscar únicamente al inicio.
+
+\begin{lstlisting}[language=Python]
+re.match(r'ICPC', s)
+\end{lstlisting}
+
+Buscar en cualquier posición.
+
+\begin{lstlisting}[language=Python]
+re.search(r'ICPC', s)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Compilar una expresión regular}
+
+Cuando un mismo patrón será utilizado muchas veces, es recomendable compilarlo una única vez.
+Esto evita recompilar la expresión regular en cada llamada.
+
+\begin{lstlisting}[language=Python]
+pat = re.compile(r'-?\d+')
+for linea in texto:
+    nums = pat.findall(linea)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Complejidad}
+
+La mayoría de operaciones tienen complejidad aproximadamente \bigO{n}
+respecto al tamaño del texto, aunque algunos patrones muy complejos pueden provocar retroceso (\textit{backtracking}) y aumentar considerablemente el tiempo de ejecución.
+
+En problemas de ICPC normalmente se utilizan patrones simples, por lo que el rendimiento suele ser lineal.
+
+\vspace{0.3cm}
+
+\subsubsection*{Resumen}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Función & Uso principal \\ \hline
+match & Buscar al inicio \\ \hline
+search & Buscar primera coincidencia \\ \hline
+findall & Obtener todas las coincidencias \\ \hline
+finditer & Iterar sobre coincidencias \\ \hline
+fullmatch & Validar una cadena completa \\ \hline
+split & Separar mediante un patrón \\ \hline
+sub & Reemplazar texto \\ \hline
+compile & Reutilizar un patrón \\ \hline
+\end{tabular}
+\end{center}

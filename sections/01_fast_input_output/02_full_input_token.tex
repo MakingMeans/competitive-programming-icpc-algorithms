@@ -1,0 +1,12 @@
+\subsection{Lectura total + tokenización (máxima velocidad)}
+
+Cuando hay muchísimos números sueltos (\pow{10}{5}--\pow{10}{6}+) sin importar en cuántas líneas están repartidos. 
+Es la forma más rápida en Python, ya que es una sola llamada al sistema.
+
+\begin{lstlisting}[language=Python]
+import sys
+data = sys.stdin.buffer.read().split()
+idx = 0 # el idx es lo que recorre el arreglo de tokens
+n = int(data[idx]); idx += 1
+arr = list(map(int, data[idx:idx + n])); idx += n
+\end{lstlisting}

@@ -1,0 +1,87 @@
+\subsection{Componentes Fuertemente Conexas (Algoritmo de Kosaraju)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Es un grafo dirigido y preguntan por "grupos" donde todo par de nodos es mutuamente alcanzable?
+\item ¿Necesito "condensar" el grafo (contraer cada componente en un nodo) para trabajar luego sobre un DAG?
+\item ¿n puede ser grande (\textasciitilde{}10\textasciicircum{}5), por lo que hay que evitar recursión profunda en Python?
+\end{itemize}
+
+\graybold{Utilidad:} Particionar un grafo dirigido en componentes fuertemente conexas (SCC): subconjuntos maximales donde cada nodo puede llegar a cualquier otro del mismo subconjunto. Es la base para condensar grafos, resolver 2-SAT y detectar ciclos mutuos.
+
+\graybold{Complejidad:} O(V + E) tiempo y espacio (dos recorridos DFS).
+
+\graybold{Fundamento teórico:} Kosaraju usa dos pasadas de DFS: (1) en el grafo original, registrar el orden de finalización (postorden) de cada nodo; (2) en el grafo transpuesto (aristas invertidas), recorrer los nodos en orden inverso de finalización. Cada árbol de DFS resultante en esta segunda pasada es exactamente una SCC, porque invertir las aristas separa los componentes que antes solo eran alcanzables en una dirección.
+
+\graybold{Ejercicio aplicado}
+
+Un juego tiene n planetas conectados por m teletransportadores dirigidos. Dos planetas pertenecen al mismo "reino" si hay ruta en ambos sentidos entre ellos. Determinar, para cada planeta, a qué reino pertenece.
+
+\graybold{I/O:} n ≤ 10\textasciicircum{}5 y m ≤ 2·10\textasciicircum{}5 → lectura total + tokenización (patrón 2). Además, el DFS se implementa de forma iterativa (con pila explícita) para evitar RecursionError en Python con grafos grandes.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def kosaraju(n, adj):
+    visited = [False] * n
+    order = []                  # orden de finalizacion (postorden)
+    for s in range(n):
+        if visited[s]:
+            continue
+        visited[s] = True
+        stack = [(s, iter(adj[s]))]        # iterador recuerda donde va en i parte de la lista 
+        while stack:
+            node, it = stack[-1]
+            advanced = False
+            for nxt in it:               # DFS iterativo con iteradores
+                if not visited[nxt]:
+                    visited[nxt] = True
+                    stack.append((nxt, iter(adj[nxt])))
+                    advanced = True
+                    break
+            if not advanced:             # no quedan vecinos: cierra el nodo
+                order.append(node)
+                stack.pop()
+ 
+    radj = [[] for _ in range(n)]        # grafo transpuesto (aristas invertidas)
+    for u in range(n):
+        for v in adj[u]:
+            radj[v].append(u)
+ 
+    comp = [0] * n
+    visited = [False] * n
+    c = 0
+    for node in reversed(order):        # orden inverso de finalizacion
+        if visited[node]:
+            continue
+        c += 1
+        visited[node] = True
+        comp[node] = c
+        stack = [node]
+        while stack:
+            u = stack.pop()
+            for v in radj[u]:
+                if not visited[v]:
+                    visited[v] = True
+                    comp[v] = c
+                    stack.append(v)
+    return c, comp
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); m = int(data[idx + 1]); idx += 2
+    adj = [[] for _ in range(n)]
+    for _ in range(m):
+        a = int(data[idx]); b = int(data[idx + 1]); idx += 2
+        adj[a - 1].append(b - 1)
+ 
+    k, comp = kosaraju(n, adj)
+    out = [str(k), " ".join(map(str, comp))]
+    sys.stdout.write("\n".join(out))
+ 
+solve()
+\end{lstlisting}

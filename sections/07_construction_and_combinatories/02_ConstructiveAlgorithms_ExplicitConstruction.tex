@@ -1,0 +1,45 @@
+\subsection{Algoritmos Constructivos: Construcción Explícita}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden construir explícitamente n valores con una relación de divisibilidad o proporción exacta entre ellos y su suma?
+\item ¿La condición se puede reescribir como una ecuación entre fracciones que deben sumar exactamente 1?
+\item ¿Existe una descomposición numérica conocida (como una fracción egipcia) que se pueda extender o escalar para cualquier n?
+\end{itemize}
+
+\graybold{Utilidad:} Construir directamente arreglos o valores que cumplan una condición de divisibilidad o proporción exacta, usando descomposiciones numéricas conocidas en vez de búsquedas o heurísticas. Es frecuente en problemas "constructivos" donde la solución es una fórmula cerrada, no un algoritmo de recorrido.
+
+\graybold{Complejidad:} O(n) por caso.
+
+\graybold{Fundamento teórico:} Si cada a\_i = S / k\_i (S = suma total), la condición "S divisible por cada a\_i" equivale a que los k\_i sean enteros positivos distintos con Σ(1/k\_i) = 1. Partiendo de la identidad 1 = 1/2 + 1/3 + 1/6 y extendiendo el término 1/6 con una cadena de potencias de 2, se obtiene una familia de k\_i distintos para cualquier n ≥ 3: la construcción cerrada \{1, 2, 3, 6, 12, 24, ..., 3·2\textasciicircum{}(n−3)\}. Los casos n=1 y n=2 se resuelven aparte (trivial e imposible, respectivamente).
+
+\graybold{Ejercicio aplicado}
+
+(Codeforces 2246B - ezraft and Array) Dado n, construir un arreglo de n enteros positivos distintos tal que la suma total sea divisible por cada uno de sus elementos, o determinar que no es posible.
+
+\graybold{I/O:} t ≤ 50, n ≤ 50 → entrada pequeña, readline por línea (patrón 1).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+t = int(input())
+out = []
+for _ in range(t):
+    n = int(input())
+    if n == 1:
+        out.append('1')                 # caso base: un unico elemento
+    elif n == 2:
+        out.append('-1')                # a1|a2 y a2|a1 con ambos positivos
+                                         # obliga a1 == a2 (no son distintos)
+    else:
+        # construccion cerrada a partir de 1 = 1/2 + 1/3 + 1/6:
+        # {1, 2} mas una cadena de potencias de 2 escaladas por 3,
+        # que nunca "chocan" con los divisores de 1 o 2
+        vals = [1, 2] + [3 * (1 << k) for k in range(n - 2)]
+        out.append(' '.join(map(str, vals)))
+sys.stdout.write('\n'.join(out) + '\n')
+\end{lstlisting}

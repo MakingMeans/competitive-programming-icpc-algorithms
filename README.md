@@ -1,6 +1,6 @@
-# Notebook Algoritmos ICPC Python
+# Notebook Algoritmos ICPC
 
-Proyecto LaTeX en formato IEEEtran convertido desde `docs/Notebook Algoritmos ICPC Python.docx`.
+Proyecto LaTeX en formato IEEEtran, con el fin de guardar y documentar algoritmos eficientes para ICPC.
 
 ## Estructura
 
@@ -19,7 +19,7 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 
 ## Overleaf
 
-Sube la carpeta completa `Notebook-ICPC/` a Overleaf y configura `main.tex` como archivo principal.
+Subir el proyecto completo comprimido en .zip a Overleaf y configura `main.tex` como archivo principal.
 
 ## GitHub
 

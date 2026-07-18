@@ -1,0 +1,45 @@
+\subsection{+Ordenamiento de Puntos Críticos y Búsqueda de Huecos-----}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El problema depende de encontrar el mayor (o menor) espacio libre entre eventos/puntos dispersos en una línea de tiempo o recta?
+\item ¿Los puntos relevantes (incluyendo extremos del rango) se pueden ordenar y luego recorrer una sola vez?
+\item ¿La respuesta se reduce a comparar diferencias entre elementos consecutivos ya ordenados?
+\end{itemize}
+
+\graybold{Utilidad:} Determinar si existe un hueco suficientemente grande entre puntos dispersos (tiempos, posiciones) en un intervalo, agregando los extremos del intervalo como puntos artificiales y ordenando todo junto. Evita simular minuto a minuto: basta con mirar diferencias consecutivas tras ordenar.
+
+\graybold{Complejidad:} O(n log n) por el ordenamiento; O(n) el resto.
+
+\graybold{Fundamento teórico:} Cualquier hueco maximal sin eventos queda delimitado por dos puntos consecutivos en el arreglo ordenado (incluyendo los extremos del intervalo total como puntos ficticios). Por lo tanto, el hueco más grande siempre es la mayor diferencia entre elementos consecutivos de la lista ordenada; no hace falta considerar ninguna otra combinación de puntos.
+
+\graybold{Ejercicio aplicado}
+
+Un vuelo dura D minutos y sirve M comidas en instantes dados; hace falta dormir T minutos seguidos sin interrupción. Determinar si es posible dormir T minutos consecutivos sin perderse ninguna comida.
+
+\graybold{I/O:} M ≤ 1000 → entrada pequeña, readline por línea (patrón 1) es suficiente.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+def solve():
+    T, D, M = map(int, input().split())
+    times = [0, D]                      # extremos del vuelo como puntos ficticios
+    for _ in range(M):
+        y = int(input())
+        times.append(y)
+    times.sort()
+ 
+    ans = 'N'
+    for i in range(1, len(times)):
+        if times[i] - times[i - 1] >= T:   # hueco suficiente para dormir T minutos
+            ans = 'Y'
+            break
+    print(ans)
+ 
+solve()
+\end{lstlisting}

@@ -1,0 +1,93 @@
+\subsection{Emparejamiento Bipartito por Segmentación de Filas/Columnas}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿La cuadrícula tiene obstáculos que "cortan" el alcance de piezas o rangos dentro de cada fila y columna?
+\item ¿Cada fila y cada columna se puede dividir en segmentos independientes (separados por obstáculos) donde a lo más un elemento puede colocarse por segmento?
+\item ¿Piden el máximo número de elementos colocables sin conflicto entre sí?
+\end{itemize}
+
+\graybold{Utilidad:} Resolver problemas de colocación de piezas sobre una cuadrícula con obstáculos, donde el conflicto es "compartir fila o columna sin un obstáculo de por medio". En vez de razonar celda por celda, se etiquetan los segmentos libres de cada fila y columna, y el problema se convierte en un emparejamiento bipartito clásico.
+
+\graybold{Complejidad:} O(N²) para etiquetar segmentos, más O(V·E) para el emparejamiento (V, E acotados por N²).
+
+\graybold{Fundamento teórico:} Cada casilla vacía pertenece a exactamente un segmento de fila (corrida maximal de casillas vacías, delimitada por obstáculos o bordes) y a exactamente un segmento de columna. Como a lo más una torre puede ocupar cada segmento (todas sus casillas se atacan entre sí sin obstáculo de por medio), colocar torres sin conflicto equivale a elegir aristas entre segmentos de fila y segmentos de columna sin repetir segmento de ningún lado: exactamente un emparejamiento en el grafo bipartito (segmentos de fila) × (segmentos de columna), donde cada casilla vacía es una arista posible.
+
+\graybold{Ejercicio aplicado}
+
+Dado un tablero N×N con algunas casillas ocupadas por peones, hallar el máximo número de torres que se pueden colocar en casillas vacías sin que se ataquen entre sí (dos torres se atacan si comparten fila o columna sin un peón entre ellas). La entrada trae varios tableros seguidos.
+
+\graybold{I/O:} N ≤ 100, múltiples casos hasta EOF (patrón 4 de la sección de E/S) → lectura total con sys.stdin.read().split() y procesamiento por índice.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def try_kuhn(u, adj, matched, visited):
+    for v in adj[u]:
+        if not visited[v]:
+            visited[v] = True
+            if matched[v] == -1 or try_kuhn(matched[v], adj, matched, visited):
+                matched[v] = u
+                return True
+    return False
+ 
+def solve_board(n, grid):
+    # etiqueta cada corrida maximal de celdas vacias en cada FILA con un id
+    row_id = [[-1] * n for _ in range(n)]
+    row_count = 0
+    for r in range(n):
+        c = 0
+        while c < n:
+            if grid[r][c] == '.':
+                while c < n and grid[r][c] == '.':
+                    row_id[r][c] = row_count
+                    c += 1
+                row_count += 1
+            else:
+                c += 1
+ 
+    # lo mismo por COLUMNAS
+    col_id = [[-1] * n for _ in range(n)]
+    col_count = 0
+    for c in range(n):
+        r = 0
+        while r < n:
+            if grid[r][c] == '.':
+                while r < n and grid[r][c] == '.':
+                    col_id[r][c] = col_count
+                    r += 1
+                col_count += 1
+            else:
+                r += 1
+ 
+    # grafo bipartito: segmentos de fila (izq) -- segmentos de columna (der);
+    # cada celda vacia es una arista posible entre ambos segmentos
+    adj = [[] for _ in range(row_count)]
+    for r in range(n):
+        for c in range(n):
+            if grid[r][c] == '.':
+                adj[row_id[r][c]].append(col_id[r][c])
+ 
+    matched = [-1] * col_count
+    total = 0
+    for u in range(row_count):
+        visited = [False] * col_count
+        if try_kuhn(u, adj, matched, visited):
+            total += 1
+    return total
+ 
+def main():
+    data = sys.stdin.read().split()
+    idx = 0
+    out = []
+    while idx < len(data):
+        n = int(data[idx]); idx += 1
+        grid = data[idx:idx + n]; idx += n
+        out.append(str(solve_board(n, grid)))
+    sys.stdout.write("\n".join(out) + "\n")
+ 
+main()
+\end{lstlisting}

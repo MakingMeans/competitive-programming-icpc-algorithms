@@ -7,17 +7,28 @@
 }
 \newcommand{\bigO}[1]{\ensuremath{\mathcal{O}(#1)}}
 \newcommand{\pow}[2]{\ensuremath{#1^{#2}}}
+\newcommand{\set}[1]{\ensuremath{\{#1\}}}
+\newcommand{\abs}[1]{\ensuremath{|#1|}}
+\newcommand{\floor}[1]{\ensuremath{\lfloor #1 \rfloor}}
+\newcommand{\ceil}[1]{\ensuremath{\lceil #1 \rceil}}
+\newcommand{\regex}[1]{\texttt{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
 \titleformat{\section}
   {\Large\bfseries\color{TitleBlue}} % formato
-  {\thesection}                      % número
-  {0.5em}                            % separación
-  {}                                 % antes del título
+  {\thesection}  % número
+  {0.5em} % separación
+  {} % antes del título
 \titleformat{\subsection}
   {\large\bfseries\color{TitleBlue}}
   {\thesubsection}
   {0.5em}
   {}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{TitleBlue}}
+  {\thesubsubsection}
+  {0.5em}
+  {}
+\newcommand{\graybold}[1]{\textcolor{gray}{\textbf{#1}}}
 % Ignore IEEE numbering for subsubsections
 \renewcommand{\thesection}{\arabic{section}}
 \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}

@@ -1,0 +1,43 @@
+\subsection{Algoritmos Constructivos: Invariantes y Paridad}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El problema pide construir explícitamente una configuración (o probar que es imposible), en vez de optimizar o contar?
+\item ¿Puedo idear una construcción simple (simetrías, intercambios, patrones repetidos) en vez de buscar entre todas las opciones?
+\item ¿La imposibilidad de otros valores se puede demostrar con un invariante (paridad, módulo, suma fija) que ninguna elección puede romper?
+\end{itemize}
+
+\graybold{Utilidad:} Resolver problemas donde no hace falta ningún algoritmo de búsqueda: basta con proponer una construcción explícita y justificar, con un argumento de invariante, que el resultado contrario (o cualquier otro valor puntual) nunca puede ocurrir sin importar qué elecciones se hagan.
+
+\graybold{Complejidad:} O(n) por caso - construir y emitir la respuesta.
+
+\graybold{Fundamento teórico:} Se particiona \{1,...,n\} en pares consecutivos (2k−1, 2k) y se intercambian entre sí. Cada par contribuye al contador un valor relacionado con V\_k = (2k−1)(2k), que siempre es par; y ese aporte entra a la suma final como −V\_k, 0 o V\_k (las tres opciones son pares). Como la suma de términos pares es par, el resultado nunca puede ser impar - en particular, nunca puede ser 1.
+
+\graybold{Ejercicio aplicado}
+
+(Codeforces 2246A - farmpiggie and Subset Sum) Dado un entero par n, construir una permutación p de longitud n tal que, sin importar qué signo (sumar, restar o ignorar) se le asigne a cada término i·p\_i al acumular un contador, el resultado final nunca pueda ser exactamente 1.
+
+\graybold{I/O:} t ≤ 25, n ≤ 50 (par) → entrada pequeña, readline por línea (patrón 1) es suficiente.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+t = int(input())
+out = []
+for _ in range(t):
+    n = int(input())
+    p = []
+    for i in range(1, n + 1):
+        # empareja (1,2), (3,4), ..., (n-1,n) e intercambia cada pareja:
+        # el aporte de cada pareja al contador siempre es par (ver teoria)
+        if i % 2 == 1:
+            p.append(i + 1)      # posicion impar -> apunta a la siguiente
+        else:
+            p.append(i - 1)      # posicion par -> apunta a la anterior
+    out.append(' '.join(map(str, p)))
+sys.stdout.write('\n'.join(out) + '\n')
+\end{lstlisting}

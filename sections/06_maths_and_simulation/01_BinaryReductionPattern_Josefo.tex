@@ -1,0 +1,48 @@
+\subsection{Patrón de Reducción Binaria (tipo Josefo)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El problema describe un proceso repetitivo/alternado (cada segundo elemento se "marca") sobre n elementos, con n muy grande (≥10\textasciicircum{}9)?
+\item ¿Simular paso a paso sería O(n), demasiado lento, pero el patrón se repite de forma autosimilar al dividir por la mitad?
+\item ¿Puedo replantear el problema de tamaño n como un subproblema de tamaño \textasciitilde{}n/2 aplicando la misma regla?
+\end{itemize}
+
+\graybold{Utilidad:} Resolver en O(log n) problemas de simulación con patrones alternados sobre secuencias enormes, sin simular cada paso. Es la misma idea del clásico Problema de Josefo: en vez de eliminar uno por uno, se "salta" de una ronda completa a la mitad del problema restante.
+
+\graybold{Complejidad:} O(log n) por consulta (cada ronda aprox. divide n a la mitad).
+
+\graybold{Fundamento teórico:} En cada "ronda" del proceso, la mitad de los elementos son descartados/activados según la paridad de su posición. Reformulando la posición y el tamaño del problema tras cada ronda (n' = n − procesados, i' = nueva posición relativa) se llega a una recurrencia que converge en O(log n) pasos en vez de O(n).
+
+\graybold{Ejercicio aplicado}
+
+Hay N personas en fila y un detector de metales defectuoso que se activa de forma alternada (la 1ª persona no lo activa, la 2ª sí, la 3ª no, ...; quien lo activa va al final de la fila). Dado que el coach está en la posición i, determinar en qué turno (entre quienes no activan el detector) pasará.
+
+\graybold{I/O:} T ≤ 1000 casos, cada uno con solo dos enteros → readline por línea (patrón 1) es suficiente y más simple.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+def safe_position(n, i):
+# turno "seguro" (que no activa el patron) en que pasara la posicion i
+    res = 0
+    while i % 2 == 0:          # mientras i cae en la mitad "activada"
+        res += i // 2         # cuenta los turnos seguros de esta ronda
+        n -= i // 2             # reduce el problema a la mitad restante
+        i = n                   # la posicion i se convierte en el nuevo n
+    res += (i + 1) // 2        # suma los turnos seguros de la ronda final
+    return res
+ 
+def solve():
+    t = int(input())
+    out = []
+    for _ in range(t):
+        n, i = map(int, input().split())
+        out.append(str(safe_position(n, i)))
+    sys.stdout.write("\n".join(out))
+ 
+solve()
+\end{lstlisting}

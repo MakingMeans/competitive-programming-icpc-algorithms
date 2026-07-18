@@ -1,0 +1,73 @@
+\subsection{Cobertura Mínima de Vértices en Grafos Bipartitos (Teorema de König)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden el mínimo número de elementos a eliminar para que ningún conflicto (arista) quede activo?
+\item ¿El grafo de conflictos es bipartito (se puede partir en 2 grupos donde todo conflicto va de un grupo al otro)?
+\item ¿Ya sé calcular el emparejamiento máximo de ese grafo (entrada anterior, Kuhn)?
+\end{itemize}
+
+\graybold{Utilidad:} Calcular la cobertura mínima de vértices (mínimo conjunto de nodos que toca todas las aristas) en un grafo bipartito. En grafos generales este problema es NP-difícil, pero en grafos bipartitos se vuelve polinomial gracias al teorema de König.
+
+\graybold{Complejidad:} O(V · E), la misma del emparejamiento bipartito máximo del que depende.
+
+\graybold{Fundamento teórico:} El teorema de König establece que, en cualquier grafo bipartito, el tamaño de la cobertura mínima de vértices es EXACTAMENTE igual al tamaño del emparejamiento máximo. Basta con correr Kuhn (entrada anterior) y esa cifra ya es la respuesta. Importante: heurísticas locales (como quitar iterativamente puntos de articulación, o dividir el número de vértices con grado \textgreater{} 0 entre 2) NO son válidas para este problema en general - solo coinciden por casualidad en casos muy simples (aristas aisladas, caminos, estrellas) y fallan en cuanto el grafo tiene una estructura más rica (por ejemplo, un grafo bipartito 2-conexo sin puntos de articulación).
+
+\graybold{Ejercicio aplicado}
+
+Dado un tablero N×N con K caballos de ajedrez colocados, hallar el mínimo número de caballos que hay que quitar para que ninguno ataque a otro. El grafo de ataques es bipartito por construcción: cada movimiento de caballo cambia la paridad de (fila + columna), así que alcanza con particionar por esa paridad y correr Kuhn.
+
+\graybold{I/O:} N ≤ 25, K ≤ N² ≤ 625 → entrada pequeña, readline por línea (patrón 1).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+def try_kuhn(u, adj, matched, visited):
+    for v in adj[u]:
+        if not visited[v]:
+            visited[v] = True
+            if matched[v] == -1 or try_kuhn(matched[v], adj, matched, visited):
+                matched[v] = u
+                return True
+    return False
+ 
+def max_bipartite_matching(left_nodes, n_right, adj):
+    matched = [-1] * n_right
+    total = 0
+    for u in left_nodes:
+        visited = [False] * n_right
+        if try_kuhn(u, adj, matched, visited):
+            total += 1
+    return total
+ 
+def solve():
+    n, k = map(int, input().split())
+    pos = []
+    for _ in range(k):
+        r, c = map(int, input().split())
+        pos.append((r - 1, c - 1))
+ 
+    index = {p: i for i, p in enumerate(pos)}
+    moves = [(1,2),(2,1),(-1,2),(-2,1),(1,-2),(2,-1),(-1,-2),(-2,-1)]
+ 
+    # el ataque de caballo SIEMPRE cambia el color (fila+col) par/impar:
+    # el grafo de ataques es bipartito por construccion, sin necesidad
+    # de demostrarlo -- solo hay que particionar por ese color
+    left_nodes = [i for i, (r, c) in enumerate(pos) if (r + c) % 2 == 0]
+    adj = [[] for _ in range(k)]
+    for i in left_nodes:
+        r, c = pos[i]
+        for dr, dc in moves:
+            j = index.get((r + dr, c + dc))
+            if j is not None:
+                adj[i].append(j)
+ 
+    # Konig: cobertura minima de vertices == emparejamiento maximo
+    print(max_bipartite_matching(left_nodes, k, adj))
+ 
+solve()
+\end{lstlisting}

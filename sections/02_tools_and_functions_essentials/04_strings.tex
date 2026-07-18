@@ -1,0 +1,269 @@
+\subsection{Manipulación de cadenas}
+
+Las cadenas (\texttt{str}) son inmutables en Python, por lo que todas las operaciones que modifican su contenido devuelven una nueva cadena.
+
+La mayoría de problemas de parsing, simulación y procesamiento de texto utilizan estas funciones.
+
+\vspace{0.3cm}
+
+\subsubsection{replace()}
+
+Reemplaza ocurrencias de una subcadena.
+
+\begin{lstlisting}[language=Python]
+s = "banana"
+s.replace("a", "o")
+# "bonono"
+s.replace("a", "o", 2)
+# "bonona"
+\end{lstlisting}
+
+Complejidad promedio: \bigO{n}
+
+\vspace{0.3cm}
+
+\subsubsection{split()}
+
+Divide una cadena utilizando un separador.
+
+\begin{lstlisting}[language=Python]
+s.split()
+s.split(",")
+s.split(":")
+s.split("\n")
+\end{lstlisting}
+
+Si no se especifica un separador, utiliza cualquier cantidad de espacios consecutivos.
+
+\begin{lstlisting}[language=Python]
+s = "a    b     c"
+print(s.split())
+# ['a', 'b', 'c']
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{join()}
+
+Une una colección de cadenas utilizando un separador.
+
+Es mucho más eficiente que concatenar strings dentro de un ciclo.
+
+\begin{lstlisting}[language=Python]
+nums = ["1", "2", "3"]
+",".join(nums)
+# "1,2,3"
+" ".join(nums)
+# "1 2 3"
+\end{lstlisting}
+
+\graybold{Complejidad:} \bigO{n}
+
+\vspace{0.3cm}
+
+\subsubsection{strip(), lstrip() y rstrip()}
+
+Eliminan caracteres al inicio y/o final.
+
+\begin{lstlisting}[language=Python]
+s.strip()
+s.lstrip()
+s.rstrip()
+\end{lstlisting}
+
+También pueden eliminar caracteres específicos.
+
+\begin{lstlisting}[language=Python]
+"--ICPC--".strip("-")
+# ICPC
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{find() y rfind()}
+
+Buscan una subcadena.
+
+Devuelven
+
+\begin{itemize}
+\item la posición encontrada;
+\item -1 si no existe.
+\end{itemize}
+
+\begin{lstlisting}[language=Python]
+s.find("abc")
+s.rfind("abc")
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{count()}
+
+Cuenta cuántas veces aparece una subcadena.
+
+\begin{lstlisting}[language=Python]
+s.count("ab")
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{startswith() y endswith()}
+
+Permiten verificar prefijos y sufijos.
+
+\begin{lstlisting}[language=Python]
+s.startswith("abc")
+s.endswith(".cpp")
+\end{lstlisting}
+
+Muy útiles para parsing.
+
+\vspace{0.3cm}
+
+\subsubsection{lower(), upper() y capitalize()}
+
+Cambian el formato de las letras.
+
+\begin{lstlisting}[language=Python]
+s.lower()
+s.upper()
+s.capitalize()
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{isalpha(), isdigit(), isalnum()}
+
+Verifican el contenido de una cadena.
+
+\begin{lstlisting}[language=Python]
+s.isalpha()
+s.isdigit()
+s.isalnum()
+s.isspace()
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{partition()}
+
+Divide únicamente en la primera aparición del separador.
+
+\begin{lstlisting}[language=Python]
+s.partition("=")
+# ('x', '=', '15')
+\end{lstlisting}
+
+A diferencia de split(), siempre devuelve exactamente tres elementos.
+
+\vspace{0.3cm}
+
+\subsubsection{Concatenación}
+
+\begin{lstlisting}[language=Python]
+a + b
+a += b
+\end{lstlisting}
+
+Cuando se concatenan muchas cadenas es preferible utilizar
+
+\begin{lstlisting}[language=Python]
+"".join(lista)
+\end{lstlisting}
+
+ya que evita crear múltiples copias intermedias.
+
+\vspace{0.3cm}
+
+\subsubsection{Formateo de cadenas}
+
+Python permite insertar variables directamente mediante f-strings.
+
+\begin{lstlisting}[language=Python]
+x = 3.14159265
+f"{x:.2f}"
+# 3.14
+f"{x:.10f}"
+# 3.1415926500
+nombre = "ICPC"
+f"Hola {nombre}"
+\end{lstlisting}
+
+Este mecanismo es el recomendado para imprimir números reales.
+
+\vspace{0.3cm}
+
+\subsubsection{Aplicaciones frecuentes en ICPC}
+
+Eliminar espacios al leer una línea.
+
+\begin{lstlisting}[language=Python]
+s = input().strip()
+\end{lstlisting}
+
+Separar una línea.
+
+\begin{lstlisting}[language=Python]
+tokens = input().split()
+\end{lstlisting}
+
+Unir la respuesta.
+
+\begin{lstlisting}[language=Python]
+print(" ".join(ans))
+\end{lstlisting}
+
+Comprobar un prefijo.
+
+\begin{lstlisting}[language=Python]
+if s.startswith("YES"):
+    ...
+\end{lstlisting}
+
+Eliminar caracteres.
+
+\begin{lstlisting}[language=Python]
+s = s.replace(",", "")
+\end{lstlisting}
+
+Buscar una palabra.
+
+\begin{lstlisting}[language=Python]
+if s.find("abc") != -1:
+    ...
+\end{lstlisting}
+
+Contar caracteres.
+
+\begin{lstlisting}[language=Python]
+vocales = s.count("a")
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection*{Resumen}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Función & Uso principal \\ \hline
+replace() & Reemplazar texto \\ \hline
+split() & Dividir una cadena \\ \hline
+join() & Unir cadenas \\ \hline
+strip() & Eliminar espacios \\ \hline
+find() & Buscar subcadena \\ \hline
+rfind() & Buscar desde el final \\ \hline
+count() & Contar ocurrencias \\ \hline
+startswith() & Verificar prefijo \\ \hline
+endswith() & Verificar sufijo \\ \hline
+lower() & Minúsculas \\ \hline
+upper() & Mayúsculas \\ \hline
+capitalize() & Primera letra mayúscula \\ \hline
+isalpha() & Solo letras \\ \hline
+isdigit() & Solo dígitos \\ \hline
+isalnum() & Alfanumérico \\ \hline
+isspace() & Solo espacios \\ \hline
+partition() & Dividir una vez \\ \hline
+\end{tabular}
+\end{center}

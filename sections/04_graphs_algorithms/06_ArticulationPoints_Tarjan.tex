@@ -1,0 +1,95 @@
+\subsection{Puntos de Articulación (Algoritmo de Tarjan)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden identificar nodos cuya eliminación desconecta el grafo (o aumenta el número de componentes)?
+\item ¿El grafo es no dirigido y se pregunta por robustez/conectividad ante fallos de un solo nodo?
+\item ¿n puede ser grande, por lo que hay que evitar recursión profunda en Python?
+\end{itemize}
+
+\graybold{Utilidad:} Encontrar los vértices de corte (articulation points) de un grafo no dirigido: nodos que, al eliminarse, aumentan el número de componentes conexas. Es la base para analizar robustez de redes (qué nodo, si falla, parte el sistema en pedazos).
+
+\graybold{Complejidad:} O(V + E) con DFS iterativo (un solo recorrido con low-link).
+
+\graybold{Fundamento teórico:} Se hace un DFS calculando, para cada nodo, su tiempo de descubrimiento (disc) y el menor tiempo de descubrimiento alcanzable usando a lo más una arista de retroceso (low). Un nodo u (no raíz) es punto de articulación si tiene un hijo v en el árbol DFS tal que low[v] ≥ disc[u]: eso significa que desde el subárbol de v no hay forma de "escapar" hacia arriba de u sin pasar por u. La raíz del DFS es un caso especial: es punto de articulación si tiene más de un hijo en el árbol.
+
+\graybold{Ejercicio aplicado}
+
+Dadas varias pruebas, cada una con n islas y m puentes bidireccionales (grafo conexo), contar cuántas islas, al hundirse, desconectarían partes de la ciudad. La entrada termina con un caso 0 0.
+
+\graybold{I/O:} Múltiples casos con centinela "0 0" (patrón 3 de la sección de E/S). n ≤ 10\textasciicircum{}4, m ≤ 10\textasciicircum{}5 → lectura total + tokenización, y DFS iterativo con pila explícita (mismo motivo que en Kosaraju: evitar RecursionError/stack overflow).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def find_articulation_points(n, adj):
+    disc = [0] * n
+    low = [0] * n
+    visited = [False] * n
+    is_ap = [False] * n
+    timer = 1
+ 
+    for start in range(n):
+        if visited[start]:
+            continue
+        visited[start] = True
+        disc[start] = low[start] = timer
+        timer += 1
+        root_children = 0
+        # pila: [nodo, padre, iterador de vecinos, ya_salto_arista_al_padre]
+        stack = [[start, -1, iter(adj[start]), False]]
+        while stack:
+            frame = stack[-1]
+            node, parent, it, _ = frame
+            advanced = False
+            for nxt in it:
+                if nxt == parent and not frame[3]:
+                    frame[3] = True   # salta SOLO una vez la arista de vuelta
+                    continue          # (por si hay aristas paralelas)
+                if not visited[nxt]:
+                    visited[nxt] = True
+                    disc[nxt] = low[nxt] = timer
+                    timer += 1
+                    if node == start:
+                        root_children += 1
+                    stack.append([nxt, node, iter(adj[nxt]), False])
+                    advanced = True
+                    break
+                else:
+                    low[node] = min(low[node], disc[nxt])  # arista de retroceso
+            if not advanced:
+                stack.pop()
+                if stack:
+                    par = stack[-1]
+                    par_node = par[0]
+                    low[par_node] = min(low[par_node], low[node])
+                    # condicion clasica de punto de articulacion (no raiz)
+                    if par_node != start and low[node] >= disc[par_node]:
+                        is_ap[par_node] = True
+        if root_children > 1:        # caso especial: la raiz del DFS
+            is_ap[start] = True
+ 
+    return is_ap
+ 
+def main():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    out = []
+    while True:
+        n = int(data[idx]); m = int(data[idx + 1]); idx += 2
+        if n == 0 and m == 0:        # centinela de fin
+            break
+        adj = [[] for _ in range(n)]
+        for _ in range(m):
+            u = int(data[idx]) - 1; v = int(data[idx + 1]) - 1; idx += 2
+            adj[u].append(v)
+            adj[v].append(u)
+        is_ap = find_articulation_points(n, adj)
+        out.append(str(sum(is_ap)))
+    sys.stdout.write("\n".join(out) + "\n")
+ 
+main()
+\end{lstlisting}

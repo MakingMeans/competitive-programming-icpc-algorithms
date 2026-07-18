@@ -1,0 +1,22 @@
+\subsection{Casos hasta EOF (sin contador T)}
+
+No hay número de casos declarado, por lo que se procesa hasta que no haya mas inputs.
+
+\begin{lstlisting}[language=Python]
+import sys
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    # se procesa el caso
+\end{lstlisting}
+
+Una alternativa con los casos infinitos es usar el metodo de tokenización.
+
+\begin{lstlisting}[language=Python]
+import sys
+data = sys.stdin.buffer.read().split()
+idx = 0
+while idx < len(data):
+    # se procesa el caso
+\end{lstlisting}

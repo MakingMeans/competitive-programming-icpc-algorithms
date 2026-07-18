@@ -1,0 +1,64 @@
+\subsection{Búsqueda Binaria sobre la Respuesta + Two Pointers}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿La respuesta es un número y existe una condición monótona (si X funciona, todo valor mayor/menor también funciona)?
+\item ¿Puedo verificar en O(n) o O(n log n) si un valor candidato "cumple" la condición pedida?
+\item ¿Dentro de esa verificación necesito contar pares/elementos con una condición de suma sobre un arreglo ordenado? (ahí entra Two Pointers)
+\end{itemize}
+
+\graybold{Utilidad:} Cuando no es fácil calcular la respuesta directamente pero sí verificar si un candidato es válido, y esa validez es monótona, se "busca" la respuesta con búsqueda binaria sobre el rango de valores posibles. Two Pointers acelera el conteo en arreglos ordenados de O(n²) a O(n).
+
+\graybold{Complejidad:} Búsqueda binaria: O(log(rango)) iteraciones. Cada verificación con Two Pointers: O(n). Total: O(n log(rango)).
+
+\graybold{Fundamento teórico:} La búsqueda binaria sobre la respuesta funciona porque el conjunto de valores "válidos" forma un intervalo continuo (monotonía), reduciendo el espacio de búsqueda a la mitad en cada paso. Two Pointers explota que, en un arreglo ordenado, mover un extremo cambia la condición de suma de forma predecible, evitando recorrer todas las parejas.
+
+\graybold{Ejercicio aplicado}
+
+Dados N precios de categorías de joyas, un cliente que es el K-ésimo en la fila debe comprar dos joyas de categorías distintas sin repetir una combinación ya usada por otro cliente. Hallar el mínimo dinero que garantiza poder comprar: la K-ésima suma más pequeña entre todos los pares de categorías distintas.
+
+\graybold{I/O:} N no está acotado explícitamente pero puede ser grande → lectura total + tokenización (patrón 2) para el arreglo de precios.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def count_pairs_leq(prices, n, limit):
+    # cuenta cuantos pares cumplen arr[i] + arr[j] <= limit
+    # usando dos punteros sobre un arreglo YA ORDENADO
+    count = 0
+    left, right = 0, n - 1
+    while left < right:
+        if prices[left] + prices[right] <= limit:
+            count += right - left       # todos los pares con "left" fijo
+            left += 1
+        else:
+            right -= 1
+    return count
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); k = int(data[1])
+    prices = list(map(int, data[2:2 + n]))
+    prices.sort()
+ 
+    low = prices[0] + prices[1]         # menor suma posible
+    high = prices[n - 2] + prices[n - 1]  # mayor suma posible
+ 
+    while low < high:
+        mid = low + (high - low) // 2
+        if count_pairs_leq(prices, n, mid) >= k:
+            high = mid                    # mid cumple: intenta algo menor
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=Python]
+        else:
+            low = mid + 1                # mid no cumple: sube el limite
+ 
+    print(low)
+ 
+solve()
+\end{lstlisting}

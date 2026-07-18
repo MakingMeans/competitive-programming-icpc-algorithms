@@ -1,0 +1,305 @@
+\subsection{Módulos matemáticos}
+
+Python incluye varios módulos que simplifican operaciones matemáticas frecuentes en programación competitiva.
+
+El más utilizado es \texttt{math}.
+
+\begin{lstlisting}[language=Python]
+import math
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Redondeo}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Función & Descripción \\ \hline
+round(x,n) & Redondea a n decimales \\ \hline
+math.floor(x) & Entero menor o igual \\ \hline
+math.ceil(x) & Entero mayor o igual \\ \hline
+math.trunc(x) & Elimina la parte decimal \\ \hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}[language=Python]
+import math
+math.floor(3.8) # 3
+math.ceil(3.2)# 4
+round(3.141592,2) # 3.14
+math.trunc(7.98) # 7
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Valor absoluto}
+
+\begin{lstlisting}[language=Python]
+abs(x)
+math.fabs(x)
+\end{lstlisting}
+
+Normalmente basta utilizar
+
+\begin{lstlisting}[language=Python]
+abs(x)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Raíces}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Función & Uso \\ \hline
+math.sqrt(x) & Raíz cuadrada \\ \hline
+math.isqrt(x) & Raíz entera exacta \\ \hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}[language=Python]
+math.sqrt(25) # 5.0
+math.isqrt(30) # 5
+\end{lstlisting}
+
+En teoría de números suele preferirse \texttt{isqrt()}.
+
+\vspace{0.3cm}
+
+\subsubsection{Máximo común divisor y mínimo común múltiplo}
+
+\begin{lstlisting}[language=Python]
+math.gcd(a,b)
+
+math.lcm(a,b)
+\end{lstlisting}
+
+También aceptan más de dos argumentos.
+
+\begin{lstlisting}[language=Python]
+math.gcd(a,b,c)
+
+math.lcm(a,b,c)
+\end{lstlisting}
+
+Complejidad: \bigO{\log(\min(a,b))}
+
+\vspace{0.3cm}
+
+\subsubsection{Potencias}
+
+\begin{lstlisting}[language=Python]
+pow(a,b)
+pow(a,b,m)
+a ** b
+math.pow(a,b)
+\end{lstlisting}
+
+Observaciones.
+
+\begin{itemize}
+\item \texttt{pow(a,b,m)} calcula la potencia módulo m de forma eficiente.
+\item \texttt{**} devuelve enteros cuando es posible.
+\item \texttt{math.pow()} siempre devuelve float.
+\end{itemize}
+
+\vspace{0.3cm}
+
+\subsubsection{Factoriales}
+
+\begin{lstlisting}[language=Python]
+math.factorial(n)
+\end{lstlisting}
+
+Complejidad: \bigO{n}
+
+\vspace{0.3cm}
+
+\subsubsection{Combinatoria}
+
+Desde Python 3.8 existen funciones incorporadas.
+
+\begin{lstlisting}[language=Python]
+math.comb(n,k)
+math.perm(n,k)
+\end{lstlisting}
+
+Ejemplos.
+
+\begin{lstlisting}[language=Python]
+math.comb(5,2) # 10
+math.perm(5,2) # 20
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Logaritmos}
+
+\begin{lstlisting}[language=Python]
+math.log(x)
+
+math.log2(x)
+
+math.log10(x)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Trigonometría}
+
+\begin{lstlisting}[language=Python]
+math.sin(x)
+math.cos(x)
+math.tan(x)
+math.asin(x)
+math.acos(x)
+math.atan(x)
+\end{lstlisting}
+
+Los ángulos siempre se expresan en radianes.
+
+\vspace{0.3cm}
+
+\subsubsection{Distancias}
+
+\begin{lstlisting}[language=Python]
+math.dist(p1,p2)
+
+math.hypot(x,y)
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python]
+math.hypot(3,4) # 5
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Producto}
+
+\begin{lstlisting}[language=Python]
+math.prod(lista)
+\end{lstlisting}
+
+Ejemplo.
+
+\begin{lstlisting}[language=Python]
+math.prod([2,3,4]) # 24
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Constantes}
+
+\begin{lstlisting}[language=Python]
+math.pi
+math.e
+math.inf
+math.nan
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{Fracciones exactas}
+
+Cuando los números en punto flotante producen errores de precisión puede utilizarse el módulo
+
+\begin{lstlisting}[language=Python]
+from fractions import Fraction
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python]
+Fraction(1,3)
+Fraction(1,6)
+Fraction(1,3)+Fraction(1,6)
+\end{lstlisting}
+
+Resultado.
+
+\begin{lstlisting}[language=Python]
+Fraction(1,2)
+\end{lstlisting}
+
+No existe error de redondeo.
+
+\vspace{0.3cm}
+
+\subsubsection{División entera}
+
+En Python la división entera siempre redondea hacia menos infinito.
+
+\begin{lstlisting}[language=Python]
+7 // 2
+# 3
+-7 // 2
+# -4
+\end{lstlisting}
+
+Este comportamiento es diferente al de C++ y Java.
+
+\vspace{0.3cm}
+
+\subsubsection{Aplicaciones frecuentes en ICPC}
+
+Máximo común divisor.
+
+\begin{lstlisting}[language=Python]
+math.gcd(a,b)
+\end{lstlisting}
+
+Potencia modular.
+
+\begin{lstlisting}[language=Python]
+pow(a,b,MOD)
+\end{lstlisting}
+
+Raíz entera.
+
+\begin{lstlisting}[language=Python]
+math.isqrt(n)
+\end{lstlisting}
+
+Binomiales.
+
+\begin{lstlisting}[language=Python]
+math.comb(n,k)
+\end{lstlisting}
+
+Permutaciones.
+
+\begin{lstlisting}[language=Python]
+math.perm(n,k)
+\end{lstlisting}
+
+Fracciones exactas.
+
+\begin{lstlisting}[language=Python]
+Fraction(a,b)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection*{Resumen}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Función & Uso principal \\ \hline
+floor() & Redondear hacia abajo \\ \hline
+ceil() & Redondear hacia arriba \\ \hline
+trunc() & Eliminar parte decimal \\ \hline
+gcd() & Máximo común divisor \\ \hline
+lcm() & Mínimo común múltiplo \\ \hline
+sqrt() & Raíz cuadrada \\ \hline
+isqrt() & Raíz entera \\ \hline
+factorial() & Factorial \\ \hline
+comb() & Combinaciones \\ \hline
+perm() & Permutaciones \\ \hline
+pow() & Potencias \\ \hline
+log2() & Logaritmo base 2 \\ \hline
+hypot() & Distancia euclidiana \\ \hline
+prod() & Producto de un iterable \\ \hline
+Fraction & Fracciones exactas \\ \hline
+\end{tabular}
+\end{center}

@@ -1,0 +1,10 @@
+\subsection{Lectura línea a línea (caso general)}
+
+Cuando cada línea tiene una cantidad de datos conocida y el número de líneas no es extremo (hasta \pow{10}{5}). Es el patrón por defecto.
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+n = int(input())
+arr = list(map(int, input().split()))
+\end{lstlisting}

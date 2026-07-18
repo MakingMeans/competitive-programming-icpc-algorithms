@@ -1,0 +1,44 @@
+\subsection{Simulación Lineal (Máximo de Prefijo)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿La respuesta depende de un solo recorrido lineal del arreglo, calculando un máximo/mínimo/acumulado por posición?
+\item ¿No hay dependencias entre posiciones más allá de una comparación directa fila por fila?
+\item ¿El problema, aunque tenga una narrativa elaborada, se reduce matemáticamente a una fórmula simple tras identificar la variable clave?
+\end{itemize}
+
+\graybold{Utilidad:} Resolver directamente problemas donde, tras modelar bien la situación (aquí: el "cuello de botella" es la fila con menor espacio libre entre dos paredes), un solo recorrido O(n) calculando un máximo/mínimo basta. Es clave en competencia reconocer cuándo un problema de apariencia compleja se reduce a esto.
+
+\graybold{Complejidad:} O(h) tiempo, O(h) espacio (o O(1) extra si se procesa en streaming).
+
+\graybold{Fundamento teórico:} Las dos paredes se mueven a 1 m/s cada una. En la fila i, el espacio libre es w − (l[i] + r[i]) y se cierra a razón de 2 m/s (ambas paredes se acercan). El tiempo en que la fila i se cierra es (w − l[i] − r[i]) / 2. Las paredes chocan en la fila que se cierra primero: la de menor espacio libre inicial, equivalente al máximo de (l[i] + r[i]).
+
+\graybold{Ejercicio aplicado}
+
+Una sala de H filas y ancho W tiene una pared este y una pared oeste que se acercan a 1 m/s cada una desde que alguien entra. Cada fila i tiene un ancho ya ocupado por cada pared. Determinar en cuánto tiempo chocan las paredes.
+
+\graybold{I/O:} H ≤ 10\textasciicircum{}5, dos arreglos de tamaño H → lectura total + tokenización (patrón 2).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    h = int(data[0]); w = int(data[1])
+    left = list(map(int, data[2:2 + h]))
+    right = list(map(int, data[2 + h:2 + 2 * h]))
+    max_sum = max(left[i] + right[i] for i in range(h))
+    ans = (w - max_sum) / 2
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=Python]
+if ans.is_integer():        # verifica parseo de float a int
+    print(int(ans))
+else:
+    print(ans)
+solve()
+\end{lstlisting}

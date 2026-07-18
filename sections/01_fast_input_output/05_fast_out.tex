@@ -1,0 +1,9 @@
+\subsection{Salida rápida}
+
+Nunca usar print() y mejor acumular resultados en una lista y escribir todo de una sola vez.
+
+\begin{lstlisting}[language=Python]
+ans = []
+# ans.append(result) dentro del loop
+sys.stdout.write("\n".join(map(str, ans)) + "\n")
+\end{lstlisting}

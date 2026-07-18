@@ -1,0 +1,36 @@
+\subsection{Fuerza Bruta / Simulación Directa}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El tamaño de la entrada es pequeño (N ≤ 10\textasciicircum{}3 o similar) y no hay una fórmula cerrada evidente?
+\item ¿Puedo calcular la respuesta iterando directamente sobre el espacio del problema sin que se dispare el tiempo?
+\item ¿El problema es más de matemáticas/probabilidad que de estructuras de datos?
+\end{itemize}
+
+\graybold{Utilidad:} Reconocer cuándo NO hace falta un algoritmo sofisticado: con restricciones pequeñas, iterar directamente (simulando la definición del problema) es la solución más simple, rápida de programar y menos propensa a errores. Identificar esto ahorra tiempo valioso en el contrarreloj.
+
+\graybold{Complejidad:} Depende del problema; en este caso O(n) con aritmética de punto flotante.
+
+\graybold{Fundamento teórico:} Se calcula directamente la probabilidad de que NO haya coincidencia de cumpleaños entre k personas, multiplicando factores (1 − (k−1)/n) sucesivamente (extensión del problema del cumpleaños), deteniéndose apenas esa probabilidad cae por debajo de 0.5 (la probabilidad de coincidencia supera el 50\%).
+
+\graybold{Ejercicio aplicado}
+
+Dado N (número de días del año), hallar el mínimo número de personas necesarias en una sala para que la probabilidad de que dos compartan cumpleaños supere el 50\%.
+
+\graybold{I/O:} Entrada de un solo entero → readline (patrón 1), no requiere nada especial.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+ 
+n = int(input())
+prob_no_coincidencia = 1.0
+for k in range(1, n + 2):
+    prob_no_coincidencia *= (n - (k - 1)) / n
+    if prob_no_coincidencia < 0.5:
+        print(k)
+        break
+\end{lstlisting}

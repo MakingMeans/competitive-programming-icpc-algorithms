@@ -1,0 +1,76 @@
+\subsection{+Simulación de Eventos con Colas------}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Hay un recurso compartido con estado (dirección, disponibilidad) que cambia según el orden de llegada de eventos con timestamps?
+\item ¿Los eventos ya vienen ordenados (o se pueden ordenar) y conviene procesarlos con colas separadas por tipo?
+\item ¿El estado siguiente depende de comparar el próximo evento contra un tiempo límite (fin de uso actual del recurso)?
+\end{itemize}
+
+\graybold{Utilidad:} Simular un sistema con estado (aquí: una dirección de movimiento y un instante de fin de uso) que evoluciona a medida que llegan eventos de distintos tipos, usando una cola por tipo de evento en vez de simular minuto a minuto.
+
+\graybold{Complejidad:} O(n) - cada persona se encola y desencola una sola vez.
+
+\graybold{Fundamento teórico:} Se mantienen dos colas (una por dirección deseada) y un estado (dirección activa, instante en que el recurso queda libre). En cada paso se mira el evento más próximo entre ambas colas: si coincide con la dirección activa, extiende el fin de uso; si es la dirección contraria, esa persona debe esperar (se cuenta pero no se procesa aún); si ya no hay eventos antes de que el recurso quede libre, se decide si invertir la dirección (si había gente esperando) o terminar ese ciclo de uso.
+
+\graybold{Ejercicio aplicado}
+
+N personas llegan a una escalera doble (10 segundos por cruce) en tiempos distintos, cada una queriendo ir en una de dos direcciones. Determinar el instante en que la última persona termina de usarla.
+
+\graybold{I/O:} n ≤ 10\textasciicircum{}4 → lectura total + tokenización (patrón 2); se usan dos deques (collections.deque) en vez de queue, ya que en Python deque tiene O(1) real para popleft().
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from collections import deque
+ 
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); idx += 1
+    left = deque()    # personas que quieren ir en direccion 0
+    right = deque()   # personas que quieren ir en direccion 1
+    for _ in range(n):
+        t = int(data[idx]); d = int(data[idx + 1]); idx += 2
+        (left if d == 0 else right).append(t)
+ 
+    end = 0          # instante en que el recurso queda libre
+    ans = 0
+    waiting = 0       # cuantos esperan en direccion contraria a la activa
+    direction = -1    # -1 = detenida
+ 
+    while left or right or direction != -1:
+        # mira el proximo evento disponible entre ambas colas
+        next_time, who = None, -1
+        if left and (next_time is None or left[0] < next_time):
+            next_time, who = left[0], 0
+        if right and (next_time is None or right[0] < next_time):
+            next_time, who = right[0], 1
+ 
+        if direction == -1:
+            # arranca detenida: la toma quien llegue primero
+            direction = who
+            end = next_time + 10
+            (left if who == 0 else right).popleft()
+        elif who != -1 and next_time < end:
+            if who == direction:
+                end = max(end, next_time + 10)   # se sube mientras sigue en marcha
+            else:
+                waiting += 1                     # direccion contraria: debe esperar
+            (left if who == 0 else right).popleft()
+        else:
+            # no hay mas eventos antes de que el recurso quede libre
+            if waiting > 0:
+                direction = 1 - direction   # invierte sentido para atender a los que esperan
+                end += 10
+                waiting = 0
+            else:
+                ans = end
+                direction = -1               # se detiene
+ 
+    print(ans)
+ 
+solve()
+\end{lstlisting}

@@ -1,0 +1,13 @@
+\subsection{Casos con bandera (condicional)}
+
+El input termina cuando aparece un valor en concreto. No se sabe de antemano cuántos casos hay.
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+while True:
+    a, b = map(int, input().split())
+    if a == 0 and b == 0:   # en este caso el valor concreto es "0 0"
+        break
+    # aqui se procesan los casos
+\end{lstlisting}

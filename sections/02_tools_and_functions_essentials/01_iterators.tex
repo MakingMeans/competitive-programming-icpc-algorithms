@@ -1,0 +1,186 @@
+\subsection{Iteradores y funciones integradas}
+
+Estas funciones permiten recorrer estructuras de datos, transformar secuencias y escribir código más corto y legible sin sacrificar rendimiento.
+
+\subsubsection{enumerate()}
+
+Recorrer un iterable obteniendo simultáneamente el índice y el elemento, evitando mantener un contador manual.
+
+\begin{lstlisting}[language=Python]
+arr = [5, 8, 2]
+for i, x in enumerate(arr):
+    print(i, x)
+for i, x in enumerate(arr, 1):     # indices comienzan en 1
+    print(i, x)
+\end{lstlisting}
+
+Es especialmente útil cuando el problema utiliza índices 1-indexados.
+
+\vspace{0.3cm}
+
+\subsubsection{zip()}
+
+Recorrer múltiples iterables en paralelo. El recorrido termina cuando el iterable más corto finaliza.
+
+\begin{lstlisting}[language=Python]
+a = [1, 2, 3]
+b = [4, 5, 6]
+for x, y in zip(a, b):
+    print(x, y)
+
+pares = list(zip(a, b))
+# [(1,4), (2,5), (3,6)]
+\end{lstlisting}
+
+También puede utilizarse para desempaquetar listas de tuplas.
+
+\begin{lstlisting}[language=Python]
+pares = [(1, 4), (2, 5), (3, 6)]
+a, b = zip(*pares)
+print(a); print(b)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{iter() y next()}
+
+iter() crea un iterador sobre cualquier iterable.
+next() consume el siguiente elemento del iterador.
+Se suelen usar cuando se procesan tokens manualmente.
+
+\begin{lstlisting}[language=Python]
+data = ["5", "10", "20", "30"]
+it = iter(data)
+n = int(next(it))
+arr = [int(next(it)) for _ in range(n - 1)]
+\end{lstlisting}
+
+También puede especificarse un valor por defecto.
+
+\begin{lstlisting}[language=Python]
+x = next(it, None)
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{any() y all()}
+
+Evaluar rápidamente condiciones sobre un iterable.
+
+any() devuelve True si al menos un elemento cumple la condición.
+all() devuelve True únicamente si todos los elementos la cumplen.
+Ambas realizan \textit{short-circuit}, por lo que dejan de recorrer el iterable tan pronto conocen la respuesta.
+
+\begin{lstlisting}[language=Python]
+if any(x % 2 == 0 for x in arr):
+    print("Existe un numero par")
+if all(x > 0 for x in arr):
+    print("Todos son positivos")
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{map()}
+
+Aplica una función a todos los elementos de un iterable.
+
+Es muy utilizado durante la lectura de entrada.
+
+\begin{lstlisting}[language=Python]
+nums = list(map(int, input().split()))
+cuadrados = list(map(lambda x: x * x, nums))
+\end{lstlisting}
+
+También puede utilizarse con funciones propias.
+
+\begin{lstlisting}[language=Python]
+def f(x):
+    return x + 1
+nuevo = list(map(f, nums))
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{sorted()}
+
+Devuelve una nueva lista ordenada sin modificar la original.
+
+Puede ordenarse mediante una función key.
+
+\begin{lstlisting}[language=Python]
+nums = sorted(nums)
+nums = sorted(nums, reverse=True)
+personas = sorted(personas, key=lambda x: x.edad)
+pares = sorted(freq.items(), key=lambda kv: -kv[1])
+\end{lstlisting}
+
+\graybold{Complejidad:} \bigO{n \log n}
+
+Python utiliza Timsort, un algoritmo estable muy eficiente para datos parcialmente ordenados.
+
+\vspace{0.3cm}
+
+\subsubsection{reversed()}
+
+Permite recorrer una secuencia en orden inverso sin crear una copia.
+
+\begin{lstlisting}[language=Python]
+for x in reversed(arr):
+    print(x)
+\end{lstlisting}
+
+Es preferible a lo siguiente, que crea una copia de la lista:
+
+\begin{lstlisting}[language=Python]
+arr[::-1]
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+\subsubsection{encode() y decode()}
+
+Aunque rara vez aparecen en ICPC, pueden resultar útiles cuando un problema involucra archivos, comunicación o codificaciones específicas.
+
+encode() convierte un string en bytes.
+decode() realiza la operación inversa.
+
+\begin{lstlisting}[language=Python]
+s = "ICPC"
+b = s.encode("utf-8")
+print(b)
+# b'ICPC'
+texto = b.decode("utf-8")
+print(texto)
+# ICPC
+\end{lstlisting}
+
+Las codificaciones más comunes:
+\begin{itemize}
+\item utf-8
+\item ascii
+\item latin-1
+\end{itemize}
+
+En programación competitiva normalmente toda la entrada ya llega como texto UTF-8, por lo que estas funciones aparecen con poca frecuencia.
+
+\vspace{0.3cm}
+
+\subsubsection*{Resumen}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Función & Uso principal \\ \hline
+enumerate() & Recorrer con índice \\ \hline
+zip() & Recorrer varios iterables \\ \hline
+iter() & Crear un iterador \\ \hline
+next() & Consumir siguiente elemento \\ \hline
+any() & Existe algún elemento que cumpla \\ \hline
+all() & Todos cumplen \\ \hline
+map() & Aplicar función a todos los elementos \\ \hline
+sorted() & Ordenar sin modificar el original \\ \hline
+reversed() & Recorrer en orden inverso \\ \hline
+encode() & String $\rightarrow$ bytes \\ \hline
+decode() & Bytes $\rightarrow$ string \\ \hline
+\end{tabular}
+\end{center}
