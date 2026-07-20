@@ -1,0 +1,73 @@
+\subsection{Método de Horner Modular}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo evaluar un polinomio de grado elevado en un valor específico?
+\item ¿El resultado debe calcularse módulo un número grande para evitar overflow?
+\item ¿Quiero evitar calcular explícitamente cada potencia de \(x\)?
+\end{itemize}
+
+\graybold{Utilidad:}
+
+Evaluar un polinomio de manera eficiente utilizando únicamente multiplicaciones y sumas sucesivas. Al combinarlo con aritmética modular, permite trabajar con polinomios de grado muy alto sin que los valores intermedios crezcan excesivamente, siendo una técnica frecuente en hashing de cadenas, teoría de números y problemas algebraicos.
+
+\graybold{Complejidad:}
+
+Tiempo \bigO{n}. Espacio \bigO{1}.
+
+\graybold{Fundamento teórico:}
+
+Un polinomio de grado \(n\)
+\[
+P(x)=a_nx^n+a_{n-1}x^{n-1}+\cdots+a_1x+a_0
+\]
+
+puede reescribirse de forma anidada como
+\[
+P(x)=(((a_nx+a_{n-1})x+a_{n-2})x+\cdots+a_1)x+a_0.
+\]
+
+Esta transformación elimina la necesidad de calcular potencias de \(x\), reduciendo el número de multiplicaciones a una por coeficiente.
+
+Cuando el problema requiere trabajar módulo \(m\), basta con aplicar el operador módulo después de cada operación:
+\[
+ans=(ans\cdot x+a_i)\bmod m.
+\]
+
+De esta forma todos los valores permanecen acotados y nunca se producen números excesivamente grandes.
+
+\graybold{Ejercicio aplicado}
+
+Dado un polinomio cuyos coeficientes se encuentran almacenados desde el término independiente hasta el término de mayor grado, evaluar el polinomio en un valor \(x\) y reportar el resultado módulo \(m\).
+
+\graybold{I/O:}
+
+Se reciben varios casos de prueba. Cada uno contiene el grado del polinomio, el valor de \(x\), el módulo \(m\) y posteriormente los coeficientes.
+
+Como únicamente se realiza un recorrido lineal sobre los coeficientes, el algoritmo es óptimo y resulta adecuado incluso para polinomios con cientos de miles de términos.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+input = sys.stdin.buffer.readline
+
+def solve():
+    t = int(input())
+    out = []
+    for _ in range(t):
+        n, x, mod = map(int, input().split())
+        coef = list(map(int, input().split()))
+        ans = 0
+        for a in reversed(coef):
+            ans = (ans * x + a) % mod
+        out.append(str(ans))
+    sys.stdout.write("\n".join(out))
+solve()
+\end{lstlisting}
+
+\graybold{Observación:}
+
+El método de Horner es la forma estándar de evaluar polinomios. Además de reducir el número de multiplicaciones, constituye la base del Rolling Hash utilizado en algoritmos de procesamiento de cadenas como Rabin-Karp y múltiples técnicas de hashing en programación competitiva.

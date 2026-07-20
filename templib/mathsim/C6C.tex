@@ -1,0 +1,50 @@
+\subsection{Simulación por Bitmask con Reformulación XOR}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿El estado es un polinomio (u objeto similar) con coeficientes 0/1, y las operaciones involucran sumar/combinar y descartar resultados que excedan un valor?
+\item ¿La regla de "descartar si el coeficiente llega a 2" se parece sospechosamente a una operación de bits?
+\item ¿El proceso, aunque parezca requerir manipular polinomios explícitos, se puede representar como un entero (bitmask) y simular con operaciones aritméticas/bit a bit directas?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Reconocer cuándo una regla de manipulación de coeficientes 0/1 con "descarte al llegar a 2" es, en realidad, aritmética en GF(2) (XOR), permitiendo simular miles de pasos de un proceso tipo Collatz sin manipular listas de coeficientes explícitamente.
+
+\graybold{Complejidad:} \bigO{\text{pasos}}, con cada paso en \bigO{1} (operaciones sobre enteros).
+
+\graybold{Fundamento teórico:} Un polinomio con coeficientes 0/1 se representa como un entero (bit $i$ = coeficiente de $x^i$). Multiplicar por $(x+1)$ suma cada coeficiente con el de la potencia inmediatamente inferior: $\text{nuevo}[i] = \text{viejo}[i] + \text{viejo}[i-1]$, lo que en bits es \texttt{mask \^{} (mask << 1)} — automáticamente da 0 (no 2) donde ambos bits coincidían, que es EXACTAMENTE la regla de "descartar si el coeficiente da 2". Sumar 1 al término constante, con la misma regla de descarte, es un XOR adicional con el bit 0. Cuando no hay término constante, dividir entre $x$ es simplemente un corrimiento de bits a la derecha. Todo el proceso se reduce a: \texttt{mask = mask \^{} (mask << 1) \^{} 1} si el bit 0 está prendido, o \texttt{mask >>= 1} si no.
+
+\graybold{Ejercicio aplicado}
+
+Dado un polinomio con coeficientes 0/1 de grado N, aplicar repetidamente las reglas descritas (multiplicar por $(x+1)$ y sumar 1 con descarte de coeficientes 2, o dividir entre $x$) hasta llegar a $P(x)=1$, contando el número de operaciones.
+
+\graybold{I/O:} N ≤ 20 → lectura directa; el número de pasos hasta converger es pequeño en la práctica (verificado: máximo 90 pasos en 200 pruebas aleatorias con N=20).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    coeffs = list(map(int, data[1:1 + n + 1]))   # a_N .. a_0, en ese orden
+
+    mask = 0
+    for power, bit in enumerate(reversed(coeffs)):   # reversed: a_0 primero -> bit 0
+        if bit:
+            mask |= (1 << power)
+
+    steps = 0
+    while mask != 1:
+        if mask & 1:
+            # (P*(x+1)+1) con descarte de coef=2 es EXACTAMENTE xor a nivel de bits
+            mask = (mask ^ (mask << 1)) ^ 1
+        else:
+            mask >>= 1
+        steps += 1
+
+    print(steps)
+
+solve()
+\end{lstlisting}

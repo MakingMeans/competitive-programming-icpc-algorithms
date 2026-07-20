@@ -1,0 +1,67 @@
+\subsection{Simulación XOR con Detección de Ciclos}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿El estado del sistema se puede representar como un vector de bits, y cada operación disponible es un XOR con una máscara fija?
+\item ¿Las operaciones se aplican en un orden CÍCLICO fijo y predecible (no libre elección)?
+\item ¿Necesito detectar si el proceso entra en un ciclo infinito sin nunca alcanzar el estado objetivo?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Simular un proceso determinista donde el estado (aquí, qué bombillas están encendidas) cambia por XOR con máscaras fijas aplicadas en orden cíclico, deteniéndose al llegar al estado objetivo o detectando que nunca se alcanzará. Es aplicable a cualquier proceso de estado finito con transiciones deterministas.
+
+\graybold{Complejidad:} \bigO{N} en la práctica (ver fundamento teórico), a pesar de que el espacio de estados aparenta ser exponencial en M.
+
+\graybold{Fundamento teórico:} Presionar los N interruptores en orden fijo $1..N$ corresponde a aplicar sucesivamente XOR con N máscaras fijas. Después de un CICLO COMPLETO (los N interruptores), el efecto neto sobre el estado es XOR con una constante fija $C$ = XOR de todas las máscaras de los interruptores, sin importar el estado en que se esté. Como $v \oplus C \oplus C = v$, el estado al INICIO de cada ciclo solo puede tomar 2 valores posibles (el original, o el original $\oplus\, C$), alternando entre ambos. Esto acota el número de estados distintos alcanzables — y por lo tanto el número de pasos antes de repetir un estado o llegar a 0 — a, como mucho, $2N$: por eso la detección de ciclos con un conjunto de estados visitados nunca necesita más de un puñado de iteraciones, sin importar cuán grande sea M.
+
+\graybold{Ejercicio aplicado}
+
+Un conserje presiona N interruptores en orden cíclico $1,2,\ldots,N,1,2,\ldots$ Cada interruptor alterna un subconjunto fijo de M bombillas. Dado el estado inicial de las bombillas encendidas, determinar cuántas veces hay que presionar interruptores hasta que TODAS las bombillas queden apagadas simultáneamente, o -1 si nunca ocurre.
+
+\graybold{I/O:} N,M ≤ 1000 → readline por línea (patrón 1) es más que suficiente, dado que el propio algoritmo termina en a lo más \textasciitilde{}2N iteraciones (verificado: <0.03s incluso en el peor caso N=M=1000).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+
+n, m = map(int, input().split())
+ldata = list(map(int, input().split()))   # ldata[0]=cantidad, resto=bombillas encendidas
+
+switch = []
+for i in range(n):
+    sdata = list(map(int, input().split()))
+    tmp = 0
+    for j in range(1, sdata[0] + 1):
+        aux = 1 << (m - sdata[j])          # bit que representa esa bombilla
+        tmp += aux
+    switch.append(tmp)                     # mascara XOR de este interruptor
+
+bulbs = 0
+for j in range(1, ldata[0] + 1):
+    aux = 1 << (m - ldata[j])
+    bulbs += aux                           # estado inicial como bitmask
+
+idx = 0
+res = 0
+seen = set()                               # detecta si (estado, interruptor actual) se repite
+while True:
+    if bulbs == 0:
+        break                              # todas las bombillas apagadas: listo
+    if (bulbs, idx) in seen:
+        res = -1                           # ya visitamos este estado exacto: nunca terminara
+        break
+    seen.add((bulbs, idx))
+    info = switch[idx]
+
+    bulbs ^= info                          # aplica el interruptor actual
+
+    if idx + 1 == n:
+        idx = 0                            # vuelve al primer interruptor (orden ciclico)
+    else:
+        idx += 1
+    res += 1
+
+sys.stdout.write(str(res))
+\end{lstlisting}

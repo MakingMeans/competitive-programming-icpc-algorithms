@@ -1,0 +1,68 @@
+\subsection{Dijkstra con Nodos Virtuales (Grupos de Teletransporte)}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Hay conexiones "instantáneas" entre CUALQUIER par de nodos que comparta una propiedad (aquí, el mismo tipo de teletransportador), en vez de aristas explícitas punto a punto?
+\item ¿El costo de esas conexiones especiales depende del nodo de ORIGEN, no del par específico origen-destino?
+\item ¿Modelar cada conexión especial como una arista independiente sería demasiado costoso (podría ser $O(n^2)$ aristas en el peor caso)?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Evitar construir explícitamente todas las aristas entre miembros de un mismo grupo (lo cual sería cuadrático), introduciendo un NODO VIRTUAL por grupo que actúa como intermediario: todos los miembros se conectan a él, y él se conecta a todos los miembros. Así, cualquier grafo con "atajos grupales" se puede correr con Dijkstra estándar sin cambios al algoritmo.
+
+\graybold{Complejidad:} \bigO{(V+E) log V}, con $V = n + k$ (ciudades más nodos virtuales) y $E = m + 2 \cdot (\text{total de teletransportadores})$.
+
+\graybold{Fundamento teórico:} Por cada tipo de teletransportador se crea un nodo virtual. Si la ciudad $c$ tiene un teletransportador de tipo $t$ con costo $x$, se agrega una arista dirigida $c \to \text{virtual}(t)$ con peso $x$ (el costo de USAR el teletransportador para salir) y una arista dirigida $\text{virtual}(t) \to c$ con peso 0 (llegar no cuesta nada). De esta forma, viajar de la ciudad $A$ a la ciudad $B$ por teletransporte de tipo $t$ cuesta exactamente lo que cobra $A$ por salir, sin importar cuántas otras ciudades compartan ese tipo — el nodo virtual absorbe toda la complejidad combinatoria en solo 2 aristas por teletransportador, en vez de una arista por cada PAR de ciudades compatibles.
+
+\graybold{Ejercicio aplicado}
+
+Un imperio tiene n ciudades conectadas por m caminos con costo, y k tipos de teletransportadores. Dos ciudades con el mismo tipo de teletransportador se pueden conectar instantáneamente, pero el costo de salir depende de la ciudad de origen (y puede variar incluso para el mismo tipo). Hallar el costo mínimo para viajar de la ciudad 1 a la ciudad n.
+
+\graybold{I/O:} n,m,k ≤ 2×10\textsuperscript{5}, total de teletransportadores ≤ 2×10\textsuperscript{5} → lectura total con tokenización (patrón 2). Verificado: \textasciitilde{}3.6s en el peor caso absoluto (todos los límites al máximo simultáneamente).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+import heapq
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); m = int(data[idx + 1]); k = int(data[idx + 2]); idx += 3
+
+    # nodos virtuales, uno por tipo de teletransportador: indices n..n+k-1
+    total_nodes = n + k
+    adj = [[] for _ in range(total_nodes)]
+
+    for _ in range(m):
+        u = int(data[idx]) - 1; v = int(data[idx + 1]) - 1; c = int(data[idx + 2]); idx += 3
+        adj[u].append((v, c))
+        adj[v].append((u, c))
+
+    for city in range(n):
+        t = int(data[idx]); idx += 1
+        for _ in range(t):
+            typ = int(data[idx]) - 1; cost = int(data[idx + 1]); idx += 2
+            vnode = n + typ
+            adj[city].append((vnode, cost))   # pagar 'cost' para salir por teletransportador
+            adj[vnode].append((city, 0))       # llegar a cualquier ciudad del tipo es gratis
+
+    INF = float('inf')
+    dist = [INF] * total_nodes
+    dist[0] = 0
+    pq = [(0, 0)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist[u]:
+            continue
+        for v, w in adj[u]:
+            nd = d + w
+            if nd < dist[v]:
+                dist[v] = nd
+                heapq.heappush(pq, (nd, v))
+
+    print(dist[n - 1])
+
+solve()
+\end{lstlisting}

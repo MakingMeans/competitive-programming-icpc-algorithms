@@ -1,0 +1,80 @@
+\subsection{Fenwick Tree con XOR (Nim por Rangos, Sprague-Grundy)}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿El juego es una suma de sub-juegos independientes (aquí: columnas de fragmentos) donde en cada turno se modifica UNA sola pila?
+\item ¿Necesito responder "quién gana" para muchos rangos distintos, con actualizaciones puntuales intercaladas?
+\item ¿La operación de combinación relevante es XOR en vez de suma?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Generalizar el Fenwick Tree (visto para sumas) a CUALQUIER operación invertible — aquí XOR — para mantener el valor de Grundy combinado de un rango de pilas de Nim, con actualizaciones puntuales en tiempo logarítmico. Combinado con el teorema de Sprague-Grundy/Bouton, responde instantáneamente quién gana un juego de Nim sobre cualquier subrango.
+
+\graybold{Complejidad:} Construcción \bigO{n}. Update puntual \bigO{log n}. Query de rango \bigO{log n}.
+
+\graybold{Fundamento teórico:} En Nim con pilas independientes donde un jugador retira cualquier cantidad positiva de UNA pila, el valor de Grundy de una pila de tamaño $v$ es exactamente $v$. Por el teorema de Bouton, el jugador que mueve PRIMERO gana si y solo si el XOR de todas las pilas en juego es distinto de 0. Como XOR es su propio inverso ($v \oplus v = 0$), el mismo esquema del Fenwick Tree que acumula sumas de prefijo funciona igual acumulando XOR de prefijo: para modificar el valor de una posición de $v_{viejo}$ a $v_{nuevo}$, basta aplicar un update con delta $= v_{viejo} \oplus v_{nuevo}$ (equivalente a "quitar" el valor viejo y "poner" el nuevo en una sola operación).
+
+\graybold{Ejercicio aplicado}
+
+Juan y Frank juegan Nim sobre columnas de fragmentos: en cada turno, un jugador retira cualquier cantidad positiva de fragmentos de UNA columna; pierde quien no puede mover. Dadas Q consultas, cada una una "profecía" (determinar el ganador en un rango $[l,r]$, sabiendo que Frank siempre empieza) o un "ritual" (sumar $x$ fragmentos a una columna), resolver cada profecía.
+
+\graybold{I/O:} N,Q ≤ 10\textsuperscript{6} → lectura total con tokenización (patrón 2), y las funciones de update/query del Fenwick se escriben SIN llamadas a función (inline) para reducir el overhead de Python en este volumen de operaciones. Aun así, en el peor caso (N=Q=10\textsuperscript{6}) la solución pura en Python ronda \textasciitilde{}7s — si el juez es muy estricto con el límite de tiempo, este es el techo práctico de Python puro para este volumen sin cambiar de lenguaje.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def main():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); q = int(data[idx + 1]); idx += 2
+    arr = [0] * (n + 1)
+    tree = [0] * (n + 1)
+
+    # construccion en O(n): cada nodo se combina UNA vez con su padre directo,
+    # en vez de hacer n updates completos de O(log n) cada uno
+    for i in range(1, n + 1):
+        v = int(data[idx]); idx += 1
+        arr[i] = v
+        tree[i] ^= v
+        j = i + (i & (-i))
+        if j <= n:
+            tree[j] ^= tree[i]
+
+    out = []
+    out_append = out.append
+    ANS = ("JUAN", "FRANK")
+    P_BYTE = 80  # ord('P'): comparar el primer byte evita decodificar el token
+
+    i2 = idx
+    for _ in range(q):
+        tok = data[i2]
+        if tok[0] == P_BYTE:
+            l = int(data[i2 + 1]); r = int(data[i2 + 2]); i2 += 3
+            # xor(prefijo r) ^ xor(prefijo l-1) = xor del rango [l, r]
+            res = 0
+            i = r
+            while i:
+                res ^= tree[i]
+                i &= i - 1          # equivalente a i -= i & (-i), un poco mas rapido
+            i = l - 1
+            while i:
+                res ^= tree[i]
+                i &= i - 1
+            out_append(ANS[res != 0])   # XOR != 0 -> gana quien mueve primero (Frank)
+        else:
+            k = int(data[i2 + 1]); x = int(data[i2 + 2]); i2 += 3
+            old = arr[k]
+            new = old + x
+            delta = old ^ new           # "sacar" old y "poner" new en un solo update
+            arr[k] = new
+            i = k
+            while i <= n:
+                tree[i] ^= delta
+                i += i & (-i)
+
+    sys.stdout.write("\n".join(out) + "\n")
+
+main()
+\end{lstlisting}

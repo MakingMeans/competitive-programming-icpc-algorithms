@@ -18,7 +18,7 @@
 
 Dado un mapa de n cruces y m calles bidireccionales, hallar una ruta que empiece y termine en el cruce 1 (oficina postal) y recorra cada calle exactamente una vez, o determinar que es "IMPOSSIBLE".
 
-\graybold{I/O:} n ≤ 10\textasciicircum{}5, m ≤ 2·10\textasciicircum{}5 → lectura total + tokenización (patrón 2). Se evita adj.erase()/remove() (O(n) por operación, como en la versión C++ original) usando un arreglo de punteros ptr[] que salta aristas usadas: así la eliminación es O(1) amortizado.
+\graybold{I/O:} n ≤ 10\textasciicircum{}5, m ≤ 2·10\textasciicircum{}5 → lectura total + tokenización (patrón 2). Se evita adj.erase()/remove() (O(n) por operación) usando un arreglo de punteros ptr[] que salta aristas usadas: así la eliminación es O(1) amortizado.
 
 \graybold{Código solución}
 

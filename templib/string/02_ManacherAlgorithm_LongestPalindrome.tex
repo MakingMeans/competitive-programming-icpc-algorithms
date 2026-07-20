@@ -1,0 +1,107 @@
+\subsection{Algoritmo de Manacher (Palíndromo Más Largo)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Necesito encontrar el palíndromo más largo de una cadena?
+\item ¿Debo responder múltiples consultas sobre palíndromos de manera eficiente?
+\item ¿Una solución \bigO{n^2} expandiendo desde cada centro resulta demasiado lenta?
+\end{itemize}
+
+\graybold{Utilidad:}
+
+Encontrar el palíndromo más largo de una cadena en tiempo lineal. También permite conocer el radio del mayor palíndromo centrado en cada posición, información utilizada en numerosos problemas sobre procesamiento de cadenas.
+
+\graybold{Complejidad:}
+
+Tiempo \bigO{n}. Espacio \bigO{n}.
+
+\graybold{Fundamento teórico:}
+
+La principal dificultad consiste en manejar simultáneamente palíndromos de longitud par e impar.
+
+Para unificar ambos casos, se inserta un carácter separador entre cada par de caracteres de la cadena y también en los extremos.
+
+Por ejemplo,
+\[
+\texttt{abba}
+\]
+
+se transforma en
+\[
+\texttt{\#a\#b\#b\#a\#}.
+\]
+
+Luego se mantiene el palíndromo más a la derecha encontrado hasta el momento, definido por su centro \(C\) y su extremo derecho \(R\).
+
+Para cada nueva posición \(i\), si
+\[
+i<R,
+\]
+
+se aprovecha la simetría respecto al centro para inicializar el radio del nuevo palíndromo sin repetir comparaciones.
+
+Únicamente cuando es necesario se continúa expandiendo el palíndromo carácter por carácter.
+
+Gracias a esta reutilización de información, cada carácter se expande como máximo una vez, obteniendo una complejidad lineal.
+
+\graybold{Ejercicio aplicado}
+
+Dada una cadena, imprimir el palíndromo de mayor longitud contenido en ella.
+
+Cuando existen varios con la misma longitud, puede imprimirse cualquiera de ellos.
+
+\graybold{I/O:}
+
+La entrada consiste en una única cadena de longitud hasta varios cientos de miles de caracteres.
+
+El algoritmo de Manacher permite resolver el problema en tiempo lineal, siendo la solución estándar para este tipo de ejercicios.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+def manacher(s):
+    t = "#" + "#".join(s) + "#"
+    n = len(t)
+    p = [0] * n
+
+    center = 0
+    right = 0
+
+    for i in range(n):
+        mirror = 2 * center - i
+        if i < right:
+            p[i] = min(right - i, p[mirror])
+
+        while (
+            i - p[i] - 1 >= 0
+            and i + p[i] + 1 < n
+            and t[i - p[i] - 1] == t[i + p[i] + 1]
+        ):
+            p[i] += 1
+
+        if i + p[i] > right:
+            center = i
+            right = i + p[i]
+
+    length = max(p)
+    idx = p.index(length)
+    start = (idx - length) // 2
+    return s[start:start + length]
+s = input().strip()
+print(manacher(s))
+\end{lstlisting}
+
+\graybold{Observación:}
+
+Además de encontrar el palíndromo más largo, el arreglo generado por Manacher almacena el radio del mayor palíndromo centrado en cada posición. Esta información permite responder consultas sobre subcadenas palindrómicas de forma muy eficiente y constituye la base de numerosos algoritmos avanzados de procesamiento de cadenas.
+
+\graybold{Aplicaciones frecuentes:}
+
+\begin{itemize}
+\item Encontrar el palíndromo más largo de una cadena.
+\item Contar todos los palíndromos presentes en una cadena.
+\item Responder consultas sobre subcadenas palindrómicas.
+\item Problemas de bioinformática relacionados con secuencias de ADN.
+\item Procesamiento avanzado de cadenas en competencias ICPC.
+\end{itemize}

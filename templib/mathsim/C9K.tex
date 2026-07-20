@@ -1,0 +1,51 @@
+\subsection{Reducción de Exponente con el Pequeño Teorema de Fermat}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Necesito calcular una potencia módulo un primo $p$, donde el EXPONENTE en sí es demasiado grande para representarlo directamente (por ejemplo, otra potencia)?
+\item ¿La base es menor que el módulo $p$ y no es cero (o necesito manejar ese caso por separado)?
+\item ¿El módulo es primo, garantizando que se puede aplicar el Pequeño Teorema de Fermat?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Calcular $a^{E} \bmod p$ cuando el exponente $E$ es en sí mismo el resultado de otra potenciación (demasiado grande para construir explícitamente), reduciendo el exponente módulo $p-1$ en vez de módulo $p$.
+
+\graybold{Complejidad:} \bigO{log b + log c} por consulta (dos exponenciaciones rápidas anidadas).
+
+\graybold{Fundamento teórico:} Si $p$ es primo y $\gcd(a,p)=1$ (es decir, $a \not\equiv 0 \pmod p$), el Pequeño Teorema de Fermat garantiza $a^{p-1} \equiv 1 \pmod p$, por lo que $a^{E} \equiv a^{E \bmod (p-1)} \pmod p$ para cualquier $E \ge 0$. Esto permite calcular $E \bmod (p-1) = b^c \bmod (p-1)$ con exponenciación rápida (sin construir $b^c$ como número), y luego $a$ elevado a ese resultado, módulo $p$, con otra exponenciación rápida. El caso $a=0$ es una excepción real (no un detalle técnico): como $\gcd(0,p)=p \ne 1$, Fermat NO aplica, y hay que decidir directamente si el exponente $E=b^c$ es exactamente 0 (entonces $0^0=1$ por la convención del enunciado) o estrictamente positivo (entonces $0^E=0$) — lo cual ocurre exactamente cuando $b=0$ y $c \ne 0$.
+
+\graybold{Ejercicio aplicado}
+
+Dados $a$, $b$, $c$, calcular $a^{b^c} \bmod (10^9+7)$, usando la convención $0^0=1$.
+
+\graybold{I/O:} n ≤ 10\textsuperscript{5} → lectura total con tokenización (patrón 2).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+MOD = 1000000007
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    idx = 1
+    out = []
+    for _ in range(n):
+        a = int(data[idx]); b = int(data[idx + 1]); c = int(data[idx + 2]); idx += 3
+        if a == 0:
+            # 0^EXP: EXP=0 solo si b==0 y c!=0 (por la convencion 0^0=1 aplicada a b^c);
+            # gcd(0, MOD) != 1, asi que NO se puede usar Fermat para reducir el exponente aqui
+            if b == 0 and c != 0:
+                out.append("1")
+            else:
+                out.append("0")
+        else:
+            # Fermat: a^EXP mod p == a^(EXP mod (p-1)) mod p, valido porque a != 0 y p es primo
+            e = pow(b, c, MOD - 1)   # pow(0,0,*) = 1 en Python, coincide con la convencion pedida
+            out.append(str(pow(a, e, MOD)))
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

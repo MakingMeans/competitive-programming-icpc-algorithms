@@ -1,0 +1,61 @@
+\subsection{Búsqueda Binaria sobre la Respuesta con Ventana de Bonificación}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Piden maximizar un mínimo (o minimizar un máximo) tras aplicar UNA modificación elegida de un conjunto de opciones?
+\item ¿Puedo verificar rápido, para un valor objetivo fijo, si ALGUNA elección lo logra?
+\item ¿La factibilidad es monótona: si un objetivo H es alcanzable, cualquier objetivo menor también lo es?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Resolver problemas de "maximizar el mínimo" cuando la modificación disponible tiene una forma estructurada (aquí, un refuerzo en forma de escalera), buscando binariamente el mejor valor objetivo y verificando factibilidad con una condición cerrada en \bigO{n} por candidato.
+
+\graybold{Complejidad:} \bigO{n \log(\max x + K)}.
+
+\graybold{Fundamento teórico:} Para un objetivo $H$ fijo, una posición $i$ con $x_i < H$ tiene una \emph{deficiencia} $d_i = H - x_i$. Si se refuerza en la posición $p$, la posición $i$ recibe bonificación $K-(p-i)$ solo si $p-K+1 \le i \le p$; para que alcance $H$, se necesita $p \le i + K - d_i$. Además, ninguna posición fuera del rango de bonificación puede ser deficiente, lo que obliga a $p \ge R$ (la posición deficiente más a la derecha). Así, el conjunto de posiciones $p$ válidas es la intersección de intervalos $[i,\, i+K-d_i]$ sobre todas las posiciones deficientes $i$; como estos intervalos tienen extremo izquierdo creciente en $i$, la intersección es no vacía si y solo si $R \le K + \min_i(i + x_i) - H$ (tomando el mínimo solo entre las posiciones deficientes). Esta condición se evalúa en \bigO{n}, y como la factibilidad de $H$ es monótona (un refuerzo que logra mínimo $H$ automáticamente logra cualquier $H' < H$), se puede buscar binariamente el mayor $H$ factible.
+
+\graybold{Ejercicio aplicado}
+
+Dada una muralla de N segmentos con alturas iniciales, y un refuerzo que agrega $K$ bloques al segmento elegido, $K-1$ al anterior, y así sucesivamente, hallar la mayor altura mínima posible tras aplicar el refuerzo en un único segmento.
+
+\graybold{I/O:} N ≤ 10\textsuperscript{5} → lectura total con tokenización (patrón 2). Verificado contra fuerza bruta en 300 casos aleatorios pequeños.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); k = int(data[1])
+    x = list(map(int, data[2:2 + n]))
+
+    def feasible(h):
+        # deficientes: posiciones (1-indexadas) por debajo de h
+        r = -1          # posicion deficiente mas a la derecha
+        best = None      # min(i + x[i]) entre las deficientes (1-indexado)
+        for i in range(n):
+            if x[i] < h:
+                pos = i + 1
+                r = pos
+                val = pos + x[i]
+                if best is None or val < best:
+                    best = val
+        if r == -1:
+            return True          # nadie por debajo de h: cualquier refuerzo sirve
+        # interseccion de rangos validos de p: [pos, pos+K-d] para cada deficiente
+        # no vacia  <=>  r <= K + best - h
+        return r <= k + best - h
+
+    lo, hi = 1, max(x) + k
+    while lo < hi:
+        mid = (lo + hi + 1) // 2         # busca el mayor H factible
+        if feasible(mid):
+            lo = mid
+        else:
+            hi = mid - 1
+
+    print(lo)
+
+solve()
+\end{lstlisting}

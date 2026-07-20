@@ -1,0 +1,68 @@
+\subsection{Conteo Offline de Elementos Mayores a K por Rango}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Piden, para muchas consultas de rango, contar cuántos elementos superan un umbral k (distinto por consulta)?
+\item ¿Puedo procesar las consultas OFFLINE, ordenándolas de alguna forma conveniente (aquí, por umbral k)?
+\item ¿Puedo "activar" progresivamente elementos del arreglo (marcarlos en una estructura tipo Fenwick) a medida que cambia el umbral?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Responder eficientemente consultas de rango del tipo "¿cuántos elementos en $[i,j]$ son mayores a k?" cuando hay muchas consultas con distintos umbrales, procesándolas todas juntas offline en vez de recorrer el rango en cada una (que sería \bigO{n} por consulta).
+
+\graybold{Complejidad:} \bigO{(n+q) log n}.
+
+\graybold{Fundamento teórico:} Se ordenan las consultas por umbral $k$ de forma DESCENDENTE, y los índices del arreglo por su VALOR también descendente. A medida que se procesan las consultas (con $k$ cada vez menor), se van "activando" en un Fenwick Tree (poniendo un 1 en su posición) todos los elementos con valor $> k$ que aún no se habían activado — como $k$ solo decrece, cada elemento se activa EXACTAMENTE una vez en total. La respuesta de cada consulta es entonces una simple consulta de suma de rango sobre las posiciones activadas hasta ese momento. Es la misma idea offline usada para contar elementos distintos por rango (ver "Fenwick Tree"), aplicada aquí a un umbral de valor en vez de a la última aparición de un valor.
+
+\graybold{Ejercicio aplicado}
+
+Dado un arreglo de n números y q consultas $(i,j,k)$, responder para cada una cuántos elementos del subarreglo $[i,j]$ son estrictamente mayores a $k$.
+
+\graybold{I/O:} n ≤ 30000, q ≤ 200000 → lectura total con tokenización (patrón 2).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); idx += 1
+    a = list(map(int, data[idx:idx + n])); idx += n
+    q = int(data[idx]); idx += 1
+
+    queries = []
+    for qi in range(q):
+        i = int(data[idx]); j = int(data[idx + 1]); k = int(data[idx + 2]); idx += 3
+        queries.append((k, i, j, qi))
+    queries.sort(key=lambda x: -x[0])              # procesar por k DESCENDENTE
+
+    order = sorted(range(n), key=lambda p: -a[p])  # indices de a, por VALOR descendente
+
+    bit = [0] * (n + 1)
+
+    def update(pos, val):
+        while pos <= n:
+            bit[pos] += val
+            pos += pos & (-pos)
+
+    def query(pos):
+        s = 0
+        while pos > 0:
+            s += bit[pos]
+            pos -= pos & (-pos)
+        return s
+
+    ans = [0] * q
+    ptr = 0
+    for k, i, j, qi in queries:
+        while ptr < n and a[order[ptr]] > k:       # activa elementos > k pendientes
+            update(order[ptr] + 1, 1)
+            ptr += 1
+        ans[qi] = query(j) - query(i - 1)
+
+    sys.stdout.write("\n".join(map(str, ans)) + "\n")
+
+solve()
+\end{lstlisting}

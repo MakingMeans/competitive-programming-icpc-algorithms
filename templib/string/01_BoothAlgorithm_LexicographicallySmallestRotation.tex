@@ -1,0 +1,89 @@
+\subsection{Algoritmo de Booth (Rotación Lexicográficamente Mínima)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Necesito considerar todas las rotaciones de una cadena como equivalentes?
+\item ¿Debo obtener la rotación lexicográficamente más pequeña sin generar las \(n\) rotaciones?
+\item ¿El tamaño de la cadena es suficientemente grande como para que un algoritmo \(\bigO{n^2}\) resulte demasiado lento?
+\end{itemize}
+
+\graybold{Utilidad:}
+
+Encontrar la posición donde comienza la rotación lexicográficamente mínima de una cadena en tiempo lineal. Es ampliamente utilizado para obtener una representación canónica de cadenas cíclicas, comparar collares (necklaces), detectar equivalencia entre rotaciones y resolver problemas de cadenas circulares.
+
+\graybold{Complejidad:}
+
+Tiempo \bigO{n}. Espacio \bigO{n}.
+
+\graybold{Fundamento teórico:}
+
+Sea una cadena
+\[
+S=s_0s_1\dots s_{n-1}.
+\]
+
+Todas sus rotaciones pueden representarse duplicando la cadena:
+\[
+T=S+S.
+\]
+
+En lugar de construir explícitamente las \(n\) rotaciones, el algoritmo mantiene dos posibles posiciones candidatas y compara sus caracteres de manera incremental.
+
+Cuando aparece una diferencia entre ambas rotaciones, se descarta inmediatamente aquella que es lexicográficamente mayor, ya que nunca podrá producir la respuesta óptima.
+
+Cada carácter participa en un número constante de comparaciones, por lo que el tiempo total es lineal.
+
+\graybold{Ejercicio aplicado}
+
+Dada una cadena circular, imprimir la rotación lexicográficamente más pequeña.
+
+Este tipo de representación permite comparar cadenas circulares independientemente del punto donde comiencen.
+
+\graybold{I/O:}
+
+Se reciben múltiples cadenas.
+
+Cada cadena puede contener hasta cientos de miles de caracteres, por lo que generar todas las rotaciones (\(\bigO{n^2}\)) resulta inviable.
+
+El algoritmo de Booth obtiene la respuesta en tiempo lineal.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+def booth(s):
+    s += s
+    n = len(s)
+    f = [-1] * n
+    k = 0
+
+    for j in range(1, n):
+        i = f[j - k - 1]
+
+        while i != -1 and s[j] != s[k + i + 1]:
+            if s[j] < s[k + i + 1]:
+                k = j - i - 1
+
+            i = f[i]
+
+        if i == -1 and s[j] != s[k]:
+            if s[j] < s[k]:
+                k = j
+
+            f[j - k] = -1
+        else:
+            f[j - k] = i + 1
+
+    return k % (n // 2)
+
+s = input().strip()
+idx = booth(s)
+ans = s[idx:] + s[:idx]
+print(ans)
+\end{lstlisting}
+
+\graybold{Observación:}
+
+El algoritmo devuelve únicamente el índice donde comienza la rotación mínima. La cadena resultante se obtiene concatenando el sufijo que inicia en dicho índice con el prefijo restante.
+
+Booth constituye la solución estándar para obtener una representación canónica de cadenas circulares y suele aparecer en problemas relacionados con collares, ADN circular, secuencias periódicas y procesamiento avanzado de cadenas.

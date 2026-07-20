@@ -1,0 +1,50 @@
+\subsection{Marcado con Arreglo Booleano (Membresía O(1))}
+
+\graybold{Preguntas guía} - ¿cuándo usarlo?
+
+\begin{itemize}
+\item ¿Necesito verificar repetidamente si un valor pertenece a un conjunto fijo, conocido de antemano?
+\item ¿Los valores a consultar están acotados en un rango pequeño y manejable (cabrían en un arreglo indexado directamente)?
+\item ¿El costo de una búsqueda lineal repetida (O(n) por consulta) sería demasiado alto dado el volumen total?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Convertir consultas de pertenencia repetidas (¿este valor está en el conjunto?) de O(n) a O(1) cada una, marcando de antemano en un arreglo booleano (o bytearray) todos los valores del conjunto. Es la base de innumerables optimizaciones: cuando el rango de valores es acotado, un arreglo indexado directamente es más simple y rápido que un set/hash para este propósito.
+
+\graybold{Complejidad:} \bigO{A + \sum M_i}, con A = rango de ingredientes y $M_i$ = ingredientes de cada paso.
+
+\graybold{Fundamento teórico:} Se marca en un arreglo de tamaño A+1 cuáles ingredientes NO le gustan a Antonio (O(B) inicial). Luego, para cada paso, se recorren sus M ingredientes consultando el arreglo en O(1) cada uno, contando cuántos faltan. La condición "más de un tercio falta" se verifica con aritmética entera (\texttt{missing * 3 > M}) para evitar errores de precisión con fracciones.
+
+\graybold{Ejercicio aplicado}
+
+Antonio prepara un pastel en N pasos, cada uno con una lista de ingredientes, pero se niega a usar B ingredientes específicos que no le gustan. El pastel queda mal en el primer paso donde falte MÁS de un tercio de los ingredientes de ese paso. Determinar en qué paso ocurre esto, o -1 si nunca pasa.
+
+\graybold{I/O:} Suma de ingredientes por paso ≤ 3×10\textsuperscript{5} → lectura total con tokenización (patrón 2).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    n = int(data[idx]); idx += 1
+    a = int(data[idx]); b = int(data[idx + 1]); idx += 2
+    disliked = bytearray(a + 1)          # 1 = ingrediente no le gusta a Antonio
+    for _ in range(b):
+        ing = int(data[idx]); idx += 1
+        disliked[ing] = 1
+
+    for step in range(1, n + 1):
+        m = int(data[idx]); idx += 1
+        missing = 0
+        for _ in range(m):
+            ing = int(data[idx]); idx += 1
+            missing += disliked[ing]
+        if missing * 3 > m:              # mas de un tercio faltante
+            print(step)
+            return
+    print(-1)
+
+solve()
+\end{lstlisting}
