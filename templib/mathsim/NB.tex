@@ -1,0 +1,45 @@
+\subsection{Cómputo de Congruencias por Dígitos (Regla de Horner)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Necesito el residuo (mod m) de un número representado por dígitos, demasiado grande para operar como un entero normal en otros lenguajes?
+\item ¿Puedo procesar los dígitos de izquierda a derecha manteniendo solo un residuo acumulado?
+\item ¿La base y el módulo no tienen una relación especial (a diferencia de la regla de divisibilidad alternada, que aprovecha base $\equiv -1 \bmod m$)?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Calcular el residuo módulo $m$ de un número extremadamente grande (dado por sus dígitos en alguna base) sin construir el número completo, usando la regla de Horner.
+
+\graybold{Complejidad:} \bigO{L}, con L = cantidad de dígitos.
+
+\graybold{Fundamento teórico:} Si $N = d_0 d_1 \ldots d_{L-1}$ en base $b$, $N \bmod m$ se calcula incrementalmente: $r_0 = d_0 \bmod m$; $r_i = (r_{i-1} \cdot b + d_i) \bmod m$. Al terminar, $r_{L-1} = N \bmod m$. Esto generaliza a cualquier base y módulo, a diferencia de trucos específicos como la suma alternada (que solo aplica cuando base $\equiv -1 \bmod m$).
+
+\graybold{Ejercicio aplicado}
+
+Dado un número H expresado en binario (hasta 500 dígitos), calcular cuántos huevos sobran al empacarlos en cajas de 12 (es decir, $H \bmod 12$).
+
+\graybold{I/O:} $|B| \le 500$ por línea, múltiples casos hasta el centinela '*' (patrón 3) → readline por línea es más que suficiente.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    out = []
+    for raw in sys.stdin:
+        line = raw.strip()
+        if line == '*':
+            break
+        rem = 0
+        for ch in line:           # regla de Horner digito a digito
+            rem = (rem * 2 + (1 if ch == '1' else 0)) % 12
+        out.append(str(rem))
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+
+# Nota: en Python, int(B, 2) % 12 tambien funcionaria directo (enteros de
+# precision arbitraria), pero la tecnica de Horner generaliza a numeros
+# aun mas grandes o a lenguajes sin enteros arbitrarios.
+\end{lstlisting}

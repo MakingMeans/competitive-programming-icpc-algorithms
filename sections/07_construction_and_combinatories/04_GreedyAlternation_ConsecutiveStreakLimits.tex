@@ -1,6 +1,6 @@
 \subsection{Construcción Greedy por Alternancia (Límites de Racha Consecutiva)}
 
-\graybold{Preguntas guía} - ¿cuándo usarlo?
+\graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿Hay que construir explícitamente una secuencia que respete un límite de repeticiones CONSECUTIVAS de cada elemento (sin límite en el total de usos)?
@@ -52,14 +52,16 @@ def solve():
     out = []
     remaining = d
     while remaining > 0:
-        take = min(best_val, remaining)
-        out.extend([best_idx + 1] * take)
-        remaining -= take
-        if remaining == 0:
+        if remaining == 1:
+            out.append(second_idx + 1)          # un dia de "descanso" en el segundo mejor lugar
             break
+
         out.append(second_idx + 1)          # un dia de "descanso" en el segundo mejor lugar
         remaining -= 1
 
+        take = min(best_val, remaining)
+        out.extend([best_idx + 1] * take)
+        remaining -= take
     sys.stdout.write(' '.join(map(str, out)) + '\n')
 
 solve()

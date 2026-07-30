@@ -1,0 +1,66 @@
+\subsection{Eliminación de Ciclos en una Ruta (Stack Reduction)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo procesar una secuencia donde ciertos elementos pueden cancelarse al aparecer nuevamente?
+\item ¿Eliminar un ciclo puede generar inmediatamente otro ciclo más grande?
+\item ¿Necesito conservar el orden original mientras simplifico la secuencia al máximo?
+\end{itemize}
+
+\graybold{¿Para qué sirve?}
+
+Simplificar recorridos o secuencias eliminando ciclos innecesarios. Cada vez que un elemento vuelve a aparecer, todo el recorrido intermedio deja de ser útil y puede eliminarse. Después de cada eliminación es necesario volver a comprobar si ahora se formó un nuevo ciclo con los elementos restantes.
+
+Este patrón aparece en problemas de rutas, navegación, directorios, historial de movimientos y simplificación de secuencias.
+
+\graybold{Complejidad:} \bigO{n}.
+
+\graybold{Fundamento teórico:}
+
+La solución utiliza una pila que representa la ruta simplificada construida hasta el momento y cada máquina se procesa exactamente una vez y se inserta al final de la pila.
+Después de insertar una máquina pueden ocurrir dos situaciones. La primera es si las dos últimas máquinas tienen el mismo nombre donde la última visita es redundante y puede eliminarse. La segunda donde la última máquina coincide con la antepenúltima, por lo que tanto la máquina intermedia como la repetida pueden eliminarse.
+
+\graybold{Ejercicio aplicado}
+
+Dado un bang path de UUCP (UNIX-to-UNIX Copy Program), eliminar todos los saltos innecesarios producidos por ciclos entre máquinas, conservando exactamente el mismo destino final y respetando las mayúsculas y minúsculas de las máquinas que permanecen.
+
+Las comparaciones entre nombres de máquinas son \textbf{case-insensitive}, aunque la salida debe conservar la capitalización original.
+
+\graybold{I/O:}
+
+La entrada consiste en una única línea cuya longitud no supera los 256 caracteres.
+
+Cada componente está separado por el carácter '!' y el último elemento siempre corresponde al usuario destino, por lo que nunca participa en las simplificaciones.
+
+Debido al pequeño tamaño de la entrada, basta dividir el string utilizando \texttt{split("!")} y recorrer los componentes una única vez.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+data = input().decode("utf-8").split("!") # Separa cada componente del bang path
+
+if len(data) <= 2: # Si no existen maquinas intermedias no hay nada que simplificar
+    sys.stdout.write("!".join(data))
+    exit()
+
+machines = data[:-1]     # todas las maquinas
+user = data[-1]          # usuario final (no se modifica)
+stack = []
+
+for machine in machines:
+    stack.append(machine)     # agrega la maquina actual a la ruta
+    while True:     # mientras aparezcan nuevos ciclos despues de eliminar otros
+        if (len(stack) >= 2 and stack[-1].lower() == stack[-2].lower()): #CASO AA
+            stack.pop()
+            continue
+
+        if (len(stack) >= 3 and stack[-1].lower() == stack[-3].lower()): #CASO ABA
+            stack.pop()      # elimina la ultima A
+            stack.pop()      # elimina B
+            continue
+        break  # ya no existen reducciones posibles
+sys.stdout.write("!".join(stack + [user])) # reconstruye el bang path conservando el usuario final
+\end{lstlisting}

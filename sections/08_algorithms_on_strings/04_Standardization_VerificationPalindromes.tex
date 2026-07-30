@@ -1,0 +1,39 @@
+\subsection{Normalización y Verificación de Palíndromos}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden verificar si un texto es un palíndromo ignorando mayúsculas, espacios y puntuación?
+\item ¿Basta con normalizar el string (filtrar solo los caracteres relevantes, unificar case) y comparar contra su reverso?
+\item ¿El caso de un string vacío (tras filtrar) debe considerarse un palíndromo válido?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Resolver directamente problemas de verificación de palíndromos con reglas de normalización, filtrando primero y comparando el resultado contra su versión invertida.
+
+\graybold{Complejidad:} \bigO{n}.
+
+\graybold{Fundamento teórico:} Un string es palíndromo si es igual a su reverso. Al normalizar primero (quedarse solo con letras, todas en minúscula), la comparación directa \texttt{filtered == filtered[::-1]} captura exactamente la definición pedida, incluyendo el caso borde de que un string vacío (o sin letras) es trivialmente un palíndromo.
+
+\graybold{Ejercicio aplicado}
+
+Dada una oración, determinar si es un palíndromo ignorando mayúsculas, espacios, y cualquier carácter que no sea una letra del alfabeto inglés.
+
+\graybold{I/O:} Múltiples líneas hasta el centinela "*" (patrón 3), N < 1000 por línea → se recorre línea por línea con \texttt{for line in sys.stdin}, ya que es texto libre (no se puede tokenizar con \texttt{.split()}).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    out = []
+    for raw in sys.stdin:
+        line = raw.rstrip('\n').rstrip('\r')
+        if line == '*':
+            break
+        filtered = [c.lower() for c in line if c.isalpha()]
+        out.append('Y' if filtered == filtered[::-1] else 'N')
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

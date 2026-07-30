@@ -1,6 +1,6 @@
 \subsection{Simulación XOR con Detección de Ciclos}
 
-\graybold{Preguntas guía} - ¿cuándo usarlo?
+\graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿El estado del sistema se puede representar como un vector de bits, y cada operación disponible es un XOR con una máscara fija?
@@ -12,7 +12,7 @@
 
 \graybold{Complejidad:} \bigO{N} en la práctica (ver fundamento teórico), a pesar de que el espacio de estados aparenta ser exponencial en M.
 
-\graybold{Fundamento teórico:} Presionar los N interruptores en orden fijo $1..N$ corresponde a aplicar sucesivamente XOR con N máscaras fijas. Después de un CICLO COMPLETO (los N interruptores), el efecto neto sobre el estado es XOR con una constante fija $C$ = XOR de todas las máscaras de los interruptores, sin importar el estado en que se esté. Como $v \oplus C \oplus C = v$, el estado al INICIO de cada ciclo solo puede tomar 2 valores posibles (el original, o el original $\oplus\, C$), alternando entre ambos. Esto acota el número de estados distintos alcanzables — y por lo tanto el número de pasos antes de repetir un estado o llegar a 0 — a, como mucho, $2N$: por eso la detección de ciclos con un conjunto de estados visitados nunca necesita más de un puñado de iteraciones, sin importar cuán grande sea M.
+\graybold{Fundamento teórico:} Presionar los N interruptores en orden fijo $1..N$ corresponde a aplicar sucesivamente XOR con N máscaras fijas. Después de un CICLO COMPLETO (los N interruptores), el efecto neto sobre el estado es XOR con una constante fija $C$ = XOR de todas las máscaras de los interruptores, sin importar el estado en que se esté. Como $v \oplus C \oplus C = v$, el estado al INICIO de cada ciclo solo puede tomar 2 valores posibles (el original, o el original $\oplus\, C$), alternando entre ambos. Esto acota el número de estados distintos alcanzables (y por lo tanto el número de pasos antes de repetir un estado o llegar a 0) a como mucho, $2N$: por eso la detección de ciclos con un conjunto de estados visitados nunca necesita más de un puñado de iteraciones, sin importar cuán grande sea M.
 
 \graybold{Ejercicio aplicado}
 

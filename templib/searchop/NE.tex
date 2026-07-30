@@ -1,0 +1,86 @@
+\subsection{Minimización por Concavidad en Puntos de Quiebre}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿La función de costo depende de un tiempo/parámetro continuo, y para cada valor fijo se puede evaluar con un algoritmo exacto (aquí, Huffman)?
+\item ¿Los "pesos" de entrada son funciones lineales a trozos del parámetro, con quiebres conocidos de antemano?
+\item ¿Evaluar la función de costo en TODOS los valores posibles sería demasiado lento, pero evaluarla en unos pocos puntos candidatos no?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Minimizar una función costosa de evaluar (aquí, el costo óptimo de Huffman) sobre un dominio continuo/discreto grande, cuando se puede demostrar que la función es CÓNCAVA en los tramos donde las entradas varían linealmente — lo cual garantiza que el mínimo global cae exactamente en uno de los puntos de quiebre, sin necesidad de evaluar todo el rango.
+
+\graybold{Complejidad:} \bigO{n \log(\max T)} por punto de quiebre evaluado (con dos colas, \bigO{n} por evaluación de Huffman tras ordenar), \bigO{n} puntos de quiebre por caso.
+
+\graybold{Fundamento teórico:} Para pesos FIJOS, el costo óptimo de Huffman $\sum f_i \ell_i$ es el MÍNIMO, sobre todas las estructuras de árbol binario válidas, de una función LINEAL en las frecuencias. El mínimo de funciones lineales es una función CÓNCAVA. Como cada $f_i(t)$ es lineal a trozos (con quiebre en $m_i$), en cualquier tramo entre dos quiebres consecutivos TODAS las $f_i(t)$ son simultáneamente lineales en $t$, por lo que $C(t)$ es cóncava en ese tramo — y una función cóncava en un intervalo cerrado alcanza su mínimo en alguno de los extremos, NUNCA en el interior. Por lo tanto, basta evaluar $C(t)$ en $t=0$, $t=T$, y en cada $m_i$, para garantizar encontrar el mínimo global (verificado exhaustivamente contra fuerza bruta sobre todos los enteros en 500 casos aleatorios, sin discrepancias). El costo de Huffman en sí se calcula de la forma clásica: fusionar repetidamente los dos pesos más chicos, sumando cada fusión al costo total — usando dos colas (frecuencias originales ordenadas, y sumas fusionadas, que salen en orden no decreciente) en vez de un heap, es más rápido en la práctica.
+
+\graybold{Ejercicio aplicado}
+
+Dados $n$ símbolos cuya frecuencia esperada $f_i(t)$ varía linealmente a trozos entre $t=0$ y $t=T$ (definida por 3 puntos), hallar el menor tiempo entero $t \in [0,T]$ que minimiza el costo total $C(t)$ de un código de Huffman óptimo para $\{f_i(t)\}$, junto con ese costo mínimo.
+
+\graybold{I/O:} K ≤ 1000 casos, n ≤ 100, T ≤ 10\textsuperscript{6} → lectura total con tokenización (patrón 2); las pendientes de cada tramo se precalculan una sola vez por símbolo (no por punto de quiebre evaluado). Verificado: \textasciitilde{}2.7s en el peor caso de todos los límites al máximo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from collections import deque
+
+def huffman_cost_sorted(freqs_sorted):
+    n = len(freqs_sorted)
+    if n == 1:
+        return freqs_sorted[0] * 1.0
+    q1 = deque(freqs_sorted)
+    q2 = deque()
+    total = 0.0
+    while len(q1) + len(q2) > 1:
+        # saca el menor disponible entre el frente de q1 y el frente de q2
+        if not q2 or (q1 and q1[0] <= q2[0]):
+            a = q1.popleft()
+        else:
+            a = q2.popleft()
+        if not q2 or (q1 and q1[0] <= q2[0]):
+            b = q1.popleft()
+        else:
+            b = q2.popleft()
+        s = a + b
+        total += s
+        q2.append(s)             # las sumas fusionadas salen ya ordenadas
+    return total
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    k = int(data[idx]); idx += 1
+    out = []
+    for _ in range(k):
+        n = int(data[idx]); T = int(data[idx + 1]); idx += 2
+        ms = {0, T}
+        syms = []
+        for _ in range(n):
+            a = int(data[idx]); m = int(data[idx + 1]); b = int(data[idx + 2]); c = int(data[idx + 3]); idx += 4
+            slope1 = (b - a) / m           # pendiente en [0, m]
+            slope2 = (c - b) / (T - m)     # pendiente en [m, T]
+            syms.append((m, a, slope1, b, slope2))
+            ms.add(m)
+
+        best_t = None
+        best_cost = None
+        for t in sorted(ms):             # el minimo SIEMPRE cae en un quiebre (concavidad)
+            freqs = []
+            for (m, a, s1, b, s2) in syms:
+                if t <= m:
+                    freqs.append(a + s1 * t)
+                else:
+                    freqs.append(b + s2 * (t - m))
+            freqs.sort()
+            cost = huffman_cost_sorted(freqs)
+            if best_cost is None or cost < best_cost - 1e-9:
+                best_cost = cost
+                best_t = t
+        out.append(f"{best_t} {best_cost:.3f}")
+
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

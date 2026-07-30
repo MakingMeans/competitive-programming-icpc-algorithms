@@ -1,0 +1,65 @@
+\subsection{Distribución de Días de Espera (Stars and Bars)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo distribuir una cantidad fija de elementos idénticos entre varios lugares?
+\item ¿Cada lugar puede recibir cero o más elementos?
+\item ¿El orden dentro de cada grupo no importa, únicamente cuántos elementos recibe cada uno?
+\end{itemize}
+
+\graybold{¿Para qué sirve?}
+
+Contar el número de formas de distribuir una cantidad fija de elementos indistinguibles entre varios grupos independientes. Es una de las aplicaciones más comunes de la técnica de \textit{Stars and Bars} (estrellas y barras), utilizada frecuentemente en problemas de combinatoria, programación competitiva y teoría de conteo.
+
+\graybold{Complejidad:}
+
+Preprocesamiento de factoriales: \bigO{MAX}.
+
+Cada consulta: \bigO{1}.
+
+Espacio: \bigO{MAX}.
+
+\graybold{Fundamento teórico:} Si el viaje mínimo hasta el oasis destino requiere $O$ días y debe durar exactamente $T$ días, existen $extra=T-O$ días de espera que pueden distribuirse libremente antes de salir o después de cualquiera de los $D$ oasis recorridos, es decir, entre $D+1$ posiciones distintas. Como los días de espera son indistinguibles y cada posición puede recibir cualquier cantidad de ellos, el problema se reduce directamente al principio de \textit{Stars and Bars}, obteniendo un total de $\binom{extra+D}{D}$ planes posibles.
+
+\graybold{Ejercicio aplicado}
+
+Se conocen las posiciones de todos los oasis de una ruta.
+
+Para cada consulta se recibe un oasis destino y el número exacto de días que debe durar el viaje.
+
+Calcular cuántos planes distintos existen para distribuir los días de espera manteniendo siempre el mismo recorrido.
+
+\graybold{I/O:}
+
+\(5 \le N \le 20\).
+
+\(1 \le M \le 10\).
+
+Las distancias a los oasis no superan los 60 días, por lo que todos los factoriales necesarios pueden precomputarse una única vez antes de responder las consultas.
+
+Cada consulta se responde en tiempo constante.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+cant, queries = map(int, input().split()) # numero de oasis y consultas
+oasis = list(map(int, input().split())) # distancia minima hasta cada oasis
+
+MAX = 80
+factorial = [1] * (MAX + 1) # factoriales para responder combinaciones en O(1)
+
+for i in range(1, MAX + 1):
+    factorial[i] = factorial[i - 1] * i
+
+def combination(n, k):
+    return factorial[n] // (factorial[k] * factorial[n - k])
+
+for _ in range(queries):
+    destiny, time = map(int, input().split())
+    extraTime = time - oasis[destiny - 1] # dias extra que deben distribuirse como esperas
+    res = combination(extraTime + destiny, destiny) # Stars and Bars
+    sys.stdout.write(str(res) + "\n")
+\end{lstlisting}

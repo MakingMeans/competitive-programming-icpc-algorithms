@@ -1,0 +1,62 @@
+\subsection{Suma de Prefijos con Mapa de Primera Aparición}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden la subsecuencia contigua más larga que cumple una condición de "balance" (mismo número de dos tipos de elementos, o suma total igual a un valor fijo)?
+\item ¿Puedo transformar cada elemento en un delta (+1/−1/0) tal que la condición se traduzca en "suma de un subarreglo == 0"?
+\item ¿Me alcanza con guardar, para cada valor de suma acumulada, solo la PRIMERA posición donde apareció?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Encontrar en \bigO{n} el subarreglo contiguo más largo cuya suma (o balance entre dos tipos de elementos) es igual a un valor fijo, sin revisar los $O(n^2)$ subarreglos posibles.
+
+\graybold{Complejidad:} \bigO{n} tiempo, \bigO{n} espacio.
+
+\graybold{Fundamento teórico:} Si $P[i]$ es la suma acumulada de los primeros $i$ elementos (con la transformación adecuada), la suma del subarreglo $(i+1..j)$ es $P[j]-P[i]$. Esa suma es 0 exactamente cuando $P[j]=P[i]$. Para maximizar la longitud $j-i$, basta con recordar, para cada valor de prefijo visto, la PRIMERA posición en que apareció (nunca la última), y comparar contra ella cada vez que el valor se repite.
+
+\graybold{Ejercicio aplicado}
+
+Dada una secuencia de N transacciones (positiva = depósito, negativa = retiro, cero = consulta), calcular el depósito máximo, el retiro más negativo, y la longitud del subperíodo contiguo más largo con igual cantidad de depósitos y retiros.
+
+\graybold{I/O:} Múltiples casos con centinela "0" (patrón 3). N ≤ 10\,000 → readline por línea (patrón 1); se probó también con lectura total y resultó más lenta para este patrón de "un entero, luego un arreglo, repetido" (\textasciitilde{}2.5s vs \textasciitilde{}3.9s en 500 casos de N=10000).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+
+def solve():
+    out = []
+    while True:
+        n = int(input())
+        if n == 0:
+            break
+        arr = list(map(int, input().split()))
+
+        d = 0
+        w = 0
+        for x in arr:
+            if x > 0:
+                d = max(d, x)
+            elif x < 0:
+                w = min(w, x)     # el mas negativo, no el de mayor magnitud
+
+        # prefijo: +1 por deposito, -1 por retiro, 0 no cambia nada
+        first_seen = {0: 0}      # valor de prefijo -> PRIMERA posicion vista
+        prefix = 0
+        r = 0
+        for i, x in enumerate(arr, start=1):
+            if x > 0:
+                prefix += 1
+            elif x < 0:
+                prefix -= 1
+            if prefix in first_seen:
+                r = max(r, i - first_seen[prefix])   # se repite: hay balance
+            else:
+                first_seen[prefix] = i               # primera vez: se guarda
+
+        out.append(f"{d} {w} {r}")
+    sys.stdout.write("\n".join(out) + "\n")
+solve()
+\end{lstlisting}

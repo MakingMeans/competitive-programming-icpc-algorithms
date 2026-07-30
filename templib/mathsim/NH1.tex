@@ -1,0 +1,208 @@
+\subsection{Factorización Rápida de Enteros Grandes (Pollard's Rho + Miller-Rabin)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Necesito factorizar en primos números de hasta $\sim 10^{12}$ o más, donde la división de prueba ($O(\sqrt{n})$) es demasiado lenta con muchos números o primos grandes?
+\item ¿Necesito verificar primalidad de números grandes rápido y con certeza práctica?
+\item ¿El problema involucra propiedades de los factores primos de varios números (compatibilidad, MCD, etc.)?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Factorizar números grandes (hasta $10^{12}$ o más) en tiempo esperado muy por debajo de $O(\sqrt{n})$ por número.
+
+\graybold{Complejidad:} Miller-Rabin: \bigO{\log^3 n} por chequeo. Pollard's Rho: \bigO{n^{1/4}} esperado por factor encontrado.
+
+\graybold{Fundamento teórico:} Miller-Rabin es un test de primalidad basado en las propiedades de las raíces cuadradas de 1 módulo un primo; con un conjunto fijo de bases testigo es determinístico en el rango de este problema. Pollard's Rho encuentra un factor no trivial de $n$ simulando una secuencia pseudoaleatoria $x_{i+1}=x_i^2+c \pmod n$ y buscando una colisión módulo un factor de $n$ (mucho más frecuente que módulo $n$ completo), detectada vía el algoritmo de ciclos de Floyd combinado con mcd. Factorizar completamente un número se reduce a aplicar Pollard's Rho recursivamente sobre los factores compuestos que va encontrando.
+
+\graybold{Ejercicio aplicado}
+
+(Primera mitad de "Holy Network", ver también la entrada de Clique Máximo en Algoritmos de Grafos) Dados N números de hasta $10^{12}$, obtener el conjunto de primos que divide a cada uno.
+
+\graybold{I/O:} N ≤ 50 por caso → no hace falta ninguna optimización de lectura (patrón 1); el costo está en la factorización, no en la E/S. Verificado: división de prueba tarda \textasciitilde{}5.6s en un caso adversario donde Pollard's Rho tarda \textasciitilde{}0.09s.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import random
+from math import gcd
+
+def is_prime(n):
+    if n < 2:
+        return False
+    for p in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37):
+        if n % p == 0:
+            return n == p
+    d = n - 1
+    r = 0
+    while d % 2 == 0:
+        d //= 2
+        r += 1
+    for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37):
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
+            return False        # testigo compuesto encontrado
+    return True
+
+def pollard_rho(n):
+    if n % 2 == 0:
+        return 2
+    while True:                 # reintenta con otro c si falla
+        c = random.randint(1, n - 1)
+        f = lambda x: (x * x + c) % n
+        x = y = random.randint(2, n - 1)
+        d = 1
+        while d == 1:
+            x = f(x)
+            y = f(f(y))          # tortuga y liebre (deteccion de ciclos)
+            d = gcd(abs(x - y), n)
+        if d != n:               # d==n: colision trivial, reintentar
+            return d
+
+def prime_factors(n):
+    if n == 1:
+        return set()
+    if is_prime(n):
+        return {n}
+    d = pollard_rho(n)
+    return prime_factors(d) | prime_factors(n // d)
+\end{lstlisting}
+
+
+\subsection{Clique Máximo en Grafos Pequeños (Bron-Kerbosch con Poda)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden el subconjunto más grande de elementos tal que TODOS los pares cumplan una relación (compatibilidad, conflicto, etc.)?
+\item ¿El número de elementos es pequeño (hasta $\sim$50-100), aunque el problema en general sea NP-difícil?
+\item ¿La relación de compatibilidad no tiene una estructura especial (bipartita, de intervalos) que permita un atajo polinomial?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Encontrar el clique máximo en un grafo pequeño, cuando no hay estructura especial que permita resolverlo en tiempo polinomial (como sí ocurre en grafos bipartitos con el teorema de König).
+
+\graybold{Complejidad:} Exponencial en el peor caso (NP-difícil), pero con poda por pivote resulta muy rápido en la práctica para $n \le \sim 50$-100 (verificado: <10ms incluso en grafos aleatorios densos $G(50, 0.5)$).
+
+\graybold{Fundamento teórico:} Bron-Kerbosch explora el espacio de cliques manteniendo tres conjuntos: $R$ (clique parcial), $P$ (candidatos) y $X$ (descartados). En cada paso se elige un "pivote" (el nodo con más vecinos en $P$) y solo se ramifica sobre los nodos que NO son vecinos del pivote. Para clique MÁXIMO se agrega una poda: si el tamaño parcial más los candidatos restantes no supera el mejor encontrado, se corta la rama.
+
+\graybold{Ejercicio aplicado}
+
+Dados N ingredientes con un número asociado (hasta $10^{12}$), donde dos son compatibles si comparten un factor primo mayor a 1, hallar el tamaño del grupo más grande donde todos los pares son compatibles entre sí.
+
+\graybold{I/O:} N ≤ 50 → entrada trivial; toda la complejidad está en la factorización (entrada anterior) y en la búsqueda de clique.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+import random
+from math import gcd
+
+def is_prime(n):
+    if n < 2:
+        return False
+    for p in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37):
+        if n % p == 0:
+            return n == p
+    d = n - 1
+    r = 0
+    while d % 2 == 0:
+        d //= 2
+        r += 1
+    for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37):
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
+
+def pollard_rho(n):
+    if n % 2 == 0:
+        return 2
+    while True:
+        c = random.randint(1, n - 1)
+        f = lambda x: (x * x + c) % n
+        x = y = random.randint(2, n - 1)
+        d = 1
+        while d == 1:
+            x = f(x)
+            y = f(f(y))
+            d = gcd(abs(x - y), n)
+        if d != n:
+            return d
+
+def prime_factors(n):
+    if n == 1:
+        return set()
+    if is_prime(n):
+        return {n}
+    d = pollard_rho(n)
+    return prime_factors(d) | prime_factors(n // d)
+
+def max_clique_size(n, adj):
+    # adj[i] = bitmask (entero) de los vecinos de i
+    best = 0
+    full_mask = (1 << n) - 1
+
+    def bronkerbosch(r_size, P, X):
+        nonlocal best
+        if P == 0 and X == 0:
+            best = max(best, r_size)
+            return
+        if r_size + bin(P).count('1') <= best:
+            return                       # poda: no puede mejorar el maximo
+        PX = P | X
+        pivot, max_count = -1, -1
+        temp = PX
+        while temp:
+            v = (temp & -temp).bit_length() - 1
+            temp &= temp - 1
+            cnt = bin(adj[v] & P).count('1')
+            if cnt > max_count:
+                max_count, pivot = cnt, v
+        candidates = P & ~adj[pivot]     # solo NO-vecinos del pivote
+        while candidates:
+            v = (candidates & -candidates).bit_length() - 1
+            candidates &= candidates - 1
+            bronkerbosch(r_size + 1, P & adj[v], X & adj[v])
+            P &= ~(1 << v)
+            X |= (1 << v)
+
+    bronkerbosch(0, full_mask, 0)
+    return best
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    out = []
+    while idx < len(data):
+        n = int(data[idx]); idx += 1
+        if n == 0:
+            break
+        vals = [int(data[idx + i]) for i in range(n)]
+        idx += n
+
+        factor_sets = [prime_factors(v) for v in vals]
+
+        adj = [0] * n
+        for i in range(n):
+            for j in range(i + 1, n):
+                if factor_sets[i] & factor_sets[j]:   # comparten un primo
+                    adj[i] |= (1 << j)
+                    adj[j] |= (1 << i)
+
+        out.append(str(max_clique_size(n, adj)))
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

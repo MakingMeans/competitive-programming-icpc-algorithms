@@ -1,6 +1,6 @@
 \subsection{Fenwick Tree con XOR (Nim por Rangos, Sprague-Grundy)}
 
-\graybold{Preguntas guía} - ¿cuándo usarlo?
+\graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿El juego es una suma de sub-juegos independientes (aquí: columnas de fragmentos) donde en cada turno se modifica UNA sola pila?
@@ -8,7 +8,7 @@
 \item ¿La operación de combinación relevante es XOR en vez de suma?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Generalizar el Fenwick Tree (visto para sumas) a CUALQUIER operación invertible — aquí XOR — para mantener el valor de Grundy combinado de un rango de pilas de Nim, con actualizaciones puntuales en tiempo logarítmico. Combinado con el teorema de Sprague-Grundy/Bouton, responde instantáneamente quién gana un juego de Nim sobre cualquier subrango.
+\graybold{¿Para qué sirve?} Generalizar el Fenwick Tree (visto para sumas) a CUALQUIER operación invertible para mantener el valor de Grundy combinado de un rango de pilas de Nim, con actualizaciones puntuales en tiempo logarítmico. Combinado con el teorema de Sprague-Grundy/Bouton, responde instantáneamente quién gana un juego de Nim sobre cualquier subrango.
 
 \graybold{Complejidad:} Construcción \bigO{n}. Update puntual \bigO{log n}. Query de rango \bigO{log n}.
 
@@ -18,7 +18,7 @@
 
 Juan y Frank juegan Nim sobre columnas de fragmentos: en cada turno, un jugador retira cualquier cantidad positiva de fragmentos de UNA columna; pierde quien no puede mover. Dadas Q consultas, cada una una "profecía" (determinar el ganador en un rango $[l,r]$, sabiendo que Frank siempre empieza) o un "ritual" (sumar $x$ fragmentos a una columna), resolver cada profecía.
 
-\graybold{I/O:} N,Q ≤ 10\textsuperscript{6} → lectura total con tokenización (patrón 2), y las funciones de update/query del Fenwick se escriben SIN llamadas a función (inline) para reducir el overhead de Python en este volumen de operaciones. Aun así, en el peor caso (N=Q=10\textsuperscript{6}) la solución pura en Python ronda \textasciitilde{}7s — si el juez es muy estricto con el límite de tiempo, este es el techo práctico de Python puro para este volumen sin cambiar de lenguaje.
+\graybold{I/O:} N,Q ≤ 10\textsuperscript{6} → lectura total con tokenización (patrón 2), y las funciones de update/query del Fenwick se escriben SIN llamadas a función (inline) para reducir el overhead de Python en este volumen de operaciones. Aun así, en el peor caso (N=Q=10\textsuperscript{6}) la solución pura en Python ronda \textasciitilde{}7s si el juez es muy estricto con el límite de tiempo, este es el techo práctico de Python puro para este volumen sin cambiar de lenguaje.
 
 \graybold{Código solución}
 

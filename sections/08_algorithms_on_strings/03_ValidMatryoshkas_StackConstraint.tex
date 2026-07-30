@@ -1,0 +1,66 @@
+\subsection{Validación de Matrioshkas Generalizadas (Pila con Restricción de Capacidad)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿La entrada representa una estructura jerárquica donde los elementos se abren y posteriormente deben cerrarse respetando el orden (LIFO)?
+\item ¿Cada elemento abierto posee una restricción que depende de todos los elementos contenidos directamente en su interior?
+\item ¿Necesito validar simultáneamente el correcto anidamiento y una condición adicional sobre el contenido de cada nivel?
+\end{itemize}
+
+\graybold{¿Para qué sirve?}
+
+Validar estructuras anidadas donde cada objeto debe cerrarse exactamente en el orden inverso en que fue abierto y, además, debe cumplir una restricción sobre los elementos contenidos directamente en su interior. Este patrón aparece frecuentemente en problemas de parsing, validación de expresiones jerárquicas y simulación de estructuras recursivas.
+
+\graybold{Complejidad:} \bigO{n}.
+
+\graybold{Fundamento teórico:}
+
+Cada juguete comienza cuando aparece un entero negativo $-x$ y termina cuando aparece el correspondiente entero positivo $x$. Debido a que un juguete debe cerrarse antes de continuar cerrando el que lo contiene, el orden de cierre siempre sigue la política \textbf{Last In, First Out (LIFO)}, por lo que una pila modela naturalmente la estructura.
+
+\graybold{Ejercicio aplicado}
+
+Dada una secuencia de enteros que representa la apertura y cierre de juguetes generalizados, determinar si la estructura corresponde a una matrioshka válida.
+
+Cada juguete de tamaño $m$ puede contener varios juguetes, pero la suma de los tamaños de todos sus hijos directos debe ser estrictamente menor que $m$.
+
+\graybold{I/O:}
+
+Cada línea representa un caso de prueba independiente.
+
+Los valores aparecen separados por espacios y pueden alcanzar magnitudes de hasta $10^7$. Como únicamente se realiza un recorrido secuencial sobre cada línea utilizando una pila, el algoritmo procesa cada caso en tiempo lineal.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+for line in sys.stdin:
+    nums = list(map(int, line.split()))
+    stack = []
+    valid = True
+
+    for x in nums:
+        if x < 0:
+            stack.append([-x, 0])
+        else:
+            if not stack:
+                valid = False
+                break
+            size, total = stack.pop()     # numero del cierre y cuantos tiene adentro
+            if size != x:
+                valid = False
+                break
+            if total >= size:
+                valid = False
+                break
+            if stack:
+                stack[-1][1] += size    # del ultimo en en la cola le suma numero
+
+    if stack:
+        valid = False
+    if valid:
+        print(":-) Matrioshka!")
+    else:
+        print(":-( Try again.")
+\end{lstlisting}
