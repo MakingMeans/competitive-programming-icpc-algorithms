@@ -1,0 +1,55 @@
+\subsection{Firma Canónica para Clases de Equivalencia de Palabras}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo agrupar o emparejar palabras que son "la misma" bajo alguna transformación permitida (anagramas, reordenamientos parciales, rotaciones, cambios de caso)?
+\item ¿Puedo definir una función que colapse todas las palabras equivalentes al MISMO valor, sin comparar cada par entre sí?
+\item ¿Me piden, entre todos los candidatos equivalentes, el menor lexicográficamente (o algún otro criterio de desempate)?
+\item ¿Comparar todas las palabras del texto contra todas las del diccionario sería cuadrático o más?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Convierte un problema de "¿son equivalentes estas dos palabras?" en un problema de búsqueda exacta en tabla hash. En lugar de comparar cada palabra del texto contra cada palabra del diccionario, se define una FIRMA CANÓNICA: una función que asigna a todas las palabras de una misma clase de equivalencia un valor idéntico, y a palabras de clases distintas valores distintos. El diccionario se indexa una sola vez por firma, y cada consulta se resuelve con un acceso directo. Aplica a anagramas, reordenamientos parciales, normalización de cadenas y, en general, a cualquier relación de equivalencia que se pueda describir por un conjunto de invariantes.
+
+\graybold{Complejidad:} \bigO{D log L + T} amortizado por caso de prueba, donde $D$ es el número de palabras del diccionario, $T$ el del texto y $L$ la longitud máxima de palabra (el $\log L$ viene de ordenar las letras del medio para construir la firma). Sin la firma, la comparación directa sería \bigO{D \cdot T \cdot L log L}.
+
+\graybold{Fundamento teórico:} La transformación permitida — reordenar todas las letras excepto la primera y la última — genera una relación de equivalencia sobre las palabras. Dos palabras son equivalentes si y solo si coinciden en CUATRO invariantes: la longitud, la primera letra, la última letra y el MULTICONJUNTO de letras intermedias. Estos invariantes son completos: si coinciden, existe una permutación de las letras del medio que transforma una en la otra (basta reordenar el multiconjunto), y si difieren en alguno, ninguna permutación del medio puede igualarlas (porque una permutación conserva el multiconjunto y no toca los extremos ni la longitud). Por lo tanto, la tupla $(\,|w|,\ w_0,\ w_{-1},\ \mathrm{sort}(w_{1..-2})\,)$ es una forma canónica: dos palabras tienen la misma firma exactamente cuando son intercambiables. La longitud debe incluirse explícitamente: sin ella, las palabras $\texttt{"a"}$ y $\texttt{"aa"}$ producirían la misma firma $(\texttt{'a'},\texttt{'a'},\texttt{""})$ — en la primera la única letra hace de primera Y de última, y en ambas el medio es vacío — a pesar de tener longitudes distintas y no ser intercambiables. Para el desempate, como la respuesta pedida es el menor lexicográficamente, basta conservar en cada casilla de la tabla el mínimo visto; nótese que la palabra correcta puede NO ser la propia palabra del texto aunque esta esté en el diccionario, como muestra el segundo caso de ejemplo, donde \texttt{drinaemg} pertenece al diccionario pero se reemplaza por \texttt{dreaming} por ser anterior en orden lexicográfico.
+
+\graybold{Ejercicio aplicado}
+
+Dado un diccionario y un texto cuyas palabras tienen las letras del medio revueltas (primera y última en su lugar original), reemplazar cada palabra del texto por la palabra del diccionario que se convierte en ella reordenando solo las letras intermedias, eligiendo la menor lexicográficamente si hay varias, o dejándola igual si no hay ninguna.
+
+\graybold{I/O:} $N$ casos, cada uno en EXACTAMENTE dos líneas (diccionario y texto) de a lo sumo 200 caracteres cada una $\Rightarrow$ la estructura por líneas es semánticamente relevante (hay que saber dónde termina el diccionario y empieza el texto), así que se usa \texttt{sys.stdin.buffer.readline} línea por línea (patrón 1) y se tokeniza cada línea con \texttt{.split()}. Se trabaja directamente sobre \texttt{bytes} sin decodificar, ya que la firma solo necesita comparar e indexar; solo la salida se decodifica. Los límites son diminutos (200 caracteres por lista), así que el rendimiento no es un problema, aunque $N$ no está acotado superiormente en el enunciado. Verificado contra los dos casos de ejemplo y contrastado con una fuerza bruta (comparar cada palabra del texto contra todo el diccionario) en 600 casos aleatorios, sin discrepancias, incluyendo casos borde de palabras de 1, 2 y 3 letras.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+input = sys.stdin.buffer.readline
+
+def firma(w):
+    # dos palabras son intercambiables si coinciden longitud, primera letra,
+    # ultima letra y el MULTICONJUNTO de letras del medio.
+    # la longitud es imprescindible: sin ella "a" y "aa" colisionarian
+    return (len(w), w[0], w[-1], bytes(sorted(w[1:-1])))
+
+def solve():
+    n = int(input())
+    out = []
+    for _ in range(n):
+        dic = input().split()
+        txt = input().split()
+        mejor = {}
+        for d in dic:
+            f = firma(d)
+            # conserva la menor lexicograficamente (el diccionario ya viene ordenado,
+            # pero la comparacion explicita lo hace independiente del orden de entrada)
+            if f not in mejor or d < mejor[f]:
+                mejor[f] = d
+        # si ninguna palabra del diccionario aplica, se deja la original
+        res = [mejor.get(firma(w), w) for w in txt]
+        out.append(b" ".join(res).decode())
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

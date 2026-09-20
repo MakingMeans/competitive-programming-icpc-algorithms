@@ -11,3 +11,6 @@
 *.lot
 *.pdf
 !main.pdf
+.claude/
+CLAUDE.md
+CLAUDE.local.md

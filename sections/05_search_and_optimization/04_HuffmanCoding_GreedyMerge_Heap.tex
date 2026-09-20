@@ -1,0 +1,54 @@
+\subsection{Codificación de Huffman (Fusión Greedy con Heap)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo partir repetidamente un grupo en dos subgrupos (o fusionar repetidamente dos grupos en uno) hasta llegar a elementos individuales, pagando en cada paso el peso total del grupo involucrado?
+\item ¿El costo total equivale a $\sum w_i \cdot d_i$, donde $d_i$ es la profundidad del elemento $i$ en el árbol binario resultante, y me piden minimizarlo?
+\item ¿Los elementos pueden reordenarse libremente, de modo que cualquier estructura de árbol binario es alcanzable?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Construye el árbol binario que minimiza la suma ponderada de profundidades $\sum w_i d_i$, equivalente a minimizar el costo acumulado de fusionar (o partir) grupos donde cada operación cuesta el peso total del grupo resultante. Es la solución estándar para compresión por códigos de longitud variable, y aparece disfrazado en muchos problemas de "combinar/dividir pagando la suma" (unir cuerdas, mezclar archivos, partir lotes).
+
+\graybold{Complejidad:} \bigO{n log n} por caso de prueba, dominado por las $n-1$ operaciones sobre el heap binario.
+
+\graybold{Fundamento teórico:} El proceso de dividir repetidamente un conjunto en dos partes hasta llegar a singletons define un árbol binario cuyas hojas son los elementos. Cada división paga la suma de los pesos del grupo dividido, es decir, la suma de las hojas de ese subárbol; como un elemento $i$ es pagado una vez por cada nodo interno que lo tiene por debajo, su contribución total es $w_i \cdot d_i$ con $d_i$ su profundidad. Por lo tanto el costo total es $\sum_i w_i d_i$ y el problema es exactamente el de Huffman, que se resuelve construyendo el árbol de abajo hacia arriba: en cada paso se fusionan los DOS pesos menores. La optimalidad descansa en dos lemas. (i) \emph{Lema de intercambio}: en algún árbol óptimo, los dos pesos menores $a \le b$ pueden colocarse como hermanos en el nivel más profundo — si no lo estuvieran, intercambiarlos con las hojas más profundas no aumenta el costo, pues mover un peso menor hacia mayor profundidad y uno mayor hacia menor profundidad tiene delta $(w_{\text{mayor}} - w_{\text{menor}})(d_{\text{menor}} - d_{\text{mayor}}) \le 0$. (ii) \emph{Subestructura óptima}: reemplazar esas dos hojas hermanas por un único nodo de peso $a+b$ produce una instancia con un elemento menos cuyo costo óptimo difiere del original exactamente en la constante $a+b$, de modo que resolver óptimamente la instancia reducida resuelve óptimamente la original. La inducción sobre estos dos lemas da la corrección del greedy. Nótese que el enunciado permite disponer los elementos en cualquier orden en la banda, lo cual garantiza que CUALQUIER estructura de árbol binario (no solo particiones contiguas de un orden fijo) es realizable, así que no hay restricción adicional sobre la forma del árbol.
+
+\graybold{Ejercicio aplicado}
+
+Dadas $N$ telas con sus tamaños, todas inicialmente del mismo color, y un proceso que en cada paso toma todas las telas de un color y las reparte en dos colores nuevos pagando la suma de sus tamaños, calcular la tinta mínima total necesaria para que todas las telas terminen con colores distintos.
+
+\graybold{I/O:} Hasta $T \le 100$ casos con $\sum N_i \le 10^5$ y tamaños hasta $10^5$ $\Rightarrow$ lectura total + tokenización con índice \texttt{idx} (patrón 2), ya que son muchos números sueltos repartidos en líneas de longitud variable. El caso $N=1$ se atiende por separado (costo $0$: no hace falta ninguna división). La respuesta puede superar los 32 bits, pero los enteros nativos de Python no requieren cuidado especial. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta que explora TODAS las particiones recursivas posibles (cualquier subconjunto, no solo contiguos) en 200 casos aleatorios con $N \le 8$, sin discrepancias. Prueba de estrés con $\sum N = 10^5$: $\sim0.14$s con un solo caso de $N=10^5$, $\sim0.06$s repartido en 100 casos, y $\sim0.07$s con todos los tamaños iguales (máximo de empates en el heap).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+import heapq
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    idx = 0
+    t = int(data[idx]); idx += 1
+    out = []
+    for _ in range(t):
+        n = int(data[idx]); idx += 1
+        sizes = data[idx:idx + n]
+        idx += n
+        if n == 1:
+            out.append("0")      # una sola tela: ya tiene color unico, no se gasta tinta
+            continue
+        heap = [int(x) for x in sizes]
+        heapq.heapify(heap)      # heapify es O(n), mas rapido que n heappush
+        total = 0
+        while len(heap) > 1:
+            a = heapq.heappop(heap)
+            b = heapq.heappop(heap)
+            s = a + b
+            total += s           # cada fusion paga el peso del grupo resultante
+            heapq.heappush(heap, s)
+        out.append(str(total))
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

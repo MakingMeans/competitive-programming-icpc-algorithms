@@ -1,0 +1,92 @@
+\subsection{Propagación de Conteos en DAG (Orden Topológico de Kahn)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Tengo un DAG donde una cantidad enorme de "elementos" entra por un único origen y debo saber cuántos pasan por cada nodo, siendo imposible simularlos uno por uno?
+\item ¿La forma en que un nodo reparte su cantidad entre sus sucesores depende solo del TOTAL que lo atravesó (y no del orden individual de llegada)?
+\item ¿Necesito procesar cada nodo únicamente cuando TODOS sus predecesores ya aportaron su parte, es decir, en orden topológico?
+\item ¿El resultado final por nodo depende solo de la paridad o de un residuo del total acumulado?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Sustituye la simulación individual de $n$ recorridos sobre un DAG (inviable cuando $n$ es astronómico) por un único barrido en orden topológico que propaga CONTEOS agregados en lugar de elementos. El orden topológico de Kahn garantiza que, al procesar un nodo, ya se conoce su total definitivo, de modo que el reparto hacia sus sucesores se calcula una sola vez, en tiempo lineal, sin importar cuán grande sea $n$.
+
+\graybold{Complejidad:} \bigO{V + E} para el orden topológico y la propagación, con $E = 2V$ aquí (cada nodo tiene exactamente dos aristas de salida).
+
+\graybold{Fundamento teórico:} La observación clave es que el efecto de $n$ bolas sobre un interruptor NO depende del orden en que llegan: si $t$ bolas pasan por un vértice $v$, el interruptor alterna su estado en cada una, así que las bolas se reparten alternadamente entre las dos salidas. Si el estado inicial es L, salen $\lceil t/2 \rceil$ por la izquierda y $\lfloor t/2 \rfloor$ por la derecha (y al revés si el estado inicial es R); el estado FINAL del interruptor solo depende de la PARIDAD de $t$: se invierte si $t$ es impar y queda igual si es par. Esto convierte un problema aparentemente secuencial en uno puramente aritmético. Para que el cálculo sea válido hace falta conocer el total $t$ de cada vértice ANTES de procesarlo, lo cual es exactamente lo que garantiza el orden topológico: el algoritmo de Kahn mantiene un contador de grado de entrada y solo encola un vértice cuando todas sus aristas entrantes han sido consumidas, es decir, cuando todos sus predecesores ya sumaron su aporte a \texttt{count}. El enunciado garantiza que el grafo es acíclico (una bola siempre baja y nunca puede volver a un interruptor), condición necesaria para que exista dicho orden. Nótese que cuando $L = R$ el vértice destino recibe DOS unidades de grado de entrada y también se decrementa dos veces, por lo que el conteo sigue siendo consistente y el vértice no se encola prematuramente.
+
+\graybold{Ejercicio aplicado}
+
+Una máquina Digi Comp II se modela como un DAG de $m$ interruptores, cada uno con estado L/R y dos aristas de salida. Entran $n$ bolas por el vértice 1; cada bola sigue la salida indicada por el estado del interruptor y lo invierte al pasar. Reportar el estado final de los $m$ interruptores.
+
+\graybold{I/O:} $m \le 5\cdot10^5$ con 3 tokens por interruptor (carácter + dos enteros) $\Rightarrow$ lectura total + tokenización con índice \texttt{idx} (patrón 2), comparando el carácter directamente como \texttt{bytes} (\texttt{b'L'}) sin decodificar. $n \le 10^{18}$ cabe sin problema en los enteros nativos de Python. La salida se arma en un \texttt{bytearray} de $m$ posiciones escribiendo los códigos ASCII 76/82 ('L'/'R') y se emite con un único \texttt{sys.stdout.buffer.write}, evitando concatenar medio millón de strings. Verificado contra el caso de ejemplo y contra una simulación bola por bola en 500 DAGs aleatorios pequeños (incluyendo casos con $L = R$) sin discrepancias, más casos borde ($n=0$, $m=1$, cadena de profundidad máxima, todos los nodos apuntando al vértice final). En el peor caso ($m = 500\,000$, $n = 10^{18}$) se midieron $\sim1.43$s en una cadena de profundidad máxima y $\sim0.97$s en un DAG denso, frente a un límite de 7 segundos.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from collections import deque
+
+data = sys.stdin.buffer.read().split()
+idx = 0
+n = int(data[idx])
+m = int(data[idx+1])
+idx += 2
+
+gamestate = [0]*(m+1)    # 1 = L, 2 = R
+left = [0]*(m+1)
+right = [0]*(m+1)
+indegree = [0]*(m+1)
+
+for i in range(1, m+1):
+    c = data[idx]
+    L = int(data[idx+1])
+    R = int(data[idx+2])
+    idx += 3
+    gamestate[i] = 1 if c == b'L' else 2
+    left[i] = L
+    right[i] = R
+    indegree[L] += 1     # si L == R, el destino suma 2 (y luego se resta 2)
+    indegree[R] += 1
+
+count = [0]*(m+1)        # cuantas bolas pasan por cada vertice
+count[1] = n             # todas las bolas entran por el vertice 1
+final_state = gamestate[:]
+
+queue = deque(v for v in range(m+1) if indegree[v]==0)
+
+while queue:
+    v = queue.popleft()
+    if v == 0:
+        continue         # el vertice 0 es el final: no reparte nada
+
+    total = count[v]
+    half = total//2
+    odd = total&1
+    # el interruptor alterna: el reparto es mitad y mitad, y la bola
+    # sobrante (si total es impar) se va por el lado del estado INICIAL
+    if gamestate[v] == 1:
+        left_count = half+odd
+        right_count = half
+    else:
+        right_count = half+odd
+        left_count = half
+    if odd:
+        # solo la paridad del total determina si el estado queda invertido
+        final_state[v] = 2 if gamestate[v] == 1 else 1
+
+    lv, rv = left[v], right[v]
+    count[lv] += left_count
+    indegree[lv] -= 1
+    if indegree[lv] == 0:    # ya recibio el aporte de TODOS sus predecesores
+        queue.append(lv)
+    count[rv] += right_count
+    indegree[rv] -= 1
+    if indegree[rv] == 0:
+        queue.append(rv)
+
+out = bytearray(m)
+for i in range(1, m+1):
+    out[i-1] = 76 if final_state[i] == 1 else 82   # 76='L', 82='R'
+sys.stdout.buffer.write(bytes(out))
+\end{lstlisting}

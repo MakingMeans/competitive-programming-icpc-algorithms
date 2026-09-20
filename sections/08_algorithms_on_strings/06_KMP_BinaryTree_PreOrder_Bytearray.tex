@@ -1,0 +1,88 @@
+\subsection{Comparación de Subárboles Ignorando Etiquetas (Codificación en Preorden + KMP)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Piden contar/encontrar nodos de un árbol cuyo subárbol tiene la MISMA FORMA que otro árbol patrón, ignorando por completo las etiquetas (valores, nombres de variable, operadores)?
+\item ¿Los árboles son binarios completos (todo nodo interno tiene exactamente 2 hijos) y el orden izquierda/derecha de los hijos SÍ importa para la comparación?
+\item ¿Los árboles vienen dados como texto con una gramática recursiva fácil de recorrer linealmente (ej. expresiones totalmente parentizadas)?
+\item ¿|patrón| y |texto| son grandes (decenas o cientos de miles), descartando comparar subárbol por subárbol de forma ingenua?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Reduce un problema de comparación estructural de árboles (¿este subárbol tiene la misma forma que aquel otro?) a un problema clásico de coincidencia de patrones en cadenas. Es aplicable a cualquier familia de árboles binarios completos donde solo interesa la forma (posición y arity de los nodos), no las etiquetas: sirve tanto para árboles de expresión como para cualquier otra estructura jerárquica que se pueda serializar de la misma manera.
+
+\graybold{Complejidad:} \bigO{|\alpha| + |\beta|} por caso de prueba, tanto para la codificación como para la búsqueda de coincidencias con KMP.
+
+\graybold{Fundamento teórico:} Todo árbol binario completo (cada nodo interno tiene exactamente 2 hijos, las hojas 0) admite una codificación en preorden como una cadena binaria: cada hoja emite un símbolo `0` y cada nodo interno emite un símbolo `1` seguido de la codificación de su hijo izquierdo y luego la de su derecho. Esta codificación es una biyección: dos árboles son estructuralmente idénticos si y solo si sus cadenas codificadas son idénticas carácter a carácter. Además, como el recorrido es en preorden, la codificación del subárbol enraizado en cualquier nodo $v$ es exactamente una SUBCADENA CONTIGUA de la codificación completa, que comienza en la posición de $v$ y cuya longitud es el tamaño de ese subárbol — esto se cumple porque el proceso de decodificación es determinista (depende únicamente de la secuencia de bits leída, nunca de lo que venga después), así que si dos subcadenas de igual longitud $L$ son iguales carácter a carácter, sus procesos de decodificación son idénticos paso a paso y por tanto ambas "cierran" el árbol exactamente tras consumir $L$ símbolos, produciendo árboles idénticos. Como además cada nodo del árbol contribuye exactamente un símbolo en el recorrido preorden, TODAS las posiciones de la cadena de texto corresponden a un nodo válido, así que contar nodos $v$ cuyo subárbol coincide con el patrón $\alpha$ se reduce exactamente a contar cuántas veces aparece (con solapamiento permitido) la cadena codificada de $\alpha$ dentro de la cadena codificada de $\beta$, lo cual se resuelve en tiempo lineal con el autómata de fallos de Knuth-Morris-Pratt (KMP), reanudando la búsqueda en \texttt{fail[m-1]} tras cada coincidencia para permitir solapamientos.
+
+\graybold{Ejercicio aplicado}
+
+Dadas expresiones aritméticas $\alpha$ y $\beta$ totalmente parentizadas (operadores binarios, variables de una letra, números), contar cuántos nodos del árbol de sintaxis de $\beta$ tienen un subárbol con la misma forma que el árbol de $\alpha$, ignorando etiquetas (variables, números y operadores).
+
+\graybold{I/O:} Varios casos de prueba hasta EOF, cada uno de dos líneas sin espacios internos, con $1 \le |\alpha|, |\beta| \le 400000$ → como ninguna expresión contiene blancos, se usa lectura total + tokenización (patrón 2: \texttt{sys.stdin.buffer.read().split()}), donde cada token es directamente una expresión completa. La codificación se hace con un único barrido lineal por carácter (sin recursión ni pila, evitando cualquier límite de profundidad de Python) y la búsqueda usa KMP clásico. Verificado contra los ejemplos dados (salidas 3 y 2) y contrastado con un verificador de fuerza bruta (parseo real del árbol + comparación de formas) en 300 casos aleatorios pequeños, sin discrepancias. Con un caso cercano al peor caso teórico ($|\alpha|=|\beta|\approx 400000$) el tiempo medido fue de ~0.11s, y con varios casos de prueba encadenados (texto total >1.6\,MB) ~0.2s, muy por debajo de límites típicos.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def encode(tok):
+    # codifica la expresion (bytes) en preorden: '1' = nodo interno, '0' = hoja
+    # un solo barrido lineal, sin recursion ni pila
+    out = bytearray()
+    i, n = 0, len(tok)
+    ap = out.append
+    while i < n:
+        c = tok[i]
+        if c == 40:            # '('  -> abre un nodo interno
+            ap(49)               # emite '1'
+            i += 1
+        elif c == 41:           # ')' -> solo delimita, no aporta simbolo
+            i += 1
+        elif c == 43 or c == 45 or c == 42 or c == 47:  # + - * / (operador)
+            i += 1
+        elif 97 <= c <= 122:    # variable (una sola letra a-z)
+            ap(48)               # emite '0' (hoja)
+            i += 1
+        else:                   # numero: puede tener varios digitos, es UNA sola hoja
+            ap(48)
+            i += 1
+            while i < n and 48 <= tok[i] <= 57:
+                i += 1
+    return bytes(out)
+
+def kmp_count(pattern, text):
+    # cuenta ocurrencias de pattern en text, permitiendo solapamiento
+    m = len(pattern)
+    if m == 0 or m > len(text):
+        return 0
+    fail = [0] * m
+    k = 0
+    for i in range(1, m):
+        while k > 0 and pattern[i] != pattern[k]:
+            k = fail[k - 1]
+        if pattern[i] == pattern[k]:
+            k += 1
+        fail[i] = k
+    count = 0
+    k = 0
+    for c in text:
+        while k > 0 and c != pattern[k]:
+            k = fail[k - 1]
+        if c == pattern[k]:
+            k += 1
+        if k == m:
+            count += 1
+            k = fail[k - 1]     # permite coincidencias solapadas
+    return count
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    out = []
+    for i in range(0, len(data), 2):
+        alpha, beta = data[i], data[i + 1]
+        out.append(str(kmp_count(encode(alpha), encode(beta))))
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

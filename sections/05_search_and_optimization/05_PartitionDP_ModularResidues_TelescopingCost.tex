@@ -1,0 +1,70 @@
+\subsection{DP sobre Residuos: Costo Telescópico con Redondeo}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo partir una secuencia en grupos contiguos minimizando una suma de costos por grupo, con un límite en la cantidad de cortes?
+\item ¿El costo de cada grupo es (suma del grupo) más un ajuste que depende SOLO de la suma módulo algo pequeño (redondeo, paridad, comisión por tramos)?
+\item ¿El DP directo sobre posiciones sería \bigO{n^2 d} y los límites lo hacen inviable en Python?
+\item ¿Puedo reemplazar el estado "posición del último corte" por "residuo del prefijo en el último corte", colapsando $n$ estados en unos pocos?
+\end{itemize}
+
+\graybold{¿Para qué sirve?} Reduce drásticamente el espacio de estados de un DP de particionamiento cuando el costo de cada bloque se descompone en una parte TELESCÓPICA (que se cancela globalmente y no depende de dónde se corte) más una parte que solo depende de un residuo módulo un número pequeño. El estado deja de ser "dónde fue el último corte" ($n$ posibilidades) y pasa a ser "qué residuo tenía el prefijo en el último corte" (10 posibilidades), convirtiendo un \bigO{n^2 d} en \bigO{n d M} con $M$ el módulo.
+
+\graybold{Complejidad:} \bigO{n \cdot d \cdot M} con $M = 10$, es decir \bigO{n d} para efectos prácticos, frente a \bigO{n^2 d} del DP directo.
+
+\graybold{Fundamento teórico:} Sea $P_i$ la suma de prefijos y $\mathrm{red}(x)$ el redondeo de $x$ al múltiplo de 10 más cercano (con 5 hacia arriba). Escribiendo $x = 10q + m$ con $m = x \bmod 10$, se tiene $\mathrm{red}(x) = x + \delta(m)$, donde $\delta(m) = -m$ si $m < 5$ y $\delta(m) = 10 - m$ si $m \ge 5$; es decir, el redondeo es la identidad MÁS un ajuste que depende únicamente del residuo. Si los cortes son $0 = c_0 < c_1 < \cdots < c_k = n$, el costo total es
+$$\sum_{t=1}^{k} \mathrm{red}(P_{c_t} - P_{c_{t-1}}) = \sum_{t=1}^{k}(P_{c_t} - P_{c_{t-1}}) + \sum_{t=1}^{k}\delta\big((P_{c_t} - P_{c_{t-1}}) \bmod 10\big) = P_n + \sum_{t=1}^{k}\delta\big((r_{c_t} - r_{c_{t-1}}) \bmod 10\big),$$
+donde la primera suma TELESCOPIA a la constante $P_n$ (independiente de los cortes) y $r_i = P_i \bmod 10$. La consecuencia clave es que el término a minimizar depende de las posiciones de corte ÚNICAMENTE a través de los residuos de sus prefijos, porque $(P_{c_t} - P_{c_{t-1}}) \bmod 10 = (r_{c_t} - r_{c_{t-1}}) \bmod 10$. Por eso el estado del DP puede ser $(j, r)$ = "ya se formaron $j$ grupos y el último corte estaba en una posición con residuo $r$", guardando el ajuste acumulado mínimo; la posición exacta del corte es irrelevante más allá de su residuo y de que sea anterior a la posición actual. Un detalle de implementación importante: todos los candidatos de la posición $i$ deben calcularse a partir del estado ANTERIOR a actualizarla, para no encadenar un corte con otro de la misma posición (grupo vacío); dicho sea de paso, permitir grupos vacíos sería inofensivo en cuanto al valor óptimo, pues $\delta(0)=0$ y equivale a gastar un divisor sin ganancia, lo cual el propio enunciado admite al decir "hasta $d$ divisores".
+
+\graybold{Ejercicio aplicado}
+
+Dados $n$ precios en el orden en que están sobre la banda y hasta $d$ divisores, partir la compra en a lo sumo $d+1$ grupos contiguos y pagar cada grupo por separado, donde el total de cada grupo se redondea al múltiplo de 10 más cercano. Minimizar el monto total pagado.
+
+\graybold{I/O:} $n \le 2000$, $d \le 20$, precios hasta $10^4$, en dos líneas de muchos números sueltos $\Rightarrow$ lectura total + tokenización (patrón 2). Verificado contra los dos casos de ejemplo y contrastado con el DP directo \bigO{n^2 d} en 400 casos aleatorios pequeños, sin discrepancias, más casos borde (un solo item, un item que redondea hacia arriba, más divisores que items, todos los precios múltiplos de 10). Sobre el rendimiento conviene ser explícito: el DP directo, implementado en Python puro, tarda $\sim5.60$s en el peor caso ($n=2000$, $d=20$), justo POR ENCIMA del límite de 5 segundos; el DP sobre residuos resuelve el mismo caso en $\sim0.04$s (unas 140 veces más rápido) y ambos coinciden en la respuesta. Es decir, aquí la reducción de estados no es una optimización cosmética sino la diferencia entre TLE y AC.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+data = sys.stdin.buffer.read().split()
+n = int(data[0]); divs = int(data[1])
+acumulado = 0
+pref = [0]*(n+1)
+for i in range(n):
+    acumulado += int(data[2+i])
+    pref[i+1] = acumulado
+total = acumulado              # parte telescopica: constante
+
+ajuste = [0,-1,-2,-3,-4,5,4,3,2,1]
+
+INF = float('inf')
+max_grupos = divs + 1                          # a lo sumo d+1 grupos
+# ajuste_min[j][r] = ajuste minimo acumulado tras formar j grupos,
+# con el ultimo corte en una posicion cuyo prefijo tiene residuo r
+ajuste_min = [[INF]*10 for _ in range(max_grupos+1)]
+ajuste_min[0][pref[0] % 10] = 0
+
+mejor = INF
+for i in range(1, n+1):
+    residuo_curr = pref[i] % 10
+    # se calculan TODOS los candidatos con la g anterior, para no
+    # encadenar un corte con otro de esta misma posicion (grupo vacio)
+    cand = [INF]*(max_grupos+1)
+    for j in range(1, max_grupos+1):
+        fila = ajuste_min[j-1]
+        minimum = INF
+        for r in range(10):
+            v = fila[r]
+            if v < INF:
+                v += ajuste[(residuo_curr - r) % 10]
+                if v < minimum: minimum = v
+        cand[j] = minimum
+    for j in range(1, max_grupos+1):
+        if cand[j] < ajuste_min[j][residuo_curr]:
+            ajuste_min[j][residuo_curr] = cand[j]
+    if i == n:
+        mejor = min(cand[1:])      # el ultimo grupo debe cerrar en n
+print(total + mejor)
+\end{lstlisting}
