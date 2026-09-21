@@ -1,24 +1,24 @@
-\subsection{Combinatoria: Conteo por Simetría de Binomios}
+\subsection{Conteo por Simetría de Binomios (subsecuencias con suma alternada 0)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿Piden contar subconjuntos o subsecuencias que cumplen una condición de suma o balance?
 \item ¿Hay valores repetidos en la entrada, de forma que agruparlos por valor simplifique el conteo?
-\item ¿Se puede usar C(c, par) = C(c, impar) = 2\textasciicircum{}(c-1) para separar el conteo por grupo y combinar con una potencia de 2?
+\item ¿Se puede usar C(c, par) = C(c, impar) = \pow{2}{c-1} para separar el conteo por grupo y combinar con una potencia de 2?
 \end{itemize}
 
-\graybold{Utilidad:} Contar eficientemente subconjuntos o subsecuencias que satisfacen una condición combinatoria, evitando enumerar los 2\textasciicircum{}n subconjuntos, aprovechando la simetría de los coeficientes binomiales para reducir el problema a una subsecuencia mucho más pequeña: solo los valores distintos.
+\graybold{Utilidad:} Contar eficientemente subconjuntos o subsecuencias que satisfacen una condición combinatoria, evitando enumerar los \pow{2}{n} subconjuntos, aprovechando la simetría de los coeficientes binomiales para reducir el problema a una subsecuencia mucho más pequeña: solo los valores distintos.
 
-\graybold{Complejidad:} O(n) por caso (la entrada ya viene no-decreciente).
+\graybold{Complejidad:} \bigO{n} por caso (la entrada ya viene no-decreciente).
 
-\graybold{Fundamento teórico:} Dentro de un grupo de c copias iguales, elegir una cantidad par de ellas no cambia la suma alternada acumulada (aporta 0) y elegir una cantidad impar sí la cambia (aporta ±valor). Como C(c,par) = C(c,impar) = 2\textasciicircum{}(c−1), cada grupo aporta el mismo peso sin importar el modo elegido, así que el problema se reduce a contar subconjuntos de suma alternada 0 sobre los valores DISTINTOS, multiplicando el resultado por 2\textasciicircum{}(n−m) al final (m = cantidad de valores distintos). En esa secuencia reducida, agrupando términos de dos en dos se demuestra que la única forma de obtener alternada 0 con más de un elemento es usando exactamente 3 valores: −1 y un par de enteros positivos consecutivos.
+\graybold{Fundamento teórico:} Dentro de un grupo de c copias iguales, elegir una cantidad par de ellas no cambia la suma alternada acumulada (aporta 0) y elegir una cantidad impar sí la cambia (aporta ±valor). Como C(c,par) = C(c,impar) = \pow{2}{c-1}, cada grupo aporta el mismo peso sin importar el modo elegido, así que el problema se reduce a contar subconjuntos de suma alternada 0 sobre los valores DISTINTOS, multiplicando el resultado por \pow{2}{n-m} al final (m = cantidad de valores distintos). En esa secuencia reducida, agrupando términos de dos en dos se demuestra que la única forma de obtener alternada 0 con más de un elemento es usando exactamente 3 valores: −1 y un par de enteros positivos consecutivos.
 
 \graybold{Ejercicio aplicado}
 
-(Codeforces 2246C - 0mar and Alternating Sums) Dado un arreglo no decreciente de n valores (cada uno −1 o un entero positivo), contar cuántas subsecuencias tienen suma alternada (primer término positivo, segundo negativo, tercero positivo, ...) igual a 0, módulo 10\textasciicircum{}9+7.
+(Codeforces 2246C - 0mar and Alternating Sums) Dado un arreglo no decreciente de n valores (cada uno −1 o un entero positivo), contar cuántas subsecuencias tienen suma alternada (primer término positivo, segundo negativo, tercero positivo, ...) igual a 0, módulo $\ten{9}+7$.
 
-\graybold{I/O:} t ≤ 10\textasciicircum{}4, Σn ≤ 2·10\textasciicircum{}5 → volumen moderado; se usa readline por línea (patrón 1), adecuado porque el costo dominante está en el procesamiento O(n), no en la lectura.
+\graybold{I/O:} t ≤ \ten{4}, Σn ≤ 2·\ten{5} → volumen moderado; se usa readline por línea (patrón 1), adecuado porque el costo dominante está en el procesamiento \bigO{n}, no en la lectura.
 
 \graybold{Código solución}
 

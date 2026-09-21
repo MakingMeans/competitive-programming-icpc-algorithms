@@ -1,16 +1,16 @@
-\subsection{Búsqueda Binaria sobre la Respuesta + Two Pointers}
+\subsection{Búsqueda Binaria sobre la Respuesta + Two Pointers (k-ésima suma de pares)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿La respuesta es un número y existe una condición monótona (si X funciona, todo valor mayor/menor también funciona)?
-\item ¿Puedo verificar en O(n) o O(n log n) si un valor candidato "cumple" la condición pedida?
+\item ¿Puedo verificar en \bigO{n} o \bigO{n \log n} si un valor candidato "cumple" la condición pedida?
 \item ¿Dentro de esa verificación necesito contar pares/elementos con una condición de suma sobre un arreglo ordenado? (ahí entra Two Pointers)
 \end{itemize}
 
-\graybold{Utilidad:} Cuando no es fácil calcular la respuesta directamente pero sí verificar si un candidato es válido, y esa validez es monótona, se "busca" la respuesta con búsqueda binaria sobre el rango de valores posibles. Two Pointers acelera el conteo en arreglos ordenados de O(n²) a O(n).
+\graybold{Utilidad:} Cuando no es fácil calcular la respuesta directamente pero sí verificar si un candidato es válido, y esa validez es monótona, se "busca" la respuesta con búsqueda binaria sobre el rango de valores posibles. Two Pointers acelera el conteo en arreglos ordenados de \bigO{n^2} a \bigO{n}.
 
-\graybold{Complejidad:} Búsqueda binaria: O(log(rango)) iteraciones. Cada verificación con Two Pointers: O(n). Total: O(n log(rango)).
+\graybold{Complejidad:} Búsqueda binaria: \bigO{\log(\text{rango})} iteraciones. Cada verificación con Two Pointers: \bigO{n}. Total: \bigO{n \log(\text{rango})}.
 
 \graybold{Fundamento teórico:} La búsqueda binaria sobre la respuesta funciona porque el conjunto de valores "válidos" forma un intervalo continuo (monotonía), reduciendo el espacio de búsqueda a la mitad en cada paso. Two Pointers explota que, en un arreglo ordenado, mover un extremo cambia la condición de suma de forma predecible, evitando recorrer todas las parejas.
 
@@ -51,10 +51,6 @@ def solve():
         mid = low + (high - low) // 2
         if count_pairs_leq(prices, n, mid) >= k:
             high = mid                    # mid cumple: intenta algo menor
-\end{lstlisting}
-
-
-\begin{lstlisting}[language=Python]
         else:
             low = mid + 1                # mid no cumple: sube el limite
  

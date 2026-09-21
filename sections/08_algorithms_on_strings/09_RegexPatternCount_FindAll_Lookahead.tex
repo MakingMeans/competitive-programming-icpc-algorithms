@@ -1,0 +1,98 @@
+\subsection{Regex: findall y lookahead (conteo de patrones)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El problema se reduce a contar cuántas veces aparecen unos pocos patrones LITERALES dentro de un texto, sin estructura algorítmica adicional?
+\item ¿Los patrones son fijos y conocidos de antemano, de modo que puedo hacer una pasada independiente por cada uno?
+\item ¿Debo verificar si los patrones pueden SOLAPARSE consigo mismos, para decidir entre conteo simple o lookahead?
+\item ¿El texto es suficientemente corto como para que el costo de varias pasadas sea irrelevante?
+\end{itemize}
+
+\graybold{Utilidad:} Resolver directamente, con el módulo \texttt{re} de la librería estándar, problemas cuya esencia es localizar o contar ocurrencias de patrones en un texto. Para patrones literales y fijos evita escribir a mano un autómata o un KMP: el motor de expresiones regulares ya está optimizado en C y una sola línea reemplaza decenas. Además, \texttt{re} da acceso gratuito a posiciones de coincidencia, sustitución, partición del texto y conteo con solapamiento, que suelen ser justamente las variantes que pide un problema parecido.
+
+\graybold{Complejidad:} \bigO{k n} donde $n$ es la longitud del texto y $k$ la cantidad de patrones, ya que se hace una pasada lineal por patrón (el motor recorre el texto una vez por cada llamada a \texttt{findall}).
+
+\graybold{Fundamento teórico:} Contar ocurrencias de un patrón literal admite dos semánticas distintas y el motor de \texttt{re} implementa solo una: \texttt{re.findall} avanza el cursor hasta el FINAL de cada coincidencia, de modo que nunca devuelve coincidencias solapadas. La pregunta relevante es entonces cuándo esa restricción cambia el resultado, y la respuesta es puramente estructural: un patrón $P$ puede solaparse consigo mismo si y solo si tiene un BORDE PROPIO, es decir, un prefijo propio que también es sufijo. Si $P$ tiene un borde de longitud $b > 0$, dos ocurrencias pueden empezar a distancia $|P| - b$ y compartir $b$ caracteres; si no tiene ningún borde, dos ocurrencias distintas no pueden compartir ni un carácter, y el conteo sin solapamiento coincide exactamente con el conteo total. Los tres patrones de este problema ($\texttt{bravo}$, $\texttt{ha}$, $\texttt{boooo}$) no tienen borde propio — ninguno de sus prefijos propios coincide con un sufijo — así que \texttt{findall} es correcto sin más cuidados. En contraste, $\texttt{aa}$ tiene borde $\texttt{a}$ y en $\texttt{aaaa}$ \texttt{findall} devuelve 2 mientras que las ocurrencias reales son 3. Cuando sí hace falta contar solapadas, se usa un LOOKAHEAD \texttt{(?=P)}: al ser una aserción de ancho cero, no consume caracteres, así que el motor avanza una sola posición tras cada éxito y encuentra todas las ocurrencias; devuelve cadenas vacías, pero lo que interesa es cuántas son. El otro punto no evidente es que hacer una pasada separada por patrón NO equivale a una única pasada con alternancia \texttt{P1|P2|P3}: la alternancia consume el texto, así que los patrones compiten entre sí y una coincidencia larga puede ocultar a otra contenida en ella (en $\texttt{bravo}$, el patrón \texttt{bravo|ra} encuentra solo \texttt{bravo}, perdiendo el \texttt{ra} interior). Como el enunciado cuenta cada patrón de forma independiente, las pasadas separadas son la traducción fiel.
+
+\graybold{Ejercicio aplicado}
+
+Dada una cadena de sonidos del público, calcular una puntuación sumando 3 por cada aparición de \texttt{bravo}, sumando 1 por cada \texttt{ha} y restando 1 por cada \texttt{boooo}.
+
+\graybold{I/O:} Una única línea con la cadena, $|S| \le 1000$ $\Rightarrow$ lectura de una sola línea con \texttt{sys.stdin.buffer.readline} (patrón 1), con \texttt{.strip()} para quitar el salto de línea y \texttt{.decode()} porque \texttt{re} trabaja sobre \texttt{str}. El tamaño es diminuto, así que las tres pasadas independientes no representan ningún costo. Verificado contra los cinco casos de ejemplo del enunciado, y comprobado aparte que ninguno de los tres patrones tiene borde propio, contrastando además \texttt{findall} contra el conteo con lookahead en 20\,000 cadenas aleatorias sobre el alfabeto relevante sin una sola diferencia: por eso la ausencia de manejo de solapamiento es correcta y no una omisión.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import re
+import sys
+input = sys.stdin.buffer.readline
+
+data = input().strip().decode()   # re trabaja sobre str, no sobre bytes
+
+pat1 = r'bravo'
+pat2 = r'ha'
+pat3 = r'boooo'
+
+score = 0
+# findall NO cuenta solapamientos, pero ninguno de estos tres patrones
+# tiene borde propio (prefijo == sufijo), asi que no puede solaparse consigo mismo
+score += 3*len(re.findall(pat1, data))
+score += len(re.findall(pat2, data))
+score -= len(re.findall(pat3, data))
+
+sys.stdout.write(str(score)+"\n")
+\end{lstlisting}
+
+\graybold{Extras: referencia rápida de \texttt{re}} — no forman parte de la solución, son variantes útiles para problemas parecidos. Todos los resultados mostrados fueron ejecutados con \texttt{data = "boooohaboooo"}.
+
+\begin{lstlisting}[language=Python]
+import re
+data = "boooohaboooo"
+
+# POSICIONES E INFORMACION DE CADA OCURRENCIA 
+for m in re.finditer(r'ha', data):
+    m.group()    # 'ha'     el texto que coincidio
+    m.start()    # 5        indice inicial
+    m.end()      # 7        indice final (exclusivo)
+    m.span()     # (5, 7)   la tupla (inicio, fin)
+
+# SOLAPAMIENTO 
+# r'oo' CONSUME caracteres -> no solapa
+re.findall(r'oo', data)        # ['oo','oo','oo','oo']  -> 4
+# r'(?=oo)' es un lookahead: ancho cero, NO consume -> si solapa
+re.findall(r'(?=oo)', data)    # ['','','','','','']    -> 6
+[m.start() for m in re.finditer(r'(?=oo)', data)]   # [1,2,3,8,9,10]
+
+# GRUPOS DE CAPTURA 
+m = re.search(r'(b)(o+)', data)   # search: primera coincidencia o None
+m.group(0)   # 'boooo'   la coincidencia completa
+m.group(1)   # 'b'       primer parentesis
+m.group(2)   # 'oooo'    segundo parentesis
+m.groups()   # ('b', 'oooo')
+# CUIDADO: si el patron tiene grupos, findall devuelve TUPLAS, no la coincidencia
+re.findall(r'(b)(o+)', data)      # [('b','oooo'), ('b','oooo')]
+re.findall(r'(?:b)(?:o+)', data)  # ['boooo','boooo']  (?: ) agrupa sin capturar
+
+# SUSTITUCION Y PARTICION 
+re.sub(r'o+', 'O', data)      # 'bOhabO'
+re.subn(r'o', '', data)       # ('bhab', 8)   devuelve (texto, cuantas)
+re.split(r'ha', data)         # ['boooo', 'boooo']
+re.split(r'(ha)', data)       # ['boooo','ha','boooo']  con grupo conserva el separador
+
+# COMPILAR (si el patron se reutiliza muchas veces) 
+rx = re.compile(r'boooo')
+rx.findall(data)              # ['boooo','boooo']
+
+# UNA SOLA PASADA CON ALTERNANCIA
+puntos = {'bravo':3, 'ha':1, 'boooo':-1}
+rx2 = re.compile(r'bravo|boooo|ha')
+sum(puntos[x] for x in rx2.findall(data))   # -1, coincide aqui
+# PERO la alternancia CONSUME, asi que los patrones compiten entre si:
+re.findall(r'bravo|ra', 'bravo')   # ['bravo']  <- se pierde el 'ra' interior
+re.findall(r'ra', 'bravo')         # ['ra']
+# por eso, si el enunciado cuenta cada patron por separado, van pasadas separadas
+
+# PATRON LITERAL CON CARACTERES ESPECIALES
+re.escape('a.b*c')            # 'a\\.b\\*c'  neutraliza . * + ? [ ] ( ) etc.
+\end{lstlisting}

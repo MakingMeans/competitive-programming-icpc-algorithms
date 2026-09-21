@@ -1,4 +1,4 @@
-\subsection{Puntos de Articulación (Algoritmo de Tarjan)}
+\subsection{Puntos de Articulación, Tarjan (islas críticas)}
 
 \graybold{Preguntas guía:}
 
@@ -10,7 +10,7 @@
 
 \graybold{Utilidad:} Encontrar los vértices de corte (articulation points) de un grafo no dirigido: nodos que, al eliminarse, aumentan el número de componentes conexas. Es la base para analizar robustez de redes (qué nodo, si falla, parte el sistema en pedazos).
 
-\graybold{Complejidad:} O(V + E) con DFS iterativo (un solo recorrido con low-link).
+\graybold{Complejidad:} \bigO{V + E} con DFS iterativo (un solo recorrido con low-link).
 
 \graybold{Fundamento teórico:} Se hace un DFS calculando, para cada nodo, su tiempo de descubrimiento (disc) y el menor tiempo de descubrimiento alcanzable usando a lo más una arista de retroceso (low). Un nodo u (no raíz) es punto de articulación si tiene un hijo v en el árbol DFS tal que low[v] ≥ disc[u]: eso significa que desde el subárbol de v no hay forma de "escapar" hacia arriba de u sin pasar por u. La raíz del DFS es un caso especial: es punto de articulación si tiene más de un hijo en el árbol.
 
@@ -18,7 +18,7 @@
 
 Dadas varias pruebas, cada una con n islas y m puentes bidireccionales (grafo conexo), contar cuántas islas, al hundirse, desconectarían partes de la ciudad. La entrada termina con un caso 0 0.
 
-\graybold{I/O:} Múltiples casos con centinela "0 0" (patrón 3 de la sección de E/S). n ≤ 10\textasciicircum{}4, m ≤ 10\textasciicircum{}5 → lectura total + tokenización, y DFS iterativo con pila explícita (mismo motivo que en Kosaraju: evitar RecursionError/stack overflow).
+\graybold{I/O:} Múltiples casos con centinela "0 0" (patrón 3 de la sección de E/S). n ≤ \ten{4}, m ≤ \ten{5} → lectura total + tokenización, y DFS iterativo con pila explícita (mismo motivo que en Kosaraju: evitar RecursionError/stack overflow).
 
 \graybold{Código solución}
 

@@ -1,4 +1,4 @@
-\subsection{Simulación XOR con Detección de Ciclos}
+\subsection{Simulación XOR con Detección de Ciclos (interruptores y bombillas)}
 
 \graybold{Preguntas guía:}
 
@@ -8,7 +8,7 @@
 \item ¿Necesito detectar si el proceso entra en un ciclo infinito sin nunca alcanzar el estado objetivo?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Simular un proceso determinista donde el estado (aquí, qué bombillas están encendidas) cambia por XOR con máscaras fijas aplicadas en orden cíclico, deteniéndose al llegar al estado objetivo o detectando que nunca se alcanzará. Es aplicable a cualquier proceso de estado finito con transiciones deterministas.
+\graybold{Utilidad:} Simular un proceso determinista donde el estado (aquí, qué bombillas están encendidas) cambia por XOR con máscaras fijas aplicadas en orden cíclico, deteniéndose al llegar al estado objetivo o detectando que nunca se alcanzará. Es aplicable a cualquier proceso de estado finito con transiciones deterministas.
 
 \graybold{Complejidad:} \bigO{N} en la práctica (ver fundamento teórico), a pesar de que el espacio de estados aparenta ser exponencial en M.
 
@@ -18,7 +18,7 @@
 
 Un conserje presiona N interruptores en orden cíclico $1,2,\ldots,N,1,2,\ldots$ Cada interruptor alterna un subconjunto fijo de M bombillas. Dado el estado inicial de las bombillas encendidas, determinar cuántas veces hay que presionar interruptores hasta que TODAS las bombillas queden apagadas simultáneamente, o -1 si nunca ocurre.
 
-\graybold{I/O:} N,M ≤ 1000 → readline por línea (patrón 1) es más que suficiente, dado que el propio algoritmo termina en a lo más \textasciitilde{}2N iteraciones (verificado: <0.03s incluso en el peor caso N=M=1000).
+\graybold{I/O:} N,M ≤ 1000 → readline por línea (patrón 1) es más que suficiente, dado que el propio algoritmo termina en a lo más \aprox{}2N iteraciones (verificado: <0.03s incluso en el peor caso N=M=1000).
 
 \graybold{Código solución}
 

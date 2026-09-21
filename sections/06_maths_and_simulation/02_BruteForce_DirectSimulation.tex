@@ -1,16 +1,16 @@
-\subsection{Fuerza Bruta / Simulación Directa}
+\subsection{Fuerza Bruta / Simulación Directa (paradoja del cumpleaños)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
-\item ¿El tamaño de la entrada es pequeño (N ≤ 10\textasciicircum{}3 o similar) y no hay una fórmula cerrada evidente?
+\item ¿El tamaño de la entrada es pequeño (N ≤ \ten{3} o similar) y no hay una fórmula cerrada evidente?
 \item ¿Puedo calcular la respuesta iterando directamente sobre el espacio del problema sin que se dispare el tiempo?
 \item ¿El problema es más de matemáticas/probabilidad que de estructuras de datos?
 \end{itemize}
 
 \graybold{Utilidad:} Reconocer cuándo NO hace falta un algoritmo sofisticado: con restricciones pequeñas, iterar directamente (simulando la definición del problema) es la solución más simple, rápida de programar y menos propensa a errores. Identificar esto ahorra tiempo valioso en el contrarreloj.
 
-\graybold{Complejidad:} Depende del problema; en este caso O(n) con aritmética de punto flotante.
+\graybold{Complejidad:} Depende del problema; en este caso \bigO{n} con aritmética de punto flotante.
 
 \graybold{Fundamento teórico:} Se calcula directamente la probabilidad de que NO haya coincidencia de cumpleaños entre k personas, multiplicando factores (1 − (k−1)/n) sucesivamente (extensión del problema del cumpleaños), deteniéndose apenas esa probabilidad cae por debajo de 0.5 (la probabilidad de coincidencia supera el 50\%).
 

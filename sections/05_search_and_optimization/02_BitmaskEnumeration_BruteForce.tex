@@ -1,24 +1,24 @@
-\subsection{Enumeración por Máscaras de Bits (Bitmask Brute Force)}
+\subsection{Enumeración por Bitmask (bits perdidos de un mensaje)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
-\item ¿Hay un pequeño número (≤ \textasciitilde{}20) de decisiones binarias desconocidas (bits, elecciones sí/no) y hace falta probar combinaciones?
-\item ¿El espacio total de combinaciones (2\textasciicircum{}k) es lo bastante chico para probarlas todas dentro del límite de tiempo?
+\item ¿Hay un pequeño número (≤ \aprox{}20) de decisiones binarias desconocidas (bits, elecciones sí/no) y hace falta probar combinaciones?
+\item ¿El espacio total de combinaciones (\pow{2}{k}) es lo bastante chico para probarlas todas dentro del límite de tiempo?
 \item ¿Cada combinación se puede armar y evaluar rápido a partir de su representación binaria?
 \end{itemize}
 
 \graybold{Utilidad:} Representar y recorrer exhaustivamente todas las configuraciones posibles de un conjunto pequeño de decisiones binarias. Cada máscara de bits codifica una asignación distinta de valores, permitiendo generar candidatos de forma sistemática y verificar cuál satisface la condición del problema.
 
-\graybold{Complejidad:} O(2\textasciicircum{}k · costo de evaluar una combinación), con k = número de incógnitas binarias.
+\graybold{Complejidad:} \bigO{\pow{2}{k} \cdot C}, con $k$ = número de incógnitas binarias y $C$ = costo de evaluar una combinación.
 
-\graybold{Fundamento teórico:} Cualquier asignación de k bits desconocidos corresponde biunívocamente a un entero entre 0 y 2\textasciicircum{}k−1. Recorriendo ese rango y extrayendo el bit j con (mascara \textgreater{}\textgreater{} j) \& 1, se reconstruye cada combinación posible sin necesidad de recursión ni backtracking explícito. Es la enumeración más directa de un espacio de búsqueda combinatorio pequeño.
+\graybold{Fundamento teórico:} Cualquier asignación de k bits desconocidos corresponde biunívocamente a un entero entre 0 y $\pow{2}{k}-1$. Recorriendo ese rango y extrayendo el bit j con (mascara \textgreater{}\textgreater{} j) \& 1, se reconstruye cada combinación posible sin necesidad de recursión ni backtracking explícito. Es la enumeración más directa de un espacio de búsqueda combinatorio pequeño.
 
 \graybold{Ejercicio aplicado}
 
 Un mensaje M' y un divisor N' se recibieron con hasta 16 bits en total marcados como perdidos ('*'). Reconstruir un mensaje M compatible (M completando los '*' de M') tal que exista un N (completando los '*' de N') donde N divide a M exactamente.
 
-\graybold{I/O:} |M'| ≤ 500 pero el total de '*' (en M' y N' combinados) es ≤ 16 → lectura total con readline es más que suficiente; el costo real está en las 2\textasciicircum{}16 combinaciones, no en la entrada.
+\graybold{I/O:} |M'| ≤ 500 pero el total de '*' (en M' y N' combinados) es ≤ 16 → lectura total con readline es más que suficiente; el costo real está en las \pow{2}{16} combinaciones, no en la entrada.
 
 \graybold{Código solución}
 

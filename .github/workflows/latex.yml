@@ -3,18 +3,23 @@ name: Build LaTeX PDF
 on:
   push:
     paths:
-      - 'Notebook-ICPC/**'
+      - 'main.tex'
+      - 'sections/**'
+      - 'styles/**'
+      - 'images/**'
+      - '.github/workflows/latex.yml'
   pull_request:
     paths:
-      - 'Notebook-ICPC/**'
+      - 'main.tex'
+      - 'sections/**'
+      - 'styles/**'
+      - 'images/**'
+      - '.github/workflows/latex.yml'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Notebook-ICPC
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,12 +28,26 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
-          working_directory: Notebook-ICPC
           latexmk_use_xelatex: false
-          args: -pdf -interaction=nonstopmode -halt-on-error
+          args: -pdf -file-line-error -interaction=nonstopmode -halt-on-error
+
+      # Falla el build si el PDF se compiló pero con cajas desbordadas grandes
+      # (texto o fórmulas que se salen de la columna) o referencias sin resolver.
+      - name: Check log for overfull boxes and undefined references
+        run: |
+          set -e
+          if grep -E 'Overfull \\hbox \([0-9]{2,}\.' main.log; then
+            echo "::error::Hay cajas desbordadas de 10pt o más (ver arriba)."; exit 1
+          fi
+          if grep -q 'LaTeX Warning: There were undefined references' main.log; then
+            echo "::error::Referencias sin resolver."; exit 1
+          fi
+          if grep -q 'No hyphenation patterns were preloaded for the language' main.log; then
+            echo "::warning::Faltan patrones de silabación (babel)."
+          fi
 
       - name: Upload PDF
         uses: actions/upload-artifact@v4
         with:
           name: Notebook-ICPC-PDF
-          path: Notebook-ICPC/main.pdf
+          path: main.pdf

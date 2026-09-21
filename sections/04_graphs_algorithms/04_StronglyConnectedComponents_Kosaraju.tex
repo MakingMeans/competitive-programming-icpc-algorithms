@@ -1,16 +1,16 @@
-\subsection{Componentes Fuertemente Conexas (Algoritmo de Kosaraju)}
+\subsection{Componentes Fuertemente Conexas, Kosaraju (reinos de planetas)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿Es un grafo dirigido y preguntan por "grupos" donde todo par de nodos es mutuamente alcanzable?
 \item ¿Necesito "condensar" el grafo (contraer cada componente en un nodo) para trabajar luego sobre un DAG?
-\item ¿n puede ser grande (\textasciitilde{}10\textasciicircum{}5), por lo que hay que evitar recursión profunda en Python?
+\item ¿n puede ser grande (\aprox{}\ten{5}), por lo que hay que evitar recursión profunda en Python?
 \end{itemize}
 
 \graybold{Utilidad:} Particionar un grafo dirigido en componentes fuertemente conexas (SCC): subconjuntos maximales donde cada nodo puede llegar a cualquier otro del mismo subconjunto. Es la base para condensar grafos, resolver 2-SAT y detectar ciclos mutuos.
 
-\graybold{Complejidad:} O(V + E) tiempo y espacio (dos recorridos DFS).
+\graybold{Complejidad:} \bigO{V + E} tiempo y espacio (dos recorridos DFS).
 
 \graybold{Fundamento teórico:} Kosaraju usa dos pasadas de DFS: (1) en el grafo original, registrar el orden de finalización (postorden) de cada nodo; (2) en el grafo transpuesto (aristas invertidas), recorrer los nodos en orden inverso de finalización. Cada árbol de DFS resultante en esta segunda pasada es exactamente una SCC, porque invertir las aristas separa los componentes que antes solo eran alcanzables en una dirección.
 
@@ -18,7 +18,7 @@
 
 Un juego tiene n planetas conectados por m teletransportadores dirigidos. Dos planetas pertenecen al mismo "reino" si hay ruta en ambos sentidos entre ellos. Determinar, para cada planeta, a qué reino pertenece.
 
-\graybold{I/O:} n ≤ 10\textasciicircum{}5 y m ≤ 2·10\textasciicircum{}5 → lectura total + tokenización (patrón 2). Además, el DFS se implementa de forma iterativa (con pila explícita) para evitar RecursionError en Python con grafos grandes.
+\graybold{I/O:} n ≤ \ten{5} y m ≤ 2·\ten{5} → lectura total + tokenización (patrón 2). Además, el DFS se implementa de forma iterativa (con pila explícita) para evitar RecursionError en Python con grafos grandes.
 
 \graybold{Código solución}
 

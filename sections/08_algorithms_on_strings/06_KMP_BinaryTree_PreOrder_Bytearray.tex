@@ -1,4 +1,4 @@
-\subsection{Comparación de Subárboles Ignorando Etiquetas (Codificación en Preorden + KMP)}
+\subsection{KMP sobre Codificación en Preorden (subárboles con la misma forma)}
 
 \graybold{Preguntas guía:}
 
@@ -9,7 +9,7 @@
 \item ¿|patrón| y |texto| son grandes (decenas o cientos de miles), descartando comparar subárbol por subárbol de forma ingenua?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Reduce un problema de comparación estructural de árboles (¿este subárbol tiene la misma forma que aquel otro?) a un problema clásico de coincidencia de patrones en cadenas. Es aplicable a cualquier familia de árboles binarios completos donde solo interesa la forma (posición y arity de los nodos), no las etiquetas: sirve tanto para árboles de expresión como para cualquier otra estructura jerárquica que se pueda serializar de la misma manera.
+\graybold{Utilidad:} Reduce un problema de comparación estructural de árboles (¿este subárbol tiene la misma forma que aquel otro?) a un problema clásico de coincidencia de patrones en cadenas. Es aplicable a cualquier familia de árboles binarios completos donde solo interesa la forma (posición y arity de los nodos), no las etiquetas: sirve tanto para árboles de expresión como para cualquier otra estructura jerárquica que se pueda serializar de la misma manera.
 
 \graybold{Complejidad:} \bigO{|\alpha| + |\beta|} por caso de prueba, tanto para la codificación como para la búsqueda de coincidencias con KMP.
 

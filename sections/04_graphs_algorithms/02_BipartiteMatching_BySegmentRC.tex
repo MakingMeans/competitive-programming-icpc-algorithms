@@ -1,4 +1,4 @@
-\subsection{Emparejamiento Bipartito por Segmentación de Filas/Columnas}
+\subsection{Kuhn sobre Segmentos de Fila/Columna (torres con peones)}
 
 \graybold{Preguntas guía:}
 
@@ -10,7 +10,7 @@
 
 \graybold{Utilidad:} Resolver problemas de colocación de piezas sobre una cuadrícula con obstáculos, donde el conflicto es "compartir fila o columna sin un obstáculo de por medio". En vez de razonar celda por celda, se etiquetan los segmentos libres de cada fila y columna, y el problema se convierte en un emparejamiento bipartito clásico.
 
-\graybold{Complejidad:} O(N²) para etiquetar segmentos, más O(V·E) para el emparejamiento (V, E acotados por N²).
+\graybold{Complejidad:} \bigO{N^2} para etiquetar segmentos, más \bigO{V \cdot E} para el emparejamiento (V, E acotados por N²).
 
 \graybold{Fundamento teórico:} Cada casilla vacía pertenece a exactamente un segmento de fila (corrida maximal de casillas vacías, delimitada por obstáculos o bordes) y a exactamente un segmento de columna. Como a lo más una torre puede ocupar cada segmento (todas sus casillas se atacan entre sí sin obstáculo de por medio), colocar torres sin conflicto equivale a elegir aristas entre segmentos de fila y segmentos de columna sin repetir segmento de ningún lado: exactamente un emparejamiento en el grafo bipartito (segmentos de fila) × (segmentos de columna), donde cada casilla vacía es una arista posible.
 

@@ -1,3 +1,6 @@
+% ============================================================
+%  LISTINGS (código Python)
+% ============================================================
 \lstdefinestyle{pythonstyle}{
   language=Python,
   basicstyle=\ttfamily\footnotesize,
@@ -16,6 +19,18 @@
   xleftmargin=0.5em,
   xrightmargin=0.5em,
   aboveskip=0.8em,
-  belowskip=0.8em
+  belowskip=0.8em,
+  % listings lee byte a byte: cualquier carácter UTF-8 de más de un byte
+  % rompe la compilación (o sale basura) salvo que esté declarado aquí.
+  % Con esto se pueden escribir tildes, ñ y flechas en los comentarios.
+  literate=
+    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+    {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+    {¿}{{?`}}1 {¡}{{!`}}1
+    {≤}{{$\leq$}}1 {≥}{{$\geq$}}1 {≠}{{$\neq$}}1
+    {→}{{$\rightarrow$}}1 {←}{{$\leftarrow$}}1 {↑}{{$\uparrow$}}1 {↓}{{$\downarrow$}}1
+    {−}{{-}}1 {·}{{$\cdot$}}1 {×}{{$\times$}}1 {²}{{$^2$}}1
+    {—}{{---}}1 {–}{{--}}1 {…}{{\ldots}}1
 }
 \lstset{style=pythonstyle}

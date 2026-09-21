@@ -1,14 +1,14 @@
-\subsection{Rotación Mínima de un String (Algoritmo de Booth)}
+\subsection{Rotación Mínima, Booth (huellas duplicadas por rotación)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿Dos strings se consideran "iguales" si uno es una rotación cíclica del otro?
-\item ¿Necesito una forma canónica única para comparar/deduplicar strings bajo rotación, en tiempo lineal (no $O(n^2)$ probando todas las rotaciones)?
+\item ¿Necesito una forma canónica única para comparar/deduplicar strings bajo rotación, en tiempo lineal (no \bigO{n^2} probando todas las rotaciones)?
 \item ¿El string puede ser largo (miles de caracteres) y hay muchos para procesar?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Encontrar la rotación lexicográficamente menor de un string en \bigO{n}, como forma canónica para comparar o deduplicar strings equivalentes bajo rotación cíclica. Evita el enfoque ingenuo de generar y comparar las $n$ rotaciones ($O(n^2)$).
+\graybold{Utilidad:} Encontrar la rotación lexicográficamente menor de un string en \bigO{n}, como forma canónica para comparar o deduplicar strings equivalentes bajo rotación cíclica. Evita el enfoque ingenuo de generar y comparar las $n$ rotaciones (\bigO{n^2}).
 
 \graybold{Complejidad:} \bigO{n}.
 
@@ -18,7 +18,7 @@
 
 Dado un conjunto de huellas dactilares codificadas como strings (equivalentes bajo rotación cíclica), eliminar duplicados representando cada grupo por su rotación canónica (la lexicográficamente menor).
 
-\graybold{I/O:} Hasta 100 strings de hasta 5000 caracteres por caso, múltiples casos hasta el centinela "0" → lectura total con \texttt{sys.stdin.read().split()} (patrón 2). Verificado: \textasciitilde{}1.4s para 5 casos × 100 strings × 5000 caracteres, y correcto contra fuerza bruta en 3000 strings aleatorios.
+\graybold{I/O:} Hasta 100 strings de hasta 5000 caracteres por caso, múltiples casos hasta el centinela "0" → lectura total con \texttt{sys.stdin.read().split()} (patrón 2). Verificado: \aprox{}1.4s para 5 casos × 100 strings × 5000 caracteres, y correcto contra fuerza bruta en 3000 strings aleatorios.
 
 \graybold{Código solución}
 

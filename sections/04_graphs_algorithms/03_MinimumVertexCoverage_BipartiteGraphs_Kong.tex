@@ -1,4 +1,4 @@
-\subsection{Cobertura Mínima de Vértices en Grafos Bipartitos (Teorema de König)}
+\subsection{Teorema de König: Cobertura Mínima de Vértices (quitar caballos)}
 
 \graybold{Preguntas guía:}
 
@@ -10,7 +10,7 @@
 
 \graybold{Utilidad:} Calcular la cobertura mínima de vértices (mínimo conjunto de nodos que toca todas las aristas) en un grafo bipartito. En grafos generales este problema es NP-difícil, pero en grafos bipartitos se vuelve polinomial gracias al teorema de König.
 
-\graybold{Complejidad:} O(V · E), la misma del emparejamiento bipartito máximo del que depende.
+\graybold{Complejidad:} \bigO{V \cdot E}, la misma del emparejamiento bipartito máximo del que depende.
 
 \graybold{Fundamento teórico:} El teorema de König establece que, en cualquier grafo bipartito, el tamaño de la cobertura mínima de vértices es EXACTAMENTE igual al tamaño del emparejamiento máximo. Basta con correr Kuhn (entrada anterior) y esa cifra ya es la respuesta. Importante: heurísticas locales (como quitar iterativamente puntos de articulación, o dividir el número de vértices con grado \textgreater{} 0 entre 2) NO son válidas para este problema en general - solo coinciden por casualidad en casos muy simples (aristas aisladas, caminos, estrellas) y fallan en cuanto el grafo tiene una estructura más rica (por ejemplo, un grafo bipartito 2-conexo sin puntos de articulación).
 

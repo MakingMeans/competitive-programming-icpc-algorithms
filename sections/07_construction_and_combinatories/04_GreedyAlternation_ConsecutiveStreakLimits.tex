@@ -1,4 +1,4 @@
-\subsection{Construcción Greedy por Alternancia (Límites de Racha Consecutiva)}
+\subsection{Greedy por Alternancia con Límite de Racha (dónde dormir cada noche)}
 
 \graybold{Preguntas guía:}
 
@@ -8,7 +8,7 @@
 \item ¿Basta con dos "recursos" (el mejor y el segundo mejor) para romper cualquier racha, sin necesidad de planear la secuencia completa de antemano?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Construir una secuencia válida de longitud D usando N opciones con límites de racha consecutiva, sin necesidad de una búsqueda ni un algoritmo sofisticado: alternar entre las DOS opciones con mayor límite es siempre suficiente (si el problema es factible), porque cualquier racha se puede "romper" con un solo turno de la segunda opción antes de retomar la primera.
+\graybold{Utilidad:} Construir una secuencia válida de longitud D usando N opciones con límites de racha consecutiva, sin necesidad de una búsqueda ni un algoritmo sofisticado: alternar entre las DOS opciones con mayor límite es siempre suficiente (si el problema es factible), porque cualquier racha se puede "romper" con un solo turno de la segunda opción antes de retomar la primera.
 
 \graybold{Complejidad:} \bigO{D}.
 
@@ -18,7 +18,7 @@
 
 Kai necesita dormir D días seguidos, alternando entre N lugares, donde el lugar $i$ tolera a lo más $d_i$ noches CONSECUTIVAS antes de expulsarlo (pero puede volver después). Construir un plan válido día a día, o determinar que es imposible.
 
-\graybold{I/O:} N,D ≤ 10\textsuperscript{5} → lectura total con tokenización (patrón 2). Verificado contra 200 casos aleatorios comparando factibilidad y validando la secuencia construida.
+\graybold{I/O:} N,D ≤ \ten{5} → lectura total con tokenización (patrón 2). Verificado contra 200 casos aleatorios comparando factibilidad y validando la secuencia construida.
 
 \graybold{Código solución}
 

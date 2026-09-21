@@ -1,4 +1,4 @@
-\subsection{Fenwick Tree (Árbol de Índices Binarios / BIT)}
+\subsection{Fenwick Tree / BIT + Consultas Offline (distintos en un rango)}
 
 \graybold{Preguntas guía:}
 
@@ -10,15 +10,15 @@
 
 \graybold{Utilidad:} Mantener sumas de prefijo (o cualquier operación invertible) sobre un arreglo con actualizaciones puntuales, respondiendo consultas de rango en tiempo logarítmico. Es la base de técnicas como conteo de elementos distintos por rango, inversiones en un arreglo y frecuencias acumuladas.
 
-\graybold{Complejidad:} Construcción \bigO{n}. Update puntual \bigO{log n}. Query de prefijo \bigO{log n}. Espacio \bigO{n}.
+\graybold{Complejidad:} Construcción \bigO{n}. Update puntual \bigO{\log n}. Query de prefijo \bigO{\log n}. Espacio \bigO{n}.
 
-\graybold{Fundamento teórico:} Cada posición i del arreglo interno almacena la suma de un bloque de tamaño (i \& -i), el bit menos significativo de i. Al actualizar se "sube" sumando (i \& -i); al consultar un prefijo se "baja" restando (i \& -i). Esto aprovecha la representación binaria de los índices para cubrir cualquier prefijo con solo \bigO{log n} bloques.
+\graybold{Fundamento teórico:} Cada posición i del arreglo interno almacena la suma de un bloque de tamaño (i \& -i), el bit menos significativo de i. Al actualizar se "sube" sumando (i \& -i); al consultar un prefijo se "baja" restando (i \& -i). Esto aprovecha la representación binaria de los índices para cubrir cualquier prefijo con solo \bigO{\log n} bloques.
 
 \graybold{Ejercicio aplicado}
 
 Dado un arreglo de n números y q consultas (i, j), responder para cada una cuántos valores distintos hay en el subarreglo [i, j]. Técnica: procesar las consultas offline ordenadas por extremo derecho r, recorriendo el arreglo de izquierda a derecha y manteniendo en el BIT un "1" solo en la última aparición de cada valor.
 
-\graybold{I/O:} n ≤ 30 000 y q ≤ 200 000 hasta \textasciitilde{}430 000 tokens de entrada: se usa lectura total + tokenización (patrón 2) en vez de readline por línea.
+\graybold{I/O:} n ≤ 30 000 y q ≤ 200 000 hasta \aprox{}430 000 tokens de entrada: se usa lectura total + tokenización (patrón 2) en vez de readline por línea.
 
 \graybold{Código solución}
 
@@ -42,7 +42,7 @@ def solve():
     def update(i, val):
         while i <= n:
             bit[i] += val
-            i += i & (-i) 	# ultimo bit encendido
+            i += i & (-i)               # ultimo bit encendido
  
     def query(i):
         res = 0

@@ -1,4 +1,4 @@
-\subsection{Parejas Incompatibles en Secuencias de Paréntesis (Bloques de Nivel Superior)}
+\subsection{Balance de Paréntesis por Bloques de Nivel Superior (parejas incompatibles)}
 
 \graybold{Preguntas guía:}
 
@@ -8,7 +8,7 @@
 \item ¿Puedo identificar los "bloques de nivel superior" (tramos donde el balance nunca vuelve a cero hasta el final del bloque)?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Analizar, para una secuencia balanceada de paréntesis, la validez de emparejamientos NO necesariamente anidados de la forma estándar, descomponiendo la secuencia en bloques de nivel superior (tramos maximales donde el balance se mantiene estrictamente positivo hasta el cierre). La clave es que un '(' y un ')' se pueden emparejar sin romper la validez del resto si y solo si están en el MISMO bloque.
+\graybold{Utilidad:} Analizar, para una secuencia balanceada de paréntesis, la validez de emparejamientos NO necesariamente anidados de la forma estándar, descomponiendo la secuencia en bloques de nivel superior (tramos maximales donde el balance se mantiene estrictamente positivo hasta el cierre). La clave es que un '(' y un ')' se pueden emparejar sin romper la validez del resto si y solo si están en el MISMO bloque.
 
 \graybold{Complejidad:} \bigO{n}.
 
@@ -18,7 +18,7 @@
 
 Dada una secuencia de N bailarines Yang '(' y Yin ')' (garantizada balanceada), donde cada Yang debe emparejarse con un Yin posterior, contar cuántas parejas $(i,j)$ son "incompatibles": aquellas que, de formarse, impiden que el resto de bailarines encuentre pareja.
 
-\graybold{I/O:} N ≤ 10\textsuperscript{6} → un solo recorrido lineal con lectura total (patrón 2); no hace falta tokenizar por espacios ya que la secuencia es un único string contiguo. Verificado: \textasciitilde{}0.1s en el peor caso.
+\graybold{I/O:} N ≤ \ten{6} → un solo recorrido lineal con lectura total (patrón 2); no hace falta tokenizar por espacios ya que la secuencia es un único string contiguo. Verificado: \aprox{}0.1s en el peor caso.
 
 \graybold{Código solución}
 

@@ -1,4 +1,4 @@
-\subsection{Búsqueda Binaria sobre la Respuesta con Ventana de Bonificación}
+\subsection{Búsqueda Binaria sobre la Respuesta: Maximizar el Mínimo (muralla con refuerzo)}
 
 \graybold{Preguntas guía:}
 
@@ -8,7 +8,7 @@
 \item ¿La factibilidad es monótona: si un objetivo H es alcanzable, cualquier objetivo menor también lo es?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Resolver problemas de "maximizar el mínimo" cuando la modificación disponible tiene una forma estructurada (aquí, un refuerzo en forma de escalera), buscando binariamente el mejor valor objetivo y verificando factibilidad con una condición cerrada en \bigO{n} por candidato.
+\graybold{Utilidad:} Resolver problemas de "maximizar el mínimo" cuando la modificación disponible tiene una forma estructurada (aquí, un refuerzo en forma de escalera), buscando binariamente el mejor valor objetivo y verificando factibilidad con una condición cerrada en \bigO{n} por candidato.
 
 \graybold{Complejidad:} \bigO{n \log(\max x + K)}.
 
@@ -18,7 +18,7 @@
 
 Dada una muralla de N segmentos con alturas iniciales, y un refuerzo que agrega $K$ bloques al segmento elegido, $K-1$ al anterior, y así sucesivamente, hallar la mayor altura mínima posible tras aplicar el refuerzo en un único segmento.
 
-\graybold{I/O:} N ≤ 10\textsuperscript{5} → lectura total con tokenización (patrón 2). Verificado contra fuerza bruta en 300 casos aleatorios pequeños.
+\graybold{I/O:} N ≤ \ten{5} → lectura total con tokenización (patrón 2). Verificado contra fuerza bruta en 300 casos aleatorios pequeños.
 
 \graybold{Código solución}
 

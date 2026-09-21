@@ -1,4 +1,4 @@
-\subsection{Conteo de Componentes Conexas con Union-Find (DSU)}
+\subsection{Union-Find / DSU con Path Halving (componentes conexas)}
 
 \graybold{Preguntas guía:}
 
@@ -9,9 +9,9 @@
 \item ¿Prefiero evitar construir listas de adyacencia y hacer DFS/BFS explícito?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Mantiene una partición de elementos en conjuntos disjuntos soportando dos operaciones: unir los conjuntos de dos elementos, y averiguar a qué conjunto pertenece un elemento. Contar componentes conexas es su aplicación más directa, pero la estructura es la base de Kruskal (árbol de recubrimiento mínimo), detección de ciclos en grafos no dirigidos, agrupamiento por equivalencias y problemas de conectividad incremental en general. A diferencia de DFS/BFS, no requiere materializar el grafo: procesa las aristas al vuelo, una por una.
+\graybold{Utilidad:} Mantiene una partición de elementos en conjuntos disjuntos soportando dos operaciones: unir los conjuntos de dos elementos, y averiguar a qué conjunto pertenece un elemento. Contar componentes conexas es su aplicación más directa, pero la estructura es la base de Kruskal (árbol de recubrimiento mínimo), detección de ciclos en grafos no dirigidos, agrupamiento por equivalencias y problemas de conectividad incremental en general. A diferencia de DFS/BFS, no requiere materializar el grafo: procesa las aristas al vuelo, una por una.
 
-\graybold{Complejidad:} \bigO{M alfa(N)} para procesar $M$ aristas sobre $N$ nodos, donde $\alpha$ es la inversa de la función de Ackermann (menor que 5 para cualquier entrada imaginable), es decir prácticamente \bigO{M} amortizado con compresión de caminos.
+\graybold{Complejidad:} \bigO{M \alpha(N)} para procesar $M$ aristas sobre $N$ nodos, donde $\alpha$ es la inversa de la función de Ackermann (menor que 5 para cualquier entrada imaginable), es decir prácticamente \bigO{M} amortizado con compresión de caminos.
 
 \graybold{Fundamento teórico:} Cada conjunto se representa como un árbol donde cada nodo apunta a su padre y la RAÍZ (el nodo que es su propio padre) actúa como identificador canónico del conjunto. Dos elementos pertenecen al mismo conjunto exactamente cuando su búsqueda de raíz termina en el mismo nodo, así que el número de componentes conexas es el número de nodos que son su propia raíz. Unir dos conjuntos cuesta una sola asignación: se hace que la raíz de uno apunte a la raíz del otro. La eficiencia depende de mantener los árboles poco profundos, y para eso se usa COMPRESIÓN DE CAMINOS: durante la búsqueda de la raíz, cada nodo visitado se reengancha más arriba en el árbol, de modo que las consultas futuras sobre ese nodo (y sobre todos sus descendientes en el camino) sean más cortas. La variante implementada aquí, \emph{path halving}, hace que cada nodo apunte a su abuelo en lugar de a su padre mientras sube, lo que reduce la profundidad a la mitad en cada pasada con un solo bucle y sin recursión ni segunda pasada. El resultado es que la profundidad amortizada queda acotada por $\alpha(N)$, una función que crece tan lentamente que es constante en la práctica. Nótese que la estructura es naturalmente inmune a aristas repetidas y lazos: si $a$ y $b$ ya comparten raíz, la unión simplemente no hace nada, así que la entrada puede contener \texttt{CE} y \texttt{EC} (como en el ejemplo) o incluso \texttt{AA} sin afectar el conteo.
 

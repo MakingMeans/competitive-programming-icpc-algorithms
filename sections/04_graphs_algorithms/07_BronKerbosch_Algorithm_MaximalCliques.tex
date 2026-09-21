@@ -1,65 +1,30 @@
-\subsection{Algoritmo de Bron--Kerbosch (Cliques Máximos)}
+\subsection{Bron--Kerbosch: Clique Máximo (grupo compatible)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿Necesito encontrar un clique máximo o todos los cliques máximos de un grafo no dirigido?
-\item ¿El número de vértices es relativamente pequeño (aproximadamente \(n \le 50\))?
+\item ¿El número de vértices es relativamente pequeño (aproximadamente $n \le 50$)?
 \item ¿La solución requiere explorar todas las posibles extensiones de un conjunto de vértices compatible?
 \end{itemize}
 
-\graybold{Utilidad:}
+\graybold{Utilidad:} Encontrar todos los cliques máximos o el clique máximo de un grafo no dirigido mediante backtracking con poda. Es la técnica estándar para resolver problemas de máxima compatibilidad, grupos completamente conectados y optimización sobre grafos pequeños.
 
-Encontrar todos los cliques máximos o el clique máximo de un grafo no dirigido mediante backtracking con poda. Es la técnica estándar para resolver problemas de máxima compatibilidad, grupos completamente conectados y optimización sobre grafos pequeños.
+\graybold{Complejidad:} \bigO{3^{n/3}} en el peor caso, que es óptimo para la enumeración de todos los cliques máximos; memoria \bigO{n}. En la práctica, el uso de pivote reduce considerablemente el número de llamadas recursivas.
 
-\graybold{Complejidad:}
-
-En el peor caso el algoritmo requiere
-\[
-\bigO{3^{n/3}}
-\]
-
-que es óptimo para la enumeración de todos los cliques máximos.
-
-El consumo de memoria es
-\[
-\bigO{n}.
-\]
-
-En la práctica, el uso de pivote reduce considerablemente el número de llamadas recursivas.
-
-\graybold{Fundamento teórico:}
-
-Durante la búsqueda se mantienen tres conjuntos:
-
+\graybold{Fundamento teórico:} Durante la búsqueda se mantienen tres conjuntos:
 \begin{itemize}
-\item \(R\): vértices que pertenecen al clique actual.
-\item \(P\): vértices que todavía pueden añadirse al clique.
-\item \(X\): vértices ya procesados, utilizados para evitar generar soluciones repetidas.
+\item $R$: vértices que pertenecen al clique actual.
+\item $P$: vértices que todavía pueden añadirse al clique.
+\item $X$: vértices ya procesados, utilizados para evitar generar soluciones repetidas.
 \end{itemize}
-
-Cuando tanto \(P\) como \(X\) quedan vacíos, el conjunto \(R\) constituye un clique máximo.
-
-Para reducir la cantidad de ramas exploradas se selecciona un pivote \(u\) y únicamente se consideran los vértices de
-\[
-P \setminus N(u),
-\]
-
-donde \(N(u)\) representa los vecinos del pivote. Esta optimización disminuye significativamente el árbol de búsqueda.
+Cuando tanto $P$ como $X$ quedan vacíos, el conjunto $R$ constituye un clique máximo. Para reducir la cantidad de ramas exploradas se selecciona un pivote $u$ y únicamente se consideran los vértices de $P \setminus N(u)$, donde $N(u)$ representa los vecinos del pivote. Esta optimización disminuye significativamente el árbol de búsqueda.
 
 \graybold{Ejercicio aplicado}
 
-Dado un grafo no dirigido, determinar el tamaño del mayor clique del grafo.
+Dado un grafo no dirigido, determinar el tamaño del mayor clique del grafo. Cada vértice representa una persona y existe una arista cuando dos personas son compatibles. Se desea encontrar el grupo más grande donde todos los integrantes sean compatibles entre sí.
 
-Cada vértice representa una persona y existe una arista cuando dos personas son compatibles. Se desea encontrar el grupo más grande donde todos los integrantes sean compatibles entre sí.
-
-\graybold{I/O:}
-
-Se reciben múltiples casos de prueba.
-
-Cada caso especifica el número de vértices y aristas seguido por la lista de conexiones.
-
-El algoritmo resulta adecuado para grafos pequeños, donde una búsqueda exhaustiva con poda es suficiente para obtener la solución óptima.
+\graybold{I/O:} Se reciben múltiples casos de prueba; cada caso especifica el número de vértices y aristas seguido por la lista de conexiones. El algoritmo resulta adecuado para grafos pequeños, donde una búsqueda exhaustiva con poda es suficiente para obtener la solución óptima.
 
 \graybold{Código solución}
 
@@ -103,6 +68,4 @@ bronk(set(), set(range(n)), set())
 print(best)
 \end{lstlisting}
 
-\graybold{Observación:}
-
-El algoritmo de Bron--Kerbosch explora únicamente conjuntos que pueden convertirse en un clique válido. La versión con pivote es la utilizada habitualmente en programación competitiva debido a que reduce considerablemente el número de llamadas recursivas. Aunque su complejidad en el peor caso sigue siendo exponencial, resulta extremadamente eficiente para grafos pequeños, siendo la solución estándar para problemas de clique máximo en ICPC.
+\graybold{Observación:} El algoritmo de Bron--Kerbosch explora únicamente conjuntos que pueden convertirse en un clique válido. La versión con pivote es la utilizada habitualmente en programación competitiva debido a que reduce considerablemente el número de llamadas recursivas. Aunque su complejidad en el peor caso sigue siendo exponencial, resulta extremadamente eficiente para grafos pequeños, siendo la solución estándar para problemas de clique máximo en ICPC.

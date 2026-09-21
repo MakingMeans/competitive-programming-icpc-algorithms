@@ -1,4 +1,4 @@
-\subsection{Eliminación de Ciclos en una Ruta (Stack Reduction)}
+\subsection{Reducción con Pila (ciclos en un bang path)}
 
 \graybold{Preguntas guía:}
 
@@ -8,18 +8,11 @@
 \item ¿Necesito conservar el orden original mientras simplifico la secuencia al máximo?
 \end{itemize}
 
-\graybold{¿Para qué sirve?}
-
-Simplificar recorridos o secuencias eliminando ciclos innecesarios. Cada vez que un elemento vuelve a aparecer, todo el recorrido intermedio deja de ser útil y puede eliminarse. Después de cada eliminación es necesario volver a comprobar si ahora se formó un nuevo ciclo con los elementos restantes.
-
-Este patrón aparece en problemas de rutas, navegación, directorios, historial de movimientos y simplificación de secuencias.
+\graybold{Utilidad:} Simplificar recorridos o secuencias eliminando ciclos innecesarios. Cada vez que un elemento vuelve a aparecer, todo el recorrido intermedio deja de ser útil y puede eliminarse. Después de cada eliminación es necesario volver a comprobar si ahora se formó un nuevo ciclo con los elementos restantes. Este patrón aparece en problemas de rutas, navegación, directorios, historial de movimientos y simplificación de secuencias.
 
 \graybold{Complejidad:} \bigO{n}.
 
-\graybold{Fundamento teórico:}
-
-La solución utiliza una pila que representa la ruta simplificada construida hasta el momento y cada máquina se procesa exactamente una vez y se inserta al final de la pila.
-Después de insertar una máquina pueden ocurrir dos situaciones. La primera es si las dos últimas máquinas tienen el mismo nombre donde la última visita es redundante y puede eliminarse. La segunda donde la última máquina coincide con la antepenúltima, por lo que tanto la máquina intermedia como la repetida pueden eliminarse.
+\graybold{Fundamento teórico:} La solución utiliza una pila que representa la ruta simplificada construida hasta el momento; cada máquina se procesa exactamente una vez y se inserta al final de la pila. Después de insertar una máquina pueden ocurrir dos situaciones. La primera es si las dos últimas máquinas tienen el mismo nombre donde la última visita es redundante y puede eliminarse. La segunda donde la última máquina coincide con la antepenúltima, por lo que tanto la máquina intermedia como la repetida pueden eliminarse.
 
 \graybold{Ejercicio aplicado}
 
@@ -27,13 +20,7 @@ Dado un bang path de UUCP (UNIX-to-UNIX Copy Program), eliminar todos los saltos
 
 Las comparaciones entre nombres de máquinas son \textbf{case-insensitive}, aunque la salida debe conservar la capitalización original.
 
-\graybold{I/O:}
-
-La entrada consiste en una única línea cuya longitud no supera los 256 caracteres.
-
-Cada componente está separado por el carácter '!' y el último elemento siempre corresponde al usuario destino, por lo que nunca participa en las simplificaciones.
-
-Debido al pequeño tamaño de la entrada, basta dividir el string utilizando \texttt{split("!")} y recorrer los componentes una única vez.
+\graybold{I/O:} La entrada consiste en una única línea cuya longitud no supera los 256 caracteres. Cada componente está separado por el carácter '!' y el último elemento siempre corresponde al usuario destino, por lo que nunca participa en las simplificaciones. Debido al pequeño tamaño de la entrada, basta dividir el string utilizando \texttt{split("!")} y recorrer los componentes una única vez.
 
 \graybold{Código solución}
 

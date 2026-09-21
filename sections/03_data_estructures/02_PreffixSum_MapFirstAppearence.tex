@@ -1,4 +1,4 @@
-\subsection{Suma de Prefijos con Mapa de Primera Aparición}
+\subsection{Prefix Sums + Mapa de Primera Aparición (subarreglo balanceado más largo)}
 
 \graybold{Preguntas guía:}
 
@@ -8,7 +8,7 @@
 \item ¿Me alcanza con guardar, para cada valor de suma acumulada, solo la PRIMERA posición donde apareció?
 \end{itemize}
 
-\graybold{¿Para qué sirve?} Encontrar en \bigO{n} el subarreglo contiguo más largo cuya suma (o balance entre dos tipos de elementos) es igual a un valor fijo, sin revisar los $O(n^2)$ subarreglos posibles.
+\graybold{Utilidad:} Encontrar en \bigO{n} el subarreglo contiguo más largo cuya suma (o balance entre dos tipos de elementos) es igual a un valor fijo, sin revisar los \bigO{n^2} subarreglos posibles.
 
 \graybold{Complejidad:} \bigO{n} tiempo, \bigO{n} espacio.
 
@@ -18,7 +18,7 @@
 
 Dada una secuencia de N transacciones (positiva = depósito, negativa = retiro, cero = consulta), calcular el depósito máximo, el retiro más negativo, y la longitud del subperíodo contiguo más largo con igual cantidad de depósitos y retiros.
 
-\graybold{I/O:} Múltiples casos con centinela "0" (patrón 3). N ≤ 10\,000 → readline por línea (patrón 1); se probó también con lectura total y resultó más lenta para este patrón de "un entero, luego un arreglo, repetido" (\textasciitilde{}2.5s vs \textasciitilde{}3.9s en 500 casos de N=10000).
+\graybold{I/O:} Múltiples casos con centinela "0" (patrón 3). N ≤ 10\,000 → readline por línea (patrón 1); se probó también con lectura total y resultó más lenta para este patrón de "un entero, luego un arreglo, repetido" (\aprox{}2.5s vs \aprox{}3.9s en 500 casos de N=10000).
 
 \graybold{Código solución}
 

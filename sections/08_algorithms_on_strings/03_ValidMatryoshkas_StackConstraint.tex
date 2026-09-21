@@ -1,4 +1,4 @@
-\subsection{Validación de Matrioshkas Generalizadas (Pila con Restricción de Capacidad)}
+\subsection{Pila con Restricción de Capacidad (matrioshkas)}
 
 \graybold{Preguntas guía:}
 
@@ -8,15 +8,11 @@
 \item ¿Necesito validar simultáneamente el correcto anidamiento y una condición adicional sobre el contenido de cada nivel?
 \end{itemize}
 
-\graybold{¿Para qué sirve?}
-
-Validar estructuras anidadas donde cada objeto debe cerrarse exactamente en el orden inverso en que fue abierto y, además, debe cumplir una restricción sobre los elementos contenidos directamente en su interior. Este patrón aparece frecuentemente en problemas de parsing, validación de expresiones jerárquicas y simulación de estructuras recursivas.
+\graybold{Utilidad:} Validar estructuras anidadas donde cada objeto debe cerrarse exactamente en el orden inverso en que fue abierto y, además, debe cumplir una restricción sobre los elementos contenidos directamente en su interior. Este patrón aparece frecuentemente en problemas de parsing, validación de expresiones jerárquicas y simulación de estructuras recursivas.
 
 \graybold{Complejidad:} \bigO{n}.
 
-\graybold{Fundamento teórico:}
-
-Cada juguete comienza cuando aparece un entero negativo $-x$ y termina cuando aparece el correspondiente entero positivo $x$. Debido a que un juguete debe cerrarse antes de continuar cerrando el que lo contiene, el orden de cierre siempre sigue la política \textbf{Last In, First Out (LIFO)}, por lo que una pila modela naturalmente la estructura.
+\graybold{Fundamento teórico:} Cada juguete comienza cuando aparece un entero negativo $-x$ y termina cuando aparece el correspondiente entero positivo $x$. Debido a que un juguete debe cerrarse antes de continuar cerrando el que lo contiene, el orden de cierre siempre sigue la política \textbf{Last In, First Out (LIFO)}, por lo que una pila modela naturalmente la estructura.
 
 \graybold{Ejercicio aplicado}
 
@@ -24,11 +20,7 @@ Dada una secuencia de enteros que representa la apertura y cierre de juguetes ge
 
 Cada juguete de tamaño $m$ puede contener varios juguetes, pero la suma de los tamaños de todos sus hijos directos debe ser estrictamente menor que $m$.
 
-\graybold{I/O:}
-
-Cada línea representa un caso de prueba independiente.
-
-Los valores aparecen separados por espacios y pueden alcanzar magnitudes de hasta $10^7$. Como únicamente se realiza un recorrido secuencial sobre cada línea utilizando una pila, el algoritmo procesa cada caso en tiempo lineal.
+\graybold{I/O:} Cada línea representa un caso de prueba independiente. Los valores aparecen separados por espacios y pueden alcanzar magnitudes de hasta \ten{7}. Como únicamente se realiza un recorrido secuencial sobre cada línea utilizando una pila, el algoritmo procesa cada caso en tiempo lineal.
 
 \graybold{Código solución}
 

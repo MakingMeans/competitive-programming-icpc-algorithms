@@ -1,0 +1,5 @@
+# main.pdf se versiona para poder descargarlo/imprimirlo directo desde GitHub,
+# pero git lo trataba como texto (diffs de ~25k líneas por compilación).
+*.pdf binary
+*.png binary
+*.tex text

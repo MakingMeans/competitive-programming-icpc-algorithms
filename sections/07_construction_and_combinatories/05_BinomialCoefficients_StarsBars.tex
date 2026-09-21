@@ -1,4 +1,4 @@
-\subsection{Distribución de Días de Espera (Stars and Bars)}
+\subsection{Stars and Bars con Factoriales Precalculados (días de espera entre oasis)}
 
 \graybold{Preguntas guía:}
 
@@ -8,37 +8,17 @@
 \item ¿El orden dentro de cada grupo no importa, únicamente cuántos elementos recibe cada uno?
 \end{itemize}
 
-\graybold{¿Para qué sirve?}
+\graybold{Utilidad:} Contar el número de formas de distribuir una cantidad fija de elementos indistinguibles entre varios grupos independientes. Es una de las aplicaciones más comunes de la técnica de \textit{Stars and Bars} (estrellas y barras), utilizada frecuentemente en problemas de combinatoria, programación competitiva y teoría de conteo.
 
-Contar el número de formas de distribuir una cantidad fija de elementos indistinguibles entre varios grupos independientes. Es una de las aplicaciones más comunes de la técnica de \textit{Stars and Bars} (estrellas y barras), utilizada frecuentemente en problemas de combinatoria, programación competitiva y teoría de conteo.
-
-\graybold{Complejidad:}
-
-Preprocesamiento de factoriales: \bigO{MAX}.
-
-Cada consulta: \bigO{1}.
-
-Espacio: \bigO{MAX}.
+\graybold{Complejidad:} Preprocesamiento de factoriales \bigO{\mathit{MAX}}; cada consulta \bigO{1}; espacio \bigO{\mathit{MAX}}.
 
 \graybold{Fundamento teórico:} Si el viaje mínimo hasta el oasis destino requiere $O$ días y debe durar exactamente $T$ días, existen $extra=T-O$ días de espera que pueden distribuirse libremente antes de salir o después de cualquiera de los $D$ oasis recorridos, es decir, entre $D+1$ posiciones distintas. Como los días de espera son indistinguibles y cada posición puede recibir cualquier cantidad de ellos, el problema se reduce directamente al principio de \textit{Stars and Bars}, obteniendo un total de $\binom{extra+D}{D}$ planes posibles.
 
 \graybold{Ejercicio aplicado}
 
-Se conocen las posiciones de todos los oasis de una ruta.
+Se conocen las posiciones de todos los oasis de una ruta. Para cada consulta se recibe un oasis destino y el número exacto de días que debe durar el viaje. Calcular cuántos planes distintos existen para distribuir los días de espera manteniendo siempre el mismo recorrido.
 
-Para cada consulta se recibe un oasis destino y el número exacto de días que debe durar el viaje.
-
-Calcular cuántos planes distintos existen para distribuir los días de espera manteniendo siempre el mismo recorrido.
-
-\graybold{I/O:}
-
-\(5 \le N \le 20\).
-
-\(1 \le M \le 10\).
-
-Las distancias a los oasis no superan los 60 días, por lo que todos los factoriales necesarios pueden precomputarse una única vez antes de responder las consultas.
-
-Cada consulta se responde en tiempo constante.
+\graybold{I/O:} $5 \le N \le 20$, $1 \le M \le 10$. Las distancias a los oasis no superan los 60 días, por lo que todos los factoriales necesarios pueden precomputarse una única vez antes de responder las consultas; cada consulta se responde en tiempo constante.
 
 \graybold{Código solución}
 

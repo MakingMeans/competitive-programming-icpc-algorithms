@@ -1,16 +1,16 @@
-\subsection{Emparejamiento Bipartito Máximo (Algoritmo de Kuhn)}
+\subsection{Emparejamiento Bipartito Máximo, Kuhn (parejas de baile)}
 
 \graybold{Preguntas guía:}
 
 \begin{itemize}
 \item ¿Tengo dos conjuntos disjuntos (personas / tareas) y aristas que solo conectan un conjunto con el otro?
 \item ¿Me piden el número máximo de "parejas" o asignaciones simultáneas sin repetir elementos de ningún lado?
-\item ¿El tamaño de ambos lados permite O(V·E) (hasta unos pocos miles)?
+\item ¿El tamaño de ambos lados permite \bigO{V \cdot E} (hasta unos pocos miles)?
 \end{itemize}
 
 \graybold{Utilidad:} Encontrar el máximo número de aristas seleccionables en un grafo bipartito sin que dos aristas compartan vértice (asignación óptima uno a uno). Ejemplos: asignar trabajadores a tareas, parejas de baile, cobertura de tareas.
 
-\graybold{Complejidad:} O(V · E) con la versión simple de caminos aumentantes, donde V es el lado izquierdo y E el número de aristas.
+\graybold{Complejidad:} \bigO{V \cdot E} con la versión simple de caminos aumentantes, donde V es el lado izquierdo y E el número de aristas.
 
 \graybold{Fundamento teórico:} Se buscan repetidamente "caminos aumentantes": para cada vértice izquierdo se intenta, vía DFS, encontrar una pareja libre o "desalojar" a otro vértice ya emparejado para liberar espacio y aumentar el emparejamiento en 1. Es un caso particular del teorema de Kőnig / flujo máximo en redes.
 
@@ -27,11 +27,11 @@ import sys
 input = sys.stdin.buffer.readline
  
 def try_kuhn(u, adj, matched, visited):
-# intenta emparejar el vertice u del lado izquierdo
+    # intenta emparejar el vertice u del lado izquierdo
     for v in adj[u]:
         if not visited[v]:
             visited[v] = True
-# v esta libre, o su pareja actual puede reubicarse...
+            # v esta libre, o su pareja actual puede reubicarse...
             if matched[v] == -1 or try_kuhn(matched[v], adj, matched, visited):
                 matched[v] = u
                 return True

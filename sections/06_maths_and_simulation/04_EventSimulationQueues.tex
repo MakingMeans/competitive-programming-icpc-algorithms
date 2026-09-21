@@ -1,4 +1,4 @@
-\subsection{Simulación de Eventos con Colas}
+\subsection{Simulación de Eventos con Colas (escalera doble)}
 
 \graybold{Preguntas guía:}
 
@@ -10,7 +10,7 @@
 
 \graybold{Utilidad:} Simular un sistema con estado (aquí: una dirección de movimiento y un instante de fin de uso) que evoluciona a medida que llegan eventos de distintos tipos, usando una cola por tipo de evento en vez de simular minuto a minuto.
 
-\graybold{Complejidad:} O(n) - cada persona se encola y desencola una sola vez.
+\graybold{Complejidad:} \bigO{n} - cada persona se encola y desencola una sola vez.
 
 \graybold{Fundamento teórico:} Se mantienen dos colas (una por dirección deseada) y un estado (dirección activa, instante en que el recurso queda libre). En cada paso se mira el evento más próximo entre ambas colas: si coincide con la dirección activa, extiende el fin de uso; si es la dirección contraria, esa persona debe esperar (se cuenta pero no se procesa aún); si ya no hay eventos antes de que el recurso quede libre, se decide si invertir la dirección (si había gente esperando) o terminar ese ciclo de uso.
 
@@ -18,7 +18,7 @@
 
 N personas llegan a una escalera doble (10 segundos por cruce) en tiempos distintos, cada una queriendo ir en una de dos direcciones. Determinar el instante en que la última persona termina de usarla.
 
-\graybold{I/O:} n ≤ 10\textasciicircum{}4 → lectura total + tokenización (patrón 2); se usan dos deques (collections.deque) en vez de queue, ya que en Python deque tiene O(1) real para popleft().
+\graybold{I/O:} n ≤ \ten{4} → lectura total + tokenización (patrón 2); se usan dos deques (collections.deque) en vez de queue, ya que en Python deque tiene \bigO{1} real para popleft().
 
 \graybold{Código solución}
 
