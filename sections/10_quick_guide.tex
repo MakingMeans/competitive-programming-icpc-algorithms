@@ -1,0 +1,468 @@
+\clearpage
+\section{Guía Rápida: Qué Usar y Cuándo}
+
+Resumen en lenguaje llano de cada técnica del libro: qué resuelve, cuándo conviene
+sobre las alternativas, y un ejemplo mínimo de entrada y salida. Sirve para el
+momento de leer un enunciado y decidir por dónde atacarlo; el desarrollo completo
+está en la página indicada. Los patrones de lectura rápida están en la sección~1 y
+las utilidades de Python en la sección~2.
+
+\newcommand{\guia}[2]{\medskip\noindent\textbf{#1} \textnormal{(p.~\pageref{#2})}\ }
+\newcommand{\ej}{\par\smallskip\noindent\textit{Ejemplo:}\ }
+
+% ============================================================
+\subsection*{Estructuras de Datos}
+
+\guia{Fenwick Tree (BIT)}{alg:3-1}
+Un arreglo al que le vas a preguntar muchas veces "¿cuánto suman las posiciones de
+aquí a allá?" mientras además vas cambiando valores. Recalcular la suma cada vez
+sería demasiado lento; el BIT la responde en pasos logarítmicos. Es la estructura
+más corta de escribir de todo el capítulo, así que es la primera opción cuando la
+operación es una suma.
+\ej con \texttt{[5, 2, 9, 1]}, sumar el rango \texttt{[2,4]} da \texttt{12}; si
+cambias la posición 3 a \texttt{0}, la misma consulta pasa a dar \texttt{3}.
+
+\guia{Sumas de Prefijos + Mapa}{alg:3-2}
+Para encontrar el tramo contiguo más largo que está "equilibrado": misma cantidad
+de dos cosas, o que suma exactamente un valor. El truco es convertir cada elemento
+en $+1$ o $-1$ y buscar dos puntos donde el acumulado valga lo mismo: todo lo que
+hay entre ellos está balanceado. Una sola pasada, sin revisar todos los tramos.
+\ej en \texttt{[+,+,-,-,+,-]} el tramo más largo con igual cantidad de \texttt{+}
+y \texttt{-} es de longitud \texttt{6}.
+
+\guia{Fenwick con XOR (Nim)}{alg:3-3}
+El mismo BIT pero combinando con XOR en vez de suma, que es lo que hace falta para
+juegos por turnos tipo Nim: hay varias pilas, cada jugador retira de una sola, y
+pierde quien no puede mover. El XOR de los tamaños decide el ganador, y el BIT
+permite responder eso para muchos rangos distintos mientras las pilas cambian.
+\ej pilas \texttt{[1, 2, 3]}: el XOR da \texttt{0}, así que pierde quien empieza.
+
+\guia{Segment Tree}{alg:3-4}
+Lo mismo que el BIT pero para operaciones que no se pueden "deshacer", como el
+mínimo o el máximo: ahí no sirve restar. Es la estructura por defecto para
+consultas de rango sobre un arreglo que cambia. Más largo de escribir que el BIT,
+así que si la operación es una suma, usa el BIT.
+\ej con \texttt{[3, 1, 4, 1, 5]}, el mínimo de \texttt{[1,3]} es \texttt{1}; tras
+cambiar la posición 2 a \texttt{9}, pasa a ser \texttt{3}.
+
+\guia{Dos Fenwick (rango + rango)}{alg:3-5}
+Cuando además de consultar sumas de un rango necesitas SUMAR un valor a todo un
+rango de golpe. Se resuelve con dos BIT en vez de un segment tree con propagación
+perezosa: mucho menos código y varias veces más rápido en Python.
+\ej sobre \texttt{[0,0,0,0]}, sumar \texttt{3} a \texttt{[1,3]} y luego consultar
+\texttt{[2,4]} da \texttt{6}.
+
+\guia{Sparse Table}{alg:3-6}
+Si el arreglo NUNCA cambia, esta tabla responde el mínimo (o máximo, o gcd) de
+cualquier rango en tiempo constante, más rápido que un segment tree. El precio es
+que no admite modificaciones. Regla simple: arreglo fijo, sparse table; arreglo que
+cambia, segment tree.
+\ej con \texttt{[7, 2, 8, 2, 4]}, el mínimo de \texttt{[3,5]} es \texttt{2}, y la
+respuesta sale mirando solo dos casillas ya calculadas.
+
+\guia{Pila Monótona}{alg:3-7}
+Responde, para cada elemento, hasta dónde se extiende hacia los lados sin encontrar
+uno menor. Con eso se resuelve toda la familia de "el rectángulo más grande que
+cabe", "hasta cuándo este precio sigue siendo el más bajo" o "cuánto dura esta
+racha". Una sola pasada, aunque parezca que hay que probar todos los pares.
+\ej alturas \texttt{[2, 1, 5, 6, 2, 3]}: el rectángulo más grande tiene área
+\texttt{10} (las alturas \texttt{5} y \texttt{6} con ancho 2).
+
+\guia{Sumas de Prefijos 2D}{alg:3-8}
+La versión en cuadrícula de las sumas de prefijos: precalculas una tabla y después
+cualquier pregunta del tipo "cuántas cosas hay dentro de este rectángulo" se
+responde sumando y restando cuatro valores. Su gemelo, el arreglo de diferencias,
+hace lo contrario: aplica miles de sumas sobre rectángulos y al final reconstruye
+la cuadrícula de una vez.
+\ej en una grilla con árboles marcados, contar los de un rectángulo cuesta lo mismo
+sin importar si el rectángulo tiene 4 celdas o un millón.
+
+\guia{Ordered Set con Fenwick}{alg:3-9}
+Python no tiene el \texttt{ordered\_set} de C++, y esta es la forma de suplirlo:
+mantener un conjunto donde puedes insertar, borrar, preguntar "¿cuántos elementos
+son menores que $x$?" y "¿cuál es el $k$-ésimo más pequeño?". Requiere conocer de
+antemano todos los valores que aparecerán, para comprimirlos.
+\ej tras insertar \texttt{10, 40, 20}, el 2.º menor es \texttt{20} y hay
+\texttt{2} elementos menores que \texttt{40}.
+
+\guia{Balance de Paréntesis por Bloques}{alg:3-10}
+Para secuencias de paréntesis balanceadas donde hay que razonar qué parejas se
+pueden formar sin romper el resto. La idea clave es que la secuencia se parte en
+bloques independientes, y solo se pueden emparejar elementos del mismo bloque.
+\ej en \texttt{()()}, el primer \texttt{(} no puede emparejarse con el último
+\texttt{)}: están en bloques distintos.
+
+\guia{Pila con Restricción}{alg:3-11}
+Validar estructuras anidadas (cajas dentro de cajas, etiquetas, expresiones) donde
+además cada contenedor impone una condición sobre lo que lleva dentro. La pila
+lleva el control de qué está abierto, y cada cierre verifica la condición.
+\ej \texttt{-9 -2 2 -3 3 9} es válido (2 y 3 caben en el 9), pero \texttt{-9 -9 9
+9} no lo es.
+
+\guia{Reducción con Pila}{alg:3-12}
+Simplificar un recorrido eliminando los rodeos: si pasaste por un sitio y volviste,
+todo lo del medio sobra. Lo importante es que al quitar un rodeo puede aparecer
+otro más grande, así que hay que seguir revisando.
+\ej la ruta \texttt{a!b!c!b!a!d} se reduce a \texttt{a!d}: primero desaparece
+\texttt{c}, y eso deja \texttt{b} junto a \texttt{b}.
+
+% ============================================================
+\subsection*{Grafos}
+
+\guia{Emparejamiento Bipartito (Kuhn)}{alg:4-1}
+Dos grupos y una lista de parejas posibles entre ellos; se busca formar la mayor
+cantidad de parejas sin repetir a nadie. Asignar trabajadores a tareas, estudiantes
+a proyectos, turnos a personas. El algoritmo reacomoda parejas ya formadas cuando
+eso permite meter una más.
+\ej con 3 chicos, 3 chicas y las parejas posibles $1$--$1$, $1$--$2$, $2$--$1$,
+la respuesta es \texttt{2}.
+
+\guia{Kuhn sobre Segmentos}{alg:4-2}
+Colocar piezas en un tablero con obstáculos sin que se ataquen. En lugar de pensar
+celda por celda, se numeran los tramos libres de cada fila y de cada columna, y el
+problema se vuelve el emparejamiento de arriba. Es el ejemplo típico de "modelar
+para poder aplicar un algoritmo conocido".
+\ej en un tablero $3\times3$ con un peón en el centro caben \texttt{4} torres sin
+que se ataquen, en vez de las 3 del tablero vacío.
+
+\guia{Teorema de König}{alg:4-3}
+Cuántos elementos hay que quitar, como mínimo, para que no quede ningún conflicto.
+En general es un problema durísimo, pero si los conflictos forman un grafo
+bipartito la respuesta es exactamente el emparejamiento máximo: se calcula igual
+que la entrada anterior y ya está.
+\ej con caballos de ajedrez que se atacan, basta correr Kuhn; el número que sale
+es la cantidad mínima a retirar.
+
+\guia{Componentes Fuertemente Conexas}{alg:4-4}
+En un grafo de calles de un solo sentido, agrupa los nodos entre los que se puede
+ir y volver. Sirve para simplificar el grafo (cada grupo pasa a ser un solo nodo,
+y lo que queda ya no tiene ciclos) y es el motor de 2-SAT.
+\ej con $1\to2$, $2\to3$, $3\to1$ y $3\to4$, los planetas 1, 2 y 3 son un mismo
+reino y el 4 es otro.
+
+\guia{Circuito Euleriano (Hierholzer)}{alg:4-5}
+Recorrer TODAS las calles exactamente una vez y volver al punto de partida. Ojo con
+la confusión frecuente: esto es sobre aristas, no sobre nodos (pasar por todos los
+nodos una vez es otro problema, mucho más difícil). Se comprueba antes si existe:
+todos los nodos deben tener grado par.
+\ej un triángulo tiene circuito (\texttt{1 2 3 1}); una "Y" de tres brazos no
+tiene, porque sus cuatro nodos quedan con grado impar.
+
+\guia{Puntos de Articulación (Tarjan)}{alg:4-6}
+Qué nodos son críticos: si ese nodo falla, la red se parte en pedazos. Se usa para
+medir robustez, encontrar cuellos de botella o identificar el servidor que no puede
+caerse.
+\ej en la cadena $1-2-3$, el nodo \texttt{2} es punto de articulación; en un
+triángulo no hay ninguno.
+
+\guia{Bron--Kerbosch (clique máximo)}{alg:4-7}
+El grupo más grande en el que todos son compatibles con todos. Es exponencial, así
+que solo sirve con pocos nodos (unas decenas), pero para ese tamaño es la
+herramienta correcta y no hay atajo mejor.
+\ej si A, B y C son compatibles entre sí y D solo con A, el grupo máximo es
+\texttt{\{A, B, C\}}, de tamaño \texttt{3}.
+
+\guia{Orden Topológico + Conteos}{alg:4-8}
+Cuando entran cantidades astronómicas de elementos por un grafo sin ciclos y
+simularlos uno por uno es imposible. En vez de mover elementos, se mueven CONTEOS:
+se procesa cada nodo cuando ya sabe cuántos le llegaron en total, y reparte de una
+sola vez.
+\ej con $10^{18}$ bolas entrando por el nodo 1, no se simula ninguna bola: se
+calcula de una cuántas pasan por cada nodo.
+
+\guia{Union-Find (DSU)}{alg:4-9}
+Va uniendo elementos en grupos y responde al instante si dos están en el mismo
+grupo. Es la forma más rápida de contar cuántos grupos separados hay cuando las
+conexiones van llegando una a una, y no necesita construir el grafo.
+\ej con las uniones \texttt{A-B} y \texttt{C-D} sobre cuatro elementos quedan
+\texttt{2} grupos.
+
+\guia{Dijkstra}{alg:4-10}
+La ruta más barata desde un punto a todos los demás, cuando ningún tramo tiene
+costo negativo. Es el algoritmo de caminos mínimos por defecto: mapas, costos,
+cualquier grafo donde avanzar cuesta. Si hay costos negativos, no sirve: ahí va
+Bellman-Ford.
+\ej con $1\to2$ costo 5 y $1\to3\to2$ costos 1 y 1, la distancia de 1 a 2 es
+\texttt{2}, no 5.
+
+\guia{BFS en grilla (y 0-1 BFS)}{alg:4-11}
+El camino más corto cuando todos los pasos cuestan igual: laberintos, mínimo número
+de movimientos, distancia en casillas. Recorre por capas, así que la primera vez
+que llega a un sitio ya es por el camino más corto. La variante 0-1 permite que
+algunos pasos sean gratis y otros cuesten uno, sin necesitar Dijkstra.
+\ej en un laberinto, devuelve la longitud mínima y la secuencia de movimientos
+\texttt{DRRU...} que hay que seguir.
+
+\guia{Bipartito por coloreo}{alg:4-12}
+¿Se puede partir el grupo en dos equipos de forma que ningún par conflictivo quede
+junto? Se pinta cada nodo del color contrario al de su vecino; si en algún momento
+choca, es imposible. Incluye la plantilla de recorrido sin recursión, necesaria en
+Python para grafos grandes.
+\ej un ciclo de 4 nodos se puede partir; uno de 3 no, porque tiene longitud impar.
+
+\guia{Árbol de Expansión Mínima (Kruskal)}{alg:4-13}
+Conectar todo al menor costo posible: cables, carreteras, tuberías. Se ordenan las
+conexiones de más barata a más cara y se van tomando las que unen grupos todavía
+separados. También sirve para agrupar: cortar las conexiones más caras del árbol
+deja los grupos más separados entre sí.
+\ej con tres ciudades y costos 1, 2 y 3, el mínimo para conectarlas es
+\texttt{1 + 2 = 3}.
+
+\guia{Puentes y árbol de puentes}{alg:4-14}
+Qué conexiones son críticas: si esa calle se corta, la red se parte. Contrayendo
+todo lo que sigue conectado sin ella, el grafo se convierte en un árbol, y sobre
+ese árbol se responden preguntas que en el grafo original serían difíciles.
+\ej para maximizar cuántos tramos obligatorios hay entre dos puntos, se toma el
+camino más largo del árbol de puentes.
+
+\guia{Orden Topológico + DP en DAG}{alg:4-15}
+En un grafo sin ciclos, ordena las tareas de modo que nada venga antes que sus
+requisitos. Recorriendo en ese orden, cualquier cálculo acumulado (camino más
+largo, cuántos caminos hay, costo mínimo) sale en una sola pasada.
+\ej la ruta que visita más ciudades de 1 a $n$, y la lista de ciudades por las que
+pasa.
+
+\guia{Bellman-Ford (ciclos negativos)}{alg:4-16}
+Para grafos donde avanzar puede DAR beneficio en vez de costar, que es justo donde
+Dijkstra se rompe. Además detecta el caso patológico: un ciclo que te deja mejor
+cada vez que lo recorres, o sea, ganancia infinita.
+\ej detectar arbitraje en cambio de divisas: una secuencia de cambios que te
+devuelve más dinero del que pusiste.
+
+\guia{LCA y distancias en árbol}{alg:4-17}
+En un árbol genealógico o una jerarquía, el ancestro común más cercano de dos
+nodos. Con él se obtiene al instante la distancia entre dos nodos cualesquiera, sin
+recorrer el árbol en cada consulta.
+\ej en un árbol de 200\,000 nodos, cada pregunta de distancia se responde de
+inmediato tras un precálculo único.
+
+\guia{Flujo Máximo y Corte Mínimo (Dinic)}{alg:4-18}
+Cuánto se puede mandar de un punto a otro por una red con capacidades, y el
+resultado gemelo: cuál es el conjunto más barato de conexiones a cortar para
+separarlos del todo. Los dos números son el mismo, y ese es el teorema que hace
+útil el algoritmo.
+\ej si hay \texttt{2} rutas independientes entre el banco y el puerto, hacen falta
+exactamente \texttt{2} cierres de calle para incomunicarlos.
+
+\guia{2-SAT}{alg:4-19}
+Cada elemento tiene dos opciones y hay restricciones de la forma "si esta, entonces
+aquella". Decidir si existe una combinación que las cumpla todas es rapidísimo con
+dos opciones, aunque con tres el mismo problema sea intratable. Se resuelve
+reutilizando las componentes fuertemente conexas.
+\ej con $n$ personas que piden cada una dos deseos sobre los ingredientes, dice si
+hay una pizza que contente a todos.
+
+% ============================================================
+\subsection*{Búsqueda, Greedy y Optimización}
+
+\guia{Búsqueda Binaria sobre la Respuesta}{alg:5-1}
+El truco mental más rentable del repertorio: cuando calcular la respuesta es
+difícil pero VERIFICAR un candidato es fácil, se adivina el candidato a la mitad y
+se descarta media búsqueda cada vez. Funciona siempre que valga "si $X$ sirve,
+todo lo mayor también".
+\ej para la $k$-ésima suma más pequeña entre pares, se prueba un valor y se cuenta
+cuántas sumas quedan por debajo.
+
+\guia{Enumeración por Bitmask}{alg:5-2}
+Cuando hay pocas decisiones de sí/no (unas 20 como mucho) y se pueden probar todas.
+Cada número entero, leído en binario, representa una combinación distinta, así que
+un simple bucle las recorre todas sin necesidad de recursión.
+\ej con 16 bits desconocidos se prueban las \texttt{65\,536} combinaciones
+posibles y se devuelve la primera válida.
+
+\guia{Maximizar el mínimo}{alg:5-3}
+La variante más común de la búsqueda binaria: repartir algo para que el peor
+elemento quede lo mejor posible. "Maximizar el mínimo" y "minimizar el máximo" son
+la misma idea, y casi siempre se resuelven así.
+\ej con una muralla de alturas desiguales y un solo refuerzo disponible, la mayor
+altura mínima que se puede garantizar.
+
+\guia{Huffman (fusión greedy)}{alg:5-4}
+Cuando hay que juntar (o partir) grupos repetidamente y cada operación cuesta el
+tamaño del grupo resultante, lo óptimo es unir siempre los dos más pequeños. La
+misma idea aparece disfrazada en "unir cuerdas", "mezclar archivos" y compresión de
+datos.
+\ej pesos \texttt{[1, 2, 3]}: unir 1+2 (cuesta 3) y luego 3+3 (cuesta 6) da un
+total de \texttt{9}, que es el mínimo.
+
+% ============================================================
+\subsection*{Programación Dinámica}
+
+\guia{DP de Particionamiento sobre Residuos}{alg:6-1}
+Partir una lista en grupos minimizando un costo, cuando el costo de cada grupo
+depende solo de su suma módulo un número pequeño. El estado deja de ser "dónde
+corté" (miles de opciones) y pasa a ser "qué resto llevaba" (diez), que es lo que
+vuelve viable el cálculo en Python.
+\ej pagar una compra por partes cuando cada parte se redondea al múltiplo de 10 más
+cercano: conviene elegir dónde cortar.
+
+\guia{Distancia de Edición y LCS}{alg:6-2}
+Cuánto se parecen dos textos: el mínimo de inserciones, borrados y sustituciones
+para convertir uno en el otro. Es la base de los correctores ortográficos y de
+\texttt{diff}. La versión bit-paralela mete una columna entera de la tabla en un
+solo número entero, y por eso corre en Python donde la versión normal no llega.
+\ej de \texttt{"casa"} a \texttt{"calle"} la distancia es \texttt{3}.
+
+% ============================================================
+\subsection*{Matemáticas y Simulación}
+
+\guia{Reducción Binaria (tipo Josefo)}{alg:7-1}
+Procesos donde en cada ronda se elimina uno de cada dos y la cantidad se parte por
+la mitad. Simular es imposible si hay miles de millones de elementos, pero como
+cada ronda reduce el problema a la mitad, bastan unas pocas decenas de pasos.
+\ej con mil millones de personas en fila, la respuesta sale en unos 30 pasos en
+vez de mil millones.
+
+\guia{Fuerza Bruta / Simulación Directa}{alg:7-2}
+La entrada de reconocer cuándo NO hace falta ser listo: si los límites son
+pequeños, hacer exactamente lo que dice el enunciado es más rápido de escribir y
+mucho menos propenso a errores. Saber identificarlo ahorra minutos valiosos.
+\ej cuántas personas hacen falta para que dos compartan cumpleaños: se van
+multiplicando probabilidades hasta pasar el 50\%.
+
+\guia{Simulación Lineal con Máximo de Prefijo}{alg:7-3}
+Problemas que parecen complicados y se reducen a recorrer una vez y quedarse con el
+máximo (o el mínimo). La dificultad está en darse cuenta de cuál es el cuello de
+botella, no en programarlo.
+\ej dos paredes que se acercan chocan en el tiempo que marca la fila más
+estrecha.
+
+\guia{Simulación de Eventos con Colas}{alg:7-4}
+Sistemas donde llegan cosas en momentos distintos y hay un recurso compartido con
+estado. En vez de avanzar segundo a segundo, se salta directamente al siguiente
+evento relevante usando una cola por tipo.
+\ej una escalera que solo va en un sentido a la vez: se calcula cuándo termina de
+usarla la última persona.
+
+\guia{Simulación XOR con Detección de Ciclos}{alg:7-5}
+Procesos deterministas que pueden no terminar nunca. Si el estado se repite, es que
+está dando vueltas y hay que cortar. Guardar los estados vistos es lo que
+distingue "no hay solución" de un bucle infinito.
+\ej interruptores que cambian grupos de bombillas: dice en cuántos pasos se apagan
+todas, o que nunca ocurrirá.
+
+% ============================================================
+\subsection*{Construcción y Combinatoria}
+
+\guia{Constructivo por Invariante}{alg:8-1}
+Problemas de "construye algo que cumpla X" donde no hay que buscar nada: se propone
+una fórmula y se argumenta que cierta propiedad (típicamente la paridad) nunca
+puede romperse, sin importar las decisiones que se tomen.
+\ej construir una permutación donde el resultado nunca pueda dar cero, sin
+importar los signos que se elijan.
+
+\guia{Constructivo Explícito}{alg:8-2}
+El mismo tipo de problema resuelto dando directamente la respuesta a partir de una
+identidad numérica conocida, en vez de programar una búsqueda.
+\ej un arreglo cuya suma sea divisible por cada uno de sus elementos sale de la
+identidad $1 = 1/2 + 1/3 + 1/6$.
+
+\guia{Conteo por Simetría de Binomios}{alg:8-3}
+Contar subconjuntos que cumplen una condición sin enumerarlos. La observación clave
+es que, dentro de un grupo de elementos iguales, elegir una cantidad par o impar es
+igual de probable, y eso colapsa el conteo a una potencia de dos.
+\ej cuántas subsecuencias tienen suma alternada cero, con hasta $10^5$ elementos.
+
+\guia{Greedy por Alternancia}{alg:8-4}
+Construir una secuencia larga respetando límites de repetición consecutiva. Resulta
+que alternar entre las dos opciones más holgadas siempre basta si el problema tiene
+solución, así que no hace falta buscar.
+\ej repartir noches entre varios alojamientos cuando cada uno tolera un máximo de
+noches seguidas.
+
+\guia{Stars and Bars}{alg:8-5}
+Contar de cuántas formas se reparte una cantidad entre varios grupos, cuando los
+elementos son indistinguibles y un grupo puede quedarse sin nada. Es una fórmula
+cerrada, no un algoritmo.
+\ej repartir \texttt{3} días de espera entre \texttt{2} paradas da \texttt{4}
+maneras posibles.
+
+% ============================================================
+\subsection*{Cadenas}
+
+\guia{Rotación Mínima (Booth)}{alg:9-1}
+Cuando dos palabras deben considerarse iguales si una es la otra girada
+(\texttt{"abc"} y \texttt{"cab"}). Da una forma canónica: la rotación
+alfabéticamente menor. Con eso, comparar o eliminar duplicados es comparar dos
+cadenas normales.
+\ej \texttt{"cab"}, \texttt{"abc"} y \texttt{"bca"} colapsan todas a
+\texttt{"abc"}.
+
+\guia{Palíndromos por normalización}{alg:9-2}
+El caso simple: comprobar si un texto se lee igual al derecho y al revés ignorando
+espacios, mayúsculas y puntuación. Se limpia primero y se compara con su reverso;
+no hace falta nada más sofisticado.
+\ej \texttt{"Anita lava la tina"} es palíndromo una vez quitados espacios y
+mayúsculas.
+
+\guia{KMP sobre codificación}{alg:9-3}
+Convierte un problema de árboles en uno de texto: si se escribe cada árbol como una
+cadena en el orden correcto, "¿este subárbol tiene la misma forma que aquel?" se
+vuelve "¿aparece esta cadena dentro de esta otra?", que se responde en una pasada.
+\ej contar cuántos subárboles de una expresión tienen la misma forma que otra
+expresión dada.
+
+\guia{Suffix Array + LCP}{alg:9-4}
+La herramienta pesada de cadenas: ordena alfabéticamente todos los finales posibles
+del texto, y guarda cuánto comparte cada uno con el siguiente. Con eso salen la
+subcadena repetida más larga, cuántas subcadenas distintas hay y la parte común
+entre dos textos, sin revisar todas las subcadenas una por una.
+\ej en \texttt{"banana"}, la subcadena repetida más larga es \texttt{"ana"}, de
+longitud \texttt{3}.
+
+\guia{Firma Canónica + Hash}{alg:9-5}
+Agrupar cosas "equivalentes" sin compararlas todas contra todas. Se define una
+huella que sale igual para todos los equivalentes (por ejemplo, las letras
+ordenadas) y se usa como llave de un diccionario: cada consulta es un acceso
+directo.
+\ej \texttt{"roma"}, \texttt{"amor"} y \texttt{"mora"} comparten la huella
+\texttt{"amor"}, así que caen en el mismo grupo.
+
+\guia{Expresiones Regulares}{alg:9-6}
+Cuando el problema se reduce a contar o localizar patrones fijos, el módulo
+\texttt{re} ya está escrito y optimizado. La única trampa: por defecto no cuenta
+apariciones que se solapan, y hay que usar una construcción especial si el patrón
+puede solaparse consigo mismo.
+\ej en \texttt{"aaaa"}, el conteo normal de \texttt{"aa"} da \texttt{2}, pero las
+apariciones reales son \texttt{3}.
+
+\guia{Subcadenas distintas con restricción}{alg:9-7}
+Contar cuántos fragmentos DISTINTOS del texto cumplen una condición, sin contar dos
+veces los repetidos. Combina el suffix array con una ventana que avanza, y es la
+generalización natural de "cuántas subcadenas distintas tiene este texto".
+\ej cuántos fragmentos distintos contienen a lo sumo $k$ letras "malas".
+
+\guia{Z-Function}{alg:9-8}
+Para cada posición dice cuánto coincide el texto consigo mismo empezando ahí. Es
+prima de KMP y resuelve lo mismo, pero responde una pregunta más directa: "¿cuánto
+del principio del texto vuelve a aparecer aquí?". Por eso es más cómoda en todo lo
+que trata de prefijos —bordes, repeticiones, comparar el texto con partes de sí
+mismo— mientras que KMP encaja mejor cuando buscas un patrón fijo dentro de un
+texto largo. Muchos la prefieren simplemente porque es más corta de escribir y más
+difícil de equivocar.
+\ej en \texttt{"aabaab"} da \texttt{[-, 1, 0, 3, 1, 0]}: el \texttt{3} de la
+cuarta posición avisa que \texttt{"aab"} vuelve a empezar ahí. Con entrada
+\texttt{"fixprefixsuffix"} la salida es \texttt{"fix"}: es principio, es final, y
+además aparece en medio.
+
+\guia{Período Mínimo (función de prefijos)}{alg:9-9}
+Detecta si una cadena es un bloque repetido y cuántas veces se repite. Sale de una
+sola resta sobre la tabla de KMP, y es de los trucos con mejor relación entre lo
+poco que cuesta y lo seguido que aparece.
+\ej entrada \texttt{"abcabcabc"} $\rightarrow$ salida \texttt{3}; entrada
+\texttt{"abcd"} $\rightarrow$ salida \texttt{1}.
+
+\guia{Manacher}{alg:9-10}
+El palíndromo más largo dentro de un texto, en una sola pasada. Probar todos los
+centros y expandir sería demasiado lento con textos de un millón de caracteres;
+Manacher aprovecha lo ya calculado para no repetir comparaciones. También sirve
+para contar todos los fragmentos palindrómicos.
+\ej entrada \texttt{"aybabtu"} $\rightarrow$ salida \texttt{"bab"}.
+
+\guia{Aho-Corasick}{alg:9-11}
+Buscar MUCHOS patrones a la vez en un texto, recorriéndolo una sola vez. Correr KMP
+por separado para cada patrón sería lentísimo si hay miles; aquí todos los patrones
+se meten en una misma estructura y el texto se lee de corrido. Es lo que hay detrás
+de un filtro de palabras o un antivirus por firmas.
+\ej con el texto \texttt{"abcab"} y los patrones \texttt{"ab"}, \texttt{"bc"},
+\texttt{"xyz"}, la salida es \texttt{2}, \texttt{1}, \texttt{0}.
