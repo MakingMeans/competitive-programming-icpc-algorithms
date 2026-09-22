@@ -30,16 +30,32 @@ Partes, siempre en este orden y con estas etiquetas:
 \graybold{Preguntas guía:}     % itemize con 3-4 preguntas para reconocer cuándo aplica
 \graybold{Utilidad:} ...
 \graybold{Complejidad:} \bigO{...}
-\graybold{Fundamento teórico:} ...
-\graybold{Ejercicio aplicado}  % enunciado resumido (párrafo aparte)
+\graybold{Fundamento teórico:} ...~\cite{clave}   % \cite al final del párrafo, si aplica
+\graybold{Ejercicio aplicado}
+
+(CSES 1649 — Dynamic Range Minimum Queries) Enunciado resumido...
+
 \graybold{I/O:} ...            % límites, patrón de lectura usado, verificación/tiempos
 \graybold{Código solución}
 \begin{lstlisting}[language=Python] ... \end{lstlisting}
 ```
 
+Tras el código puede ir un bloque opcional de variantes:
+`\graybold{Extras: qué es} — texto` y, si hace falta, su propio `lstlisting`.
+
 Notación: complejidad siempre con `\bigO{n \log n}`; potencias de diez con `\ten{5}`; otras con
 `\pow{2}{k}`; valores aproximados con `\aprox{}0.1s`. Matemática en línea con `$...$`, en display
 con `\[ \]` o `align*` (nunca `$$`). Dentro de `$...$` no usar los símbolos Unicode `≤ → −`.
+
+## Referencias
+
+Dos niveles, independientes entre sí:
+
+- **Fuente del problema**: entre paréntesis al inicio del `Ejercicio aplicado`, con el
+  formato `(JUEZ ID — Título)`, para poder volver a abrirlo en el juez.
+- **Bibliografía**: `ieee.bib` reúne los papers originales de cada algoritmo y las obras de
+  consulta general. Se citan con `\cite{clave}` al final del `Fundamento teórico`, y la
+  lista se imprime al final del PDF. `latexmk` ejecuta BibTeX automáticamente.
 
 ## Compilación local
 

@@ -8,8 +8,10 @@
 \setcounter{tocdepth}{2}   % el índice muestra secciones y subsecciones
 \begin{document}
 \input{sections/cover}
-\tableofcontents
-\newpage
+{\footnotesize\tableofcontents}
+% \clearpage y no \newpage: en dos columnas \newpage solo corta la columna,
+% y el índice terminaría compartiendo página con la primera sección
+\clearpage
 
 \input{sections/00_front_matter}
 \input{sections/01_fast_input_output}
@@ -22,7 +24,11 @@
 \input{sections/08_construction_and_combinatories}
 \input{sections/09_algorithms_on_strings}
 
-%\bibliographystyle{IEEEtran}
-%\bibliography{ieee}
+\clearpage
+% obras de consulta general: no se citan en ninguna entrada concreta,
+% pero deben aparecer en la lista de referencias
+\nocite{halim2013,clrs2009,cpalgorithms}
+\bibliographystyle{IEEEtran}
+\bibliography{ieee}
 
 \end{document}

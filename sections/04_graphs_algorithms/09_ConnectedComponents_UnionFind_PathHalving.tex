@@ -17,7 +17,7 @@
 
 \graybold{Ejercicio aplicado}
 
-Dado el nombre del nodo mayor del grafo (una letra mayúscula, que implica los nodos desde \texttt{A} hasta esa letra) y una lista de aristas no dirigidas expresadas como pares de letras, contar cuántos subgrafos conexos maximales (componentes conexas) tiene el grafo.
+(UVA 459 — Graph Connectivity) Dado el nombre del nodo mayor del grafo (una letra mayúscula, que implica los nodos desde \texttt{A} hasta esa letra) y una lista de aristas no dirigidas expresadas como pares de letras, contar cuántos subgrafos conexos maximales (componentes conexas) tiene el grafo.
 
 \graybold{I/O:} La entrada separa los casos con LÍNEAS EN BLANCO, lo que normalmente forzaría a leer línea por línea; sin embargo, aquí la estructura por líneas es redundante: el nodo mayor siempre es un token de 1 carácter y cada arista es un token de 2 caracteres. Eso permite usar lectura total + tokenización (patrón 2) y distinguir el inicio de cada caso por la LONGITUD del token, consumiendo aristas mientras midan 2 — el parseo se vuelve inmune a cualquier cantidad de líneas en blanco, espacios extra o retornos de carro. Se opera directamente sobre \texttt{bytes}, restando 64 al código ASCII para mapear \texttt{'A'}$\to$1 hasta \texttt{'Z'}$\to$26 (a lo sumo 26 nodos, así que el rendimiento es irrelevante). La salida exige una línea en blanco entre casos consecutivos, lo que se logra con \texttt{"\textbackslash n\textbackslash n".join(out)}. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta de BFS sobre listas de adyacencia en 120 tandas aleatorias (incluyendo lazos \texttt{AA} y aristas duplicadas), más casos borde de un solo nodo y de casos sin ninguna arista, sin discrepancias.
 

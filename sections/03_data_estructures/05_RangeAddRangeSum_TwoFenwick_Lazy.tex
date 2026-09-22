@@ -18,11 +18,11 @@
 S(x) &= \sum_{i=1}^{x} a_i = \sum_{i=1}^{x}\sum_{j=1}^{i} d_j = \sum_{j=1}^{x} d_j\,(x - j + 1)\\
      &= x\sum_{j=1}^{x} d_j \;-\; \sum_{j=1}^{x} d_j\,(j-1).
 \end{align*}
-Ambas sumas son sumas de prefijo de arreglos que solo cambian en DOS puntos por actualización: el primer BIT guarda $d_j$ y el segundo guarda $d_j\,(j-1)$. Así, una actualización de rango son dos actualizaciones puntuales en cada BIT (en $l$ con $v$ y $v(l-1)$, en $r+1$ con $-v$ y $-v\,r$), y la suma de $[l, r]$ es $S(r) - S(l-1)$, con cada $S$ calculado recorriendo ambos BIT a la vez. El factor $x$ se aplica al final, fuera del recorrido, porque multiplica a toda la suma del primer BIT.
+Ambas sumas son sumas de prefijo de arreglos que solo cambian en DOS puntos por actualización: el primer BIT guarda $d_j$ y el segundo guarda $d_j\,(j-1)$. Así, una actualización de rango son dos actualizaciones puntuales en cada BIT (en $l$ con $v$ y $v(l-1)$, en $r+1$ con $-v$ y $-v\,r$), y la suma de $[l, r]$ es $S(r) - S(l-1)$, con cada $S$ calculado recorriendo ambos BIT a la vez. El factor $x$ se aplica al final, fuera del recorrido, porque multiplica a toda la suma del primer BIT.~\cite{fenwick1994}
 
 \graybold{Ejercicio aplicado}
 
-Dados $T$ casos, cada uno con un arreglo de $N$ ceros y $C$ comandos que pueden ser sumar $v$ a todas las posiciones de $[p, q]$ o consultar la suma de $[p, q]$, responder todas las consultas.
+(SPOJ HORRIBLE — Horrible Queries) Dados $T$ casos, cada uno con un arreglo de $N$ ceros y $C$ comandos que pueden ser sumar $v$ a todas las posiciones de $[p, q]$ o consultar la suma de $[p, q]$, responder todas las consultas.
 
 \graybold{I/O:} $N, C \le 10^5$ por caso, con comandos de 3 o 4 números según el tipo $\Rightarrow$ lectura total + tokenización con índice \texttt{idx} (patrón 2), leyendo primero el tipo del comando para saber cuántos tokens consumir. El enunciado no garantiza $p \le q$, así que se ordenan en cada comando. Las sumas pueden llegar a \aprox{}\ten{17}, sin problema para los enteros de Python. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta (sumar y consultar sobre la lista directamente) en 250 tandas con varios casos cada una e índices con $p > q$, sin discrepancias. Con $N = C = 10^5$ tarda \aprox{}0.2s a \aprox{}0.46s por caso según la mezcla de comandos, mientras que un segment tree con lazy propagation recursivo, verificado igual de correcto, tarda \aprox{}0.75s a \aprox{}2.86s: unas 6 veces más lento. Como $T$ no está acotado, con varios casos máximos el tiempo crece linealmente (\aprox{}2.4s con $T = 5$).
 

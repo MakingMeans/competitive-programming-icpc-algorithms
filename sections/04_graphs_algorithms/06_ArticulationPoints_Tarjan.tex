@@ -12,7 +12,7 @@
 
 \graybold{Complejidad:} \bigO{V + E} con DFS iterativo (un solo recorrido con low-link).
 
-\graybold{Fundamento teórico:} Se hace un DFS calculando, para cada nodo, su tiempo de descubrimiento (disc) y el menor tiempo de descubrimiento alcanzable usando a lo más una arista de retroceso (low). Un nodo u (no raíz) es punto de articulación si tiene un hijo v en el árbol DFS tal que low[v] ≥ disc[u]: eso significa que desde el subárbol de v no hay forma de "escapar" hacia arriba de u sin pasar por u. La raíz del DFS es un caso especial: es punto de articulación si tiene más de un hijo en el árbol.
+\graybold{Fundamento teórico:} Se hace un DFS calculando, para cada nodo, su tiempo de descubrimiento (disc) y el menor tiempo de descubrimiento alcanzable usando a lo más una arista de retroceso (low). Un nodo u (no raíz) es punto de articulación si tiene un hijo v en el árbol DFS tal que low[v] ≥ disc[u]: eso significa que desde el subárbol de v no hay forma de "escapar" hacia arriba de u sin pasar por u. La raíz del DFS es un caso especial: es punto de articulación si tiene más de un hijo en el árbol.~\cite{tarjan1972}
 
 \graybold{Ejercicio aplicado}
 

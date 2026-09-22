@@ -17,7 +17,7 @@
 
 \graybold{Ejercicio aplicado}
 
-Dado un laberinto de $n \times m$ con paredes, un inicio A y un destino B, decidir si existe un camino moviéndose en las cuatro direcciones y, si existe, imprimir su longitud mínima y los movimientos.
+(CSES 1193 — Labyrinth) Dado un laberinto de $n \times m$ con paredes, un inicio A y un destino B, decidir si existe un camino moviéndose en las cuatro direcciones y, si existe, imprimir su longitud mínima y los movimientos.
 
 \graybold{I/O:} $n, m \le 1000$ con filas de texto sin espacios $\Rightarrow$ lectura total + tokenización (patrón 2), donde cada fila del laberinto es un token que se concatena como \texttt{bytes} en la grilla aplanada. La conversión a pasable/no pasable se hace con \texttt{bytes.translate}, en C. Como se acepta cualquier camino óptimo, la verificación no compara texto sino que comprueba la respuesta YES/NO, que la longitud sea la mínima y que el camino recorrido no atraviese paredes y termine en B: se hizo en 500 laberintos aleatorios sin paredes, densos, con A pegado a B y con $n$ o $m$ igual a 1, sin fallos. En grillas de $1000 \times 1000$ tarda \aprox{}0.22s sin paredes con A y B en esquinas opuestas (recorre todo), \aprox{}0.15s en un laberinto en zigzag con un camino de casi 500\,000 pasos (reconstrucción más larga), y \aprox{}0.22s cuando B está encerrado y la respuesta es NO; el límite es de 1 segundo. La versión de libro, con tuplas de coordenadas, \texttt{deque} y chequeo de bordes, da lo mismo pero tarda hasta \aprox{}0.61s. El 0-1 BFS de los extras se verificó contra Dijkstra en 600 grillas aleatorias y recorre una de $1000 \times 1000$ en \aprox{}0.42s.
 

@@ -17,7 +17,7 @@
 
 \graybold{Ejercicio aplicado}
 
-Dados $n$ alumnos y $m$ amistades, dividirlos en dos equipos de modo que no haya dos amigos en el mismo equipo, o informar que es imposible.
+(CSES 1668 — Building Teams) Dados $n$ alumnos y $m$ amistades, dividirlos en dos equipos de modo que no haya dos amigos en el mismo equipo, o informar que es imposible.
 
 \graybold{I/O:} $n \le 10^5$, $m \le 2\cdot10^5$ con dos enteros por arista $\Rightarrow$ lectura total + tokenización (patrón 2), separando los extremos con slices de paso 2. Los colores se guardan en un \texttt{bytearray}, que ocupa un byte por nodo. Como se acepta cualquier asignación válida, la verificación no compara texto: en 600 grafos aleatorios de hasta 11 nodos (sin aristas, varias componentes, ciclos pares e impares) se comprobó que la respuesta es IMPOSSIBLE exactamente cuando ninguna de las $2^n$ asignaciones sirve, y que en los demás casos ninguna arista queda dentro de un equipo, sin fallos. Con $n = 10^5$ y $m = 2\cdot10^5$ tarda entre \aprox{}0.06s y \aprox{}0.21s: grafo bipartito aleatorio, camino largo con saltos, un único ciclo impar de 99\,999 nodos, y 50\,000 componentes; el límite es de 1 segundo. El DFS genérico de los extras se verificó contra un DFS recursivo en 500 grafos dirigidos y no dirigidos, obteniendo tiempos de entrada, de salida y padres idénticos, y tarda \aprox{}0.07s en un camino de \ten{5} nodos (donde la versión recursiva desbordaría la pila) y \aprox{}0.14s en un grafo aleatorio de \ten{5} nodos y $2\cdot10^5$ aristas.
 

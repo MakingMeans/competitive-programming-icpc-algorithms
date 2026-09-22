@@ -18,7 +18,7 @@
 \item $P$: vértices que todavía pueden añadirse al clique.
 \item $X$: vértices ya procesados, utilizados para evitar generar soluciones repetidas.
 \end{itemize}
-Cuando tanto $P$ como $X$ quedan vacíos, el conjunto $R$ constituye un clique máximo. Para reducir la cantidad de ramas exploradas se selecciona un pivote $u$ y únicamente se consideran los vértices de $P \setminus N(u)$, donde $N(u)$ representa los vecinos del pivote. Esta optimización disminuye significativamente el árbol de búsqueda.
+Cuando tanto $P$ como $X$ quedan vacíos, el conjunto $R$ constituye un clique máximo. Para reducir la cantidad de ramas exploradas se selecciona un pivote $u$ y únicamente se consideran los vértices de $P \setminus N(u)$, donde $N(u)$ representa los vecinos del pivote. Esta optimización disminuye significativamente el árbol de búsqueda.~\cite{bron1973}
 
 \graybold{Ejercicio aplicado}
 

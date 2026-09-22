@@ -12,11 +12,11 @@
 
 \graybold{Complejidad:} \bigO{V + E} con la versión iterativa basada en pila (evita recursión y eliminaciones costosas de aristas).
 
-\graybold{Fundamento teórico:} Existe circuito euleriano si y solo si el grafo es conexo (en aristas) y todos los vértices tienen grado par. El algoritmo de Hierholzer avanza por aristas no usadas hasta atascarse; en ese momento inserta el vértice atascado en la ruta final y retrocede. El resultado, leído en el orden en que se van "atascando" los vértices, es un circuito válido.
+\graybold{Fundamento teórico:} Existe circuito euleriano si y solo si el grafo es conexo (en aristas) y todos los vértices tienen grado par. El algoritmo de Hierholzer avanza por aristas no usadas hasta atascarse; en ese momento inserta el vértice atascado en la ruta final y retrocede. El resultado, leído en el orden en que se van "atascando" los vértices, es un circuito válido.~\cite{hierholzer1873}
 
 \graybold{Ejercicio aplicado}
 
-Dado un mapa de n cruces y m calles bidireccionales, hallar una ruta que empiece y termine en el cruce 1 (oficina postal) y recorra cada calle exactamente una vez, o determinar que es "IMPOSSIBLE".
+(CSES 1691 — Mail Delivery) Dado un mapa de n cruces y m calles bidireccionales, hallar una ruta que empiece y termine en el cruce 1 (oficina postal) y recorra cada calle exactamente una vez, o determinar que es "IMPOSSIBLE".
 
 \graybold{I/O:} n ≤ \ten{5}, m ≤ 2·\ten{5} → lectura total + tokenización (patrón 2). Se evita adj.erase()/remove() (\bigO{n} por operación) usando un arreglo de punteros ptr[] que salta aristas usadas: así la eliminación es \bigO{1} amortizado.
 

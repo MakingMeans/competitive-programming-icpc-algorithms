@@ -17,7 +17,7 @@
 
 \graybold{Ejercicio aplicado}
 
-Dada una cerca de $n$ tablas de ancho 1 y alturas $k_i$, hallar el área máxima de un anuncio rectangular que se pueda pegar sobre ella.
+(CSES 1142 — Advertisement) Dada una cerca de $n$ tablas de ancho 1 y alturas $k_i$, hallar el área máxima de un anuncio rectangular que se pueda pegar sobre ella.
 
 \graybold{I/O:} $n \le 2\cdot10^5$ alturas hasta \ten{9} $\Rightarrow$ lectura total + tokenización (patrón 2). El área puede llegar a $2\cdot10^{14}$, sin problema para los enteros de Python. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta \bigO{n^2} (mínimo acumulado desde cada inicio) en 800 casos con alturas crecientes, decrecientes, todas iguales y aleatorias, sin discrepancias. Con $n = 2\cdot10^5$ tarda \aprox{}0.06s a \aprox{}0.08s en todos los perfiles medidos: aleatorio, creciente (la pila crece hasta $n$), decreciente (cada tabla saca a la anterior), todas iguales y dientes de sierra.
 

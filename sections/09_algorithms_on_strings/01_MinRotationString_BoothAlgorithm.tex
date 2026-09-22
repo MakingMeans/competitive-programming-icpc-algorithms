@@ -12,7 +12,7 @@
 
 \graybold{Complejidad:} \bigO{n}.
 
-\graybold{Fundamento teórico:} El algoritmo de Booth adapta la función de fallo (como en KMP) sobre el string duplicado ($s+s$). Mantiene un índice candidato $k$ a la rotación mínima y, al procesar cada carácter, usa la función de fallo para saltar comparaciones ya conocidas, actualizando $k$ solo cuando encuentra evidencia de que otra posición produce una rotación menor. El resultado equivale a comparar todas las rotaciones en un solo recorrido lineal.
+\graybold{Fundamento teórico:} El algoritmo de Booth adapta la función de fallo (como en KMP) sobre el string duplicado ($s+s$). Mantiene un índice candidato $k$ a la rotación mínima y, al procesar cada carácter, usa la función de fallo para saltar comparaciones ya conocidas, actualizando $k$ solo cuando encuentra evidencia de que otra posición produce una rotación menor. El resultado equivale a comparar todas las rotaciones en un solo recorrido lineal.~\cite{booth1980}
 
 \graybold{Ejercicio aplicado}
 

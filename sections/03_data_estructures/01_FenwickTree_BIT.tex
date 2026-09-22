@@ -12,11 +12,11 @@
 
 \graybold{Complejidad:} Construcción \bigO{n}. Update puntual \bigO{\log n}. Query de prefijo \bigO{\log n}. Espacio \bigO{n}.
 
-\graybold{Fundamento teórico:} Cada posición i del arreglo interno almacena la suma de un bloque de tamaño (i \& -i), el bit menos significativo de i. Al actualizar se "sube" sumando (i \& -i); al consultar un prefijo se "baja" restando (i \& -i). Esto aprovecha la representación binaria de los índices para cubrir cualquier prefijo con solo \bigO{\log n} bloques.
+\graybold{Fundamento teórico:} Cada posición i del arreglo interno almacena la suma de un bloque de tamaño (i \& -i), el bit menos significativo de i. Al actualizar se "sube" sumando (i \& -i); al consultar un prefijo se "baja" restando (i \& -i). Esto aprovecha la representación binaria de los índices para cubrir cualquier prefijo con solo \bigO{\log n} bloques.~\cite{fenwick1994}
 
 \graybold{Ejercicio aplicado}
 
-Dado un arreglo de n números y q consultas (i, j), responder para cada una cuántos valores distintos hay en el subarreglo [i, j]. Técnica: procesar las consultas offline ordenadas por extremo derecho r, recorriendo el arreglo de izquierda a derecha y manteniendo en el BIT un "1" solo en la última aparición de cada valor.
+(SPOJ DQUERY — D-query) Dado un arreglo de n números y q consultas (i, j), responder para cada una cuántos valores distintos hay en el subarreglo [i, j]. Técnica: procesar las consultas offline ordenadas por extremo derecho r, recorriendo el arreglo de izquierda a derecha y manteniendo en el BIT un "1" solo en la última aparición de cada valor.
 
 \graybold{I/O:} n ≤ 30 000 y q ≤ 200 000 hasta \aprox{}430 000 tokens de entrada: se usa lectura total + tokenización (patrón 2) en vez de readline por línea.
 

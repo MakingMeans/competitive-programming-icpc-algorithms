@@ -17,7 +17,7 @@
 
 \graybold{Ejercicio aplicado}
 
-Dado un bosque de $n \times n$ celdas (árbol \texttt{*} o vacío \texttt{.}), responder $q$ consultas de cuántos árboles hay dentro de un rectángulo dado.
+(CSES 1652 — Forest Queries) Dado un bosque de $n \times n$ celdas (árbol \texttt{*} o vacío \texttt{.}), responder $q$ consultas de cuántos árboles hay dentro de un rectángulo dado.
 
 \graybold{I/O:} $n \le 1000$ filas de texto sin espacios y $q \le 2\cdot10^5$ consultas de cuatro enteros $\Rightarrow$ lectura total + tokenización (patrón 2): cada fila del bosque es un token y se procesa como \texttt{bytes}. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta (contar celda por celda) en 400 tandas con bosques vacíos, llenos, densidades intermedias y $n = 1$, incluyendo el rectángulo completo y rectángulos de una celda, sin discrepancias. Con $n = 1000$ y $q = 2\cdot10^5$ tarda \aprox{}0.30s. El arreglo de diferencias de los extras se verificó por separado contra fuerza bruta en 400 tandas (incluyendo valores negativos), y aplicar $2\cdot10^5$ sumas de rectángulo sobre una matriz de $1000 \times 1000$ y reconstruirla tarda \aprox{}0.27s.
 

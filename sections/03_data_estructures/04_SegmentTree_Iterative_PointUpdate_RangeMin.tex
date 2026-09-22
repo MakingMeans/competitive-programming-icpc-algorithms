@@ -17,7 +17,7 @@
 
 \graybold{Ejercicio aplicado}
 
-Dado un arreglo de $n$ enteros, procesar $q$ operaciones que pueden ser cambiar el valor de una posición, o consultar el mínimo en un rango $[a, b]$.
+(CSES 1649 — Dynamic Range Minimum Queries) Dado un arreglo de $n$ enteros, procesar $q$ operaciones que pueden ser cambiar el valor de una posición, o consultar el mínimo en un rango $[a, b]$.
 
 \graybold{I/O:} $n, q \le 2\cdot10^5$ con tres enteros por consulta $\Rightarrow$ lectura total + tokenización con índice \texttt{idx} (patrón 2), comparando el tipo de consulta directamente como \texttt{bytes} para no convertirlo. Sobre el rendimiento conviene ser explícito, porque aquí la forma de escribir el código importa tanto como el algoritmo: todo el árbol está escrito en línea dentro del bucle, sin funciones \texttt{update}/\texttt{query} y sin llamadas a \texttt{min}, comparando con \texttt{if}. Con $n = q = 2\cdot10^5$ esta versión tarda entre \aprox{}0.26s y \aprox{}0.67s según la mezcla de operaciones (el peor caso es 100\% consultas aleatorias; el update sin corte temprano posible, con valores siempre decrecientes, da \aprox{}0.59s), mientras que la misma lógica escrita con funciones y \texttt{min} tarda entre \aprox{}0.94s y \aprox{}1.09s, en el borde del límite de 1 segundo. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta (actualizar la lista y tomar \texttt{min} del slice) en 400 tandas aleatorias con $n$ que no es potencia de 2, $n = 1$ y valores pequeños con muchos empates para ejercitar el corte temprano, sin discrepancias.
 
