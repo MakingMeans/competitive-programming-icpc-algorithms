@@ -1,0 +1,68 @@
+\subsection{Segment Tree Iterativo (Actualización Puntual, Mínimo en Rango)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo responder muchas consultas sobre rangos (mínimo, máximo, suma, gcd, xor) de un arreglo que ADEMÁS cambia entre consulta y consulta?
+\item ¿La operación es asociativa (y en este caso también conmutativa), de modo que el resultado de un rango se puede armar combinando resultados de sub-rangos?
+\item ¿Las actualizaciones son puntuales (un elemento a la vez) y no sobre rangos completos?
+\item ¿$n$ y $q$ son del orden de \ten{5} o más, y en Python necesito evitar recursión y llamadas a función en el bucle principal?
+\end{itemize}
+
+\graybold{Utilidad:} Mantiene un arreglo dinámico permitiendo, en tiempo logarítmico, cambiar un elemento y consultar la combinación de cualquier rango contiguo bajo una operación asociativa. Es la estructura por defecto para consultas de rango con modificaciones: donde una tabla de prefijos o una sparse table dejan de servir porque el arreglo cambia. La versión iterativa (de abajo hacia arriba) guarda el árbol completo en un arreglo de tamaño $2n$ sin punteros ni recursión, lo que la hace mucho más rápida en Python que la versión recursiva clásica.
+
+\graybold{Complejidad:} \bigO{n} para construir, \bigO{\log n} por actualización y por consulta; \bigO{n} de memoria.
+
+\graybold{Fundamento teórico:} Las hojas se guardan en las posiciones $n..2n-1$ del arreglo \texttt{t} y cada nodo interno $i$ guarda la combinación de sus hijos $2i$ y $2i+1$; la raíz es $t[1]$. Actualizar un elemento solo invalida los nodos en el camino desde su hoja hasta la raíz, que son $\lceil\log_2 n\rceil$: se recorre subiendo con $p \gg 1$ y el hermano de un nodo es $p \oplus 1$ (cambia solo el último bit, que distingue hijo izquierdo de derecho). Para consultar el rango semiabierto $[l, r)$ se suben ambos extremos a la vez: si $l$ es un hijo DERECHO (impar), su padre cubriría también elementos a la izquierda del rango, así que se toma $t[l]$ tal cual y se avanza $l$; simétricamente, si $r$ es impar, el nodo $r - 1$ es un hijo izquierdo que cae entero dentro del rango y se toma antes de subir. En cada nivel se toman a lo sumo dos nodos, así que la consulta usa \bigO{\log n} nodos que cubren el rango exactamente, sin solapamiento. Esta disposición funciona para cualquier $n$, no solo potencias de 2, cuando la operación es CONMUTATIVA como el mínimo: los nodos tomados por el lado izquierdo y el derecho se combinan fuera de orden, y además algunos nodos internos mezclan hojas no contiguas en el arreglo original, lo cual es inofensivo porque ninguna consulta los usa enteros salvo cuando todo su contenido está dentro del rango. Para operaciones no conmutativas (concatenación, multiplicación de matrices) hay que acumular por separado un resultado izquierdo y uno derecho. En la actualización se agrega un corte temprano: si el nuevo mínimo de un nodo coincide con el que ya tenía, sus ancestros tampoco cambian y se puede parar.
+
+\graybold{Ejercicio aplicado}
+
+Dado un arreglo de $n$ enteros, procesar $q$ operaciones que pueden ser cambiar el valor de una posición, o consultar el mínimo en un rango $[a, b]$.
+
+\graybold{I/O:} $n, q \le 2\cdot10^5$ con tres enteros por consulta $\Rightarrow$ lectura total + tokenización con índice \texttt{idx} (patrón 2), comparando el tipo de consulta directamente como \texttt{bytes} para no convertirlo. Sobre el rendimiento conviene ser explícito, porque aquí la forma de escribir el código importa tanto como el algoritmo: todo el árbol está escrito en línea dentro del bucle, sin funciones \texttt{update}/\texttt{query} y sin llamadas a \texttt{min}, comparando con \texttt{if}. Con $n = q = 2\cdot10^5$ esta versión tarda entre \aprox{}0.26s y \aprox{}0.67s según la mezcla de operaciones (el peor caso es 100\% consultas aleatorias; el update sin corte temprano posible, con valores siempre decrecientes, da \aprox{}0.59s), mientras que la misma lógica escrita con funciones y \texttt{min} tarda entre \aprox{}0.94s y \aprox{}1.09s, en el borde del límite de 1 segundo. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta (actualizar la lista y tomar \texttt{min} del slice) en 400 tandas aleatorias con $n$ que no es potencia de 2, $n = 1$ y valores pequeños con muchos empates para ejercitar el corte temprano, sin discrepancias.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); q = int(data[1])
+    # hojas en t[n..2n-1]; nodo i combina a sus hijos 2i y 2i+1; raiz en t[1]
+    t = [0]*n + list(map(int, data[2:2+n]))
+    for i in range(n - 1, 0, -1):
+        a = t[2*i]; b = t[2*i+1]
+        t[i] = a if a < b else b     # comparar con if es mas rapido que min()
+    out = []
+    idx = 2 + n
+    for _ in range(q):
+        tipo = data[idx]; x = int(data[idx+1]); y = int(data[idx+2]); idx += 3
+        if tipo == b"1":
+            # ---- update: se sube de la hoja a la raiz ----
+            p = x - 1 + n
+            t[p] = y
+            while p > 1:
+                a = t[p]; b = t[p ^ 1]   # p ^ 1 = hermano de p
+                m = a if a < b else b
+                p >>= 1
+                if t[p] == m:            # el padre no cambia: sus ancestros tampoco
+                    break
+                t[p] = m
+        else:
+            # ---- query sobre [l, r) subiendo ambos extremos ----
+            l = x - 1 + n; r = y + n
+            res = 10**18
+            while l < r:
+                if l & 1:                # l es hijo derecho: su padre se sale del rango
+                    if t[l] < res: res = t[l]
+                    l += 1
+                if r & 1:                # r-1 es hijo izquierdo y cae dentro del rango
+                    r -= 1
+                    if t[r] < res: res = t[r]
+                l >>= 1; r >>= 1
+            out.append(res)
+    sys.stdout.write("\n".join(map(str, out)) + "\n")
+
+solve()
+\end{lstlisting}

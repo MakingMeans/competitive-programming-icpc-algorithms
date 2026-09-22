@@ -1,0 +1,86 @@
+\subsection{Orden Topológico (Kahn) y DP sobre DAG con Reconstrucción}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El grafo es dirigido y SIN ciclos (DAG), o debo detectar si tiene ciclos?
+\item ¿Me piden el camino más largo (o más corto, o la cantidad de caminos) entre dos nodos de un DAG?
+\item ¿El valor de cada nodo depende solo de los valores de sus predecesores, de modo que basta procesarlos en un orden donde todo predecesor va antes?
+\item ¿Además del valor óptimo debo imprimir el camino, guardando de qué nodo vino cada mejora?
+\end{itemize}
+
+\graybold{Utilidad:} El orden topológico ordena los nodos de un DAG de forma que toda arista va de un nodo anterior a uno posterior. Recorriendo los nodos en ese orden, cuando se llega a un nodo todos sus predecesores ya tienen su valor definitivo, así que cualquier DP que dependa solo de ellos se calcula en una pasada: camino más largo o más corto, cantidad de caminos, tareas con dependencias (tiempo mínimo de finalización), planificación de cursos. Kahn además detecta ciclos: si no logra ordenar todos los nodos, el grafo tiene uno.
+
+\graybold{Complejidad:} \bigO{n + m}: cada nodo entra una vez a la cola y cada arista se revisa una vez.
+
+\graybold{Fundamento teórico:} El algoritmo de Kahn mantiene el grado de entrada de cada nodo y una cola con los que tienen grado 0, es decir, sin predecesores pendientes. Al procesar un nodo, se "borran" sus aristas salientes restando 1 al grado de cada sucesor, y los que llegan a 0 entran a la cola. Un nodo entra a la cola exactamente cuando todos sus predecesores fueron procesados, así que el orden de la cola es topológico. Si el grafo tiene un ciclo, ningún nodo del ciclo llega nunca a grado 0 (cada uno espera al anterior), y la cola termina con menos de $n$ nodos: esa es la detección de ciclos. Sobre ese orden, el DP del camino más largo es $\text{dp}[v] = \max(\text{dp}[u] + 1)$ sobre las aristas $u \to v$, y es correcto porque al procesar $u$ su valor ya es definitivo. En este problema los caminos deben EMPEZAR en la ciudad 1, así que $\text{dp}[v] = 0$ significa "inalcanzable desde 1" y solo se propagan valores desde nodos con $\text{dp} > 0$; aun así Kahn tiene que recorrer todo el grafo, porque los nodos inalcanzables también descuentan grados de entrada, y sin ellos otros nodos nunca llegarían a 0. La ciudad 1 puede tener aristas entrantes desde nodos inalcanzables y por eso no estar al principio de la cola, pero ningún nodo procesado antes que ella es alcanzable desde ella en un DAG, así que su valor inicial 1 nunca se pierde. Para reconstruir, cada vez que $\text{dp}[v]$ mejora se guarda el predecesor responsable, y desde el destino se sigue esa cadena hasta el origen.
+
+\graybold{Ejercicio aplicado}
+
+Dado un DAG de $n$ ciudades y $m$ vuelos dirigidos, hallar la ruta de la ciudad 1 a la ciudad $n$ que visita la mayor cantidad de ciudades e imprimirla, o informar que no existe.
+
+\graybold{I/O:} $n \le 10^5$, $m \le 2\cdot10^5$ con dos enteros por arista $\Rightarrow$ lectura total + tokenización (patrón 2), separando extremos con slices de paso 2. Como se acepta cualquier ruta óptima, la verificación comprueba que la ruta empiece en 1, termine en $n$, use solo vuelos existentes y tenga la longitud máxima, calculada enumerando TODAS las rutas: se hizo en 600 DAGs aleatorios, incluyendo la ciudad 1 con aristas entrantes, $n$ inalcanzable y varias rutas óptimas, sin fallos. Con $n = 10^5$ y $m = 2\cdot10^5$ tarda entre \aprox{}0.08s y \aprox{}0.19s: una ruta de \ten{5} ciudades, DAGs aleatorios con y sin camino a $n$ (en uno de ellos la respuesta IMPOSSIBLE se confirmó con un recorrido independiente), y $n$ inalcanzable; el límite es de 1 segundo. El toposort genérico de los extras se verificó contra un detector de ciclos por DFS en 2000 grafos con y sin ciclos (incluyendo lazos), comprobando además que cada orden devuelto respete todas las aristas, y tarda \aprox{}0.04s con \ten{5} nodos.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); m = int(data[1])
+    adj = [[] for _ in range(n + 1)]
+    grado = [0]*(n + 1)                   # grado de entrada
+    for a, b in zip(map(int, data[2:2 + 2*m:2]), map(int, data[3:3 + 2*m:2])):
+        adj[a].append(b)
+        grado[b] += 1
+    dp = [0]*(n + 1)                      # ciudades en la mejor ruta desde 1; 0 = inalcanzable
+    dp[1] = 1
+    padre = [0]*(n + 1)
+    cola = [v for v in range(1, n + 1) if grado[v] == 0]
+    for u in cola:                        # la lista crece mientras se recorre: orden topologico
+        du = dp[u]
+        if du:                            # alcanzable desde 1: propaga el DP
+            du1 = du + 1
+            for v in adj[u]:
+                if du1 > dp[v]:
+                    dp[v] = du1
+                    padre[v] = u          # de donde vino la mejora, para reconstruir
+                grado[v] -= 1
+                if not grado[v]:
+                    cola.append(v)
+        else:                             # inalcanzable: igual descuenta grados,
+            for v in adj[u]:              # o sus sucesores nunca entrarian a la cola
+                grado[v] -= 1
+                if not grado[v]:
+                    cola.append(v)
+    if not dp[n]:
+        sys.stdout.write("IMPOSSIBLE\n"); return
+    camino = []
+    v = n
+    while v:                              # padre[1] = 0 corta la cadena
+        camino.append(v)
+        v = padre[v]
+    camino.reverse()
+    sys.stdout.write("%d\n%s\n" % (len(camino), " ".join(map(str, camino))))
+
+solve()
+\end{lstlisting}
+
+\graybold{Extras: orden topológico genérico con detección de ciclos} — la parte reutilizable de Kahn, separada del DP. Devuelve el orden, o \texttt{None} si el grafo tiene un ciclo; cualquier DP sobre el DAG se hace luego recorriendo \texttt{orden} (o \texttt{reversed(orden)} si el valor de un nodo depende de sus sucesores).
+
+\begin{lstlisting}[language=Python]
+def toposort(n, adj):
+    grado = [0]*(n + 1)
+    for u in range(1, n + 1):
+        for v in adj[u]:
+            grado[v] += 1
+    orden = [v for v in range(1, n + 1) if grado[v] == 0]
+    for u in orden:                       # la lista crece mientras se recorre
+        for v in adj[u]:
+            grado[v] -= 1
+            if not grado[v]:
+                orden.append(v)
+    # si hay un ciclo, sus nodos nunca llegan a grado 0 y quedan afuera
+    return orden if len(orden) == n else None
+\end{lstlisting}

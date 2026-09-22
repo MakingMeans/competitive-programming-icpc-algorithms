@@ -1,0 +1,117 @@
+\subsection{Subcadenas Distintas con Restricción (Suffix Array + LCP + Dos Punteros)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden contar subcadenas DISTINTAS (por contenido, no por posición) que cumplan una condición?
+\item ¿La condición es MONÓTONA respecto a la longitud, es decir, si una subcadena la cumple, también la cumple cualquier prefijo suyo (ej. "a lo sumo $k$ caracteres malos")?
+\item ¿Puedo calcular, para cada posición de inicio, la longitud máxima que sigue cumpliendo la condición, por ejemplo con dos punteros?
+\item ¿Enumerar las \bigO{n^2} subcadenas en un conjunto o en un trie sería lento o gastaría demasiada memoria?
+\end{itemize}
+
+\graybold{Utilidad:} Generaliza la fórmula clásica de cantidad de subcadenas distintas ($\frac{n(n+1)}{2} - \sum \text{lcp}$) al caso en que solo interesan las subcadenas que satisfacen una propiedad cerrada bajo prefijos. Cada sufijo aporta sus prefijos "válidos" que no hayan aparecido antes, y el suffix array con el LCP dice exactamente cuántos de ellos ya fueron contados. Sirve para cualquier conteo de subcadenas distintas con restricción monótona: límite de caracteres prohibidos, suma acotada de pesos, a lo sumo $k$ letras distintas, etc.
+
+\graybold{Complejidad:} \bigO{n \log^2 n} dominado por la construcción del suffix array por duplicación, más \bigO{n} para Kasai, \bigO{n} para los dos punteros y \bigO{n} para el conteo final.
+
+\graybold{Fundamento teórico:} Toda subcadena es un prefijo de algún sufijo, y cada subcadena distinta se cuenta UNA sola vez si se atribuye al primer sufijo, en orden lexicográfico, que la tiene como prefijo. Si los sufijos están ordenados en el suffix array, los prefijos del sufijo $\text{sa}[p]$ de longitud $\le \text{lcp}[p]$ coinciden con prefijos de $\text{sa}[p-1]$, así que ya aparecieron antes; los de longitud $> \text{lcp}[p]$ son nuevos. Sin restricción, esto da $(n - \text{sa}[p]) - \text{lcp}[p]$ subcadenas nuevas por sufijo, y sumando se obtiene la fórmula clásica. Con la restricción, se usa que la propiedad es monótona: si $s[i..i+L)$ tiene a lo sumo $k$ letras malas, cualquier prefijo suyo también, así que los prefijos válidos del sufijo que empieza en $i$ forman un segmento inicial de longitudes $1..\text{largo}[i]$. El aporte nuevo del sufijo $\text{sa}[p]$ es entonces $\max(0,\ \text{largo}[\text{sa}[p]] - \text{lcp}[p])$. La corrección de no volver a contar los prefijos cortos se apoya en que la validez depende SOLO del contenido: un prefijo de longitud $L \le \text{lcp}[p]$ es la misma cadena en $\text{sa}[p]$ y en $\text{sa}[p-1]$, por lo que si es válido en uno lo es en el otro y ya fue contado. Los valores $\text{largo}[i]$ se obtienen con dos punteros: el extremo derecho $j$ nunca retrocede al avanzar $i$, porque quitar un carácter del inicio no puede aumentar la cantidad de malos, lo que da un total lineal. Cuando el propio $s[i]$ es malo y $k = 0$, la ventana es vacía y hay que empujar $j$ a $i+1$ sin descontar nada.
+
+\graybold{Ejercicio aplicado}
+
+Dada una cadena $s$ ($|s| \le 1500$), una máscara que indica qué letras son buenas y un entero $k$, contar cuántas subcadenas DISTINTAS de $s$ contienen a lo sumo $k$ letras malas.
+
+\graybold{I/O:} Tres líneas (cadena, máscara de 26 caracteres, entero $k$) sin espacios internos $\Rightarrow$ lectura total + tokenización (patrón 2), obteniendo exactamente 3 tokens. Se trabaja sobre \texttt{bytes}: la tabla \texttt{malo} se indexa directamente por el código ASCII de cada letra (con 97 posiciones de relleno al inicio) para evitar restar 97 en el bucle. Verificado contra los dos casos de ejemplo y contrastado con una fuerza bruta (conjunto de todas las subcadenas buenas) en 600 casos aleatorios con alfabetos de 2 a 26 letras y máscaras y $k$ al azar, sin discrepancias, más casos borde (una sola letra mala con $k=0$, todas las letras malas con $k=0$ y $k=n$, todas buenas). En el peor caso ($|s| = 1500$) tarda \aprox{}0.02s; como referencia, el enfoque clásico de insertar en un trie todas las subcadenas buenas da la misma respuesta pero tarda \aprox{}0.7s, por recorrer las \aprox{}1.1 millones de subcadenas.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def suffix_array(s):
+    n = len(s)
+    # ronda inicial: ordenar los sufijos por su primer caracter
+    sa = sorted(range(n), key=lambda i: s[i])
+    rank = [0]*n
+    r = 0
+    prev = s[sa[0]]
+    for idx, i in enumerate(sa):
+        if s[i] != prev:
+            r += 1
+            prev = s[i]
+        rank[i] = r
+    k = 1
+    # duplicacion: si ya se conoce el rango por k caracteres,
+    # ordenar por el par (rank[i], rank[i+k]) da el rango por 2k
+    while r < n - 1:                 # corta apenas todos los rangos son distintos
+        key = [0]*n
+        for i in range(n):
+            # el par se empaqueta en un solo entero para ordenar mas rapido
+            key[i] = rank[i] * (n + 1) + (rank[i+k] + 1 if i + k < n else 0)
+        sa.sort(key=lambda i: key[i])
+        new_rank = [0]*n
+        r = 0
+        prev = key[sa[0]]
+        for i in sa:
+            if key[i] != prev:
+                r += 1
+                prev = key[i]
+            new_rank[i] = r
+        rank = new_rank
+        k <<= 1
+    return sa, rank
+
+def kasai(s, sa, rank):
+    n = len(s)
+    lcp = [0]*n
+    h = 0
+    # se recorre por POSICION en el texto: al avanzar de i a i+1,
+    # el lcp baja como mucho en 1, asi que h nunca se reinicia a 0
+    for i in range(n):
+        if rank[i] > 0:
+            j = sa[rank[i]-1]        # sufijo anterior en orden lexicografico
+            while i + h < n and j + h < n and s[i+h] == s[j+h]:
+                h += 1
+            lcp[rank[i]] = h
+            if h:
+                h -= 1
+        else:
+            h = 0
+    return lcp
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    s = data[0]
+    mascara = data[1]
+    k = int(data[2])
+    n = len(s)
+    # malo[c] = 1 si la letra con codigo ASCII c es mala; se rellena con 97
+    # ceros al inicio para indexar directo por el byte de la letra
+    malo = [1 - (mascara[c - 97] - 48) for c in range(97, 123)]
+    malo = [0]*97 + malo
+
+    # dos punteros: largo_bueno[i] = longitud maxima desde i con <= k malas
+    largo_bueno = [0]*n
+    j = 0
+    malos = 0
+    for i in range(n):
+        while j < n and malos + malo[s[j]] <= k:
+            malos += malo[s[j]]
+            j += 1
+        largo_bueno[i] = j - i
+        if j > i:
+            malos -= malo[s[i]]      # s[i] sale de la ventana
+        else:
+            j = i + 1                # ventana vacia: s[i] es mala y k == 0
+
+    sa, rank = suffix_array(s)
+    lcp = kasai(s, sa, rank)
+    total = 0
+    for p in range(n):
+        # los primeros lcp[p] prefijos ya se contaron en el sufijo anterior;
+        # solo aportan los prefijos buenos mas largos que eso
+        nuevas = largo_bueno[sa[p]] - lcp[p]
+        if nuevas > 0:
+            total += nuevas
+    sys.stdout.write(str(total)+"\n")
+
+solve()
+\end{lstlisting}

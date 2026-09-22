@@ -14,3 +14,7 @@
 .claude/
 CLAUDE.md
 CLAUDE.local.md
+
+# Trabajo temporal (pruebas de código, notas de planificación)
+tempenv/
+TEMP_*.md

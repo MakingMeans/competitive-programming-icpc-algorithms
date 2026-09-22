@@ -1,0 +1,82 @@
+\subsection{Ordered Set con Fenwick Tree (Compresión + K-ésimo por Descenso Binario)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo mantener un conjunto dinámico con inserciones y borrados, y consultar el $k$-ésimo menor o cuántos elementos son menores que $x$?
+\item ¿Conozco TODAS las operaciones de antemano (procesamiento offline), de modo que puedo comprimir los valores posibles a índices $1..m$?
+\item ¿Los valores son enormes (hasta \ten{9}) pero la cantidad de valores DISTINTOS está acotada por el número de operaciones?
+\item ¿En Python no tengo un \texttt{ordered\_set} como el de C++ y necesito algo \bigO{\log n} por operación?
+\end{itemize}
+
+\graybold{Utilidad:} Reemplaza en Python al \texttt{ordered\_set} de C++ (\texttt{find\_by\_order} y \texttt{order\_of\_key}) cuando las operaciones se pueden leer todas antes de procesarlas. Un Fenwick tree sobre los valores comprimidos guarda un 1 en cada valor presente; así, contar menores que $x$ es una suma de prefijo, e insertar o borrar es sumar $\pm1$ en un punto. El $k$-ésimo menor se obtiene con un descenso binario sobre el propio Fenwick, sin búsqueda binaria externa. Sirve también para mediana dinámica, contar inversiones, y cualquier problema de "rango de un elemento" en un multiconjunto que cambia (guardando conteos en vez de 0/1).
+
+\graybold{Complejidad:} \bigO{Q \log Q} para comprimir, \bigO{\log m} por operación, con $m \le Q$ la cantidad de valores distintos.
+
+\graybold{Fundamento teórico:} Como solo importan las comparaciones entre valores, se reemplaza cada valor por su posición en la lista ordenada de valores distintos que aparecen en inserciones y borrados; esto preserva el orden y reduce el universo de $2\cdot10^9$ a a lo sumo $Q$. El arreglo de presencia $e[1..m]$ (1 si el valor está en el conjunto) se mantiene en un Fenwick, cuya suma de prefijo hasta $p$ es exactamente la cantidad de elementos presentes con índice $\le p$. Para COUNT($x$), el valor $x$ puede no haber sido comprimido; \texttt{bisect\_left} sobre la lista ordenada da cuántos valores distintos son estrictamente menores que $x$, y la suma de prefijo hasta ese índice cuenta los presentes. Para el $k$-ésimo se busca la menor posición $p$ con prefijo$(p) \ge k$, sin repetir sumas de prefijo: el Fenwick guarda en la posición $i$ la suma del bloque $(i - \text{lowbit}(i),\ i]$, y si $p$ es múltiplo de $2^{j+1}$, la posición $p + 2^j$ guarda justamente la suma del bloque $(p,\ p + 2^j]$. Por lo tanto se puede construir $p$ bit a bit, de la potencia de 2 más alta hacia abajo: si el bloque siguiente contiene menos de lo que falta ($\text{bit}[p + 2^j] < \text{resto}$), se lo salta entero, se avanza $p$ y se descuenta; si no, el $k$-ésimo está dentro y se prueba un paso más chico. Al terminar, $p$ es la última posición con prefijo $< k$, así que la respuesta es la posición $p+1$, es decir \texttt{vals[p]} en la lista 0-indexada. Las inserciones repetidas y los borrados de valores ausentes se ignoran consultando un arreglo auxiliar de presencia, que además evita que el Fenwick guarde valores distintos de 0 o 1.
+
+\graybold{Ejercicio aplicado}
+
+Procesar $Q \le 2\cdot10^5$ operaciones sobre un conjunto de enteros: insertar $x$ (si no está), borrar $x$ (si está), imprimir el $k$-ésimo menor (o \texttt{invalid} si hay menos de $k$ elementos), e imprimir cuántos elementos son menores que $x$.
+
+\graybold{I/O:} $Q$ pares (letra, entero) $\Rightarrow$ lectura total + tokenización (patrón 2), separando letras y parámetros con slices de paso 2 (\texttt{data[1::2]} y \texttt{data[2::2]}), que corren en C. La lectura completa por adelantado es la que permite la compresión offline. Verificado contra el caso de ejemplo y contrastado con una lista ordenada mantenida con \texttt{bisect} en 500 tandas aleatorias, incluyendo inserciones repetidas, borrados de valores ausentes, COUNT con valores que nunca se insertaron, $k$ mayores que el tamaño del conjunto y rangos de valores pequeños y grandes, sin discrepancias. Con $Q = 2\cdot10^5$ tarda entre \aprox{}0.25s y \aprox{}0.35s según la mezcla de operaciones, frente a un límite de 1.5 a 2 segundos.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from bisect import bisect_left
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    q = int(data[0])
+    ops = data[1:1 + 2*q:2]                  # letras I, D, K, C
+    args = list(map(int, data[2:2 + 2*q:2])) # parametros
+    # compresion offline: solo los valores que se insertan o borran
+    vals = sorted({args[i] for i in range(q) if ops[i] in (b"I", b"D")})
+    m = len(vals)
+    pos = {v: i + 1 for i, v in enumerate(vals)}   # valor -> indice 1..m
+    bit = [0]*(m + 1)
+    esta = bytearray(m + 1)                  # presencia, para ignorar repetidos
+    total = 0
+    paso0 = 1                                # mayor potencia de 2 <= m
+    while paso0*2 <= m:
+        paso0 *= 2
+    out = []
+    for i in range(q):
+        op = ops[i]; x = args[i]
+        if op == b"I":
+            p = pos[x]
+            if not esta[p]:
+                esta[p] = 1; total += 1
+                while p <= m:
+                    bit[p] += 1; p += p & -p
+        elif op == b"D":
+            p = pos[x]
+            if esta[p]:
+                esta[p] = 0; total -= 1
+                while p <= m:
+                    bit[p] -= 1; p += p & -p
+        elif op == b"K":
+            if x > total:
+                out.append("invalid")
+            else:
+                # descenso binario: salta bloques enteros con menos de 'resto'
+                p = 0; paso = paso0; resto = x
+                while paso:
+                    nxt = p + paso
+                    if nxt <= m and bit[nxt] < resto:
+                        p = nxt; resto -= bit[nxt]
+                    paso >>= 1
+                out.append(str(vals[p]))     # posicion p+1 (1-idx) = vals[p]
+        else:
+            # cuantos valores distintos < x, y de esos cuantos estan presentes
+            p = bisect_left(vals, x)
+            s = 0
+            while p > 0:
+                s += bit[p]; p -= p & -p
+            out.append(str(s))
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

@@ -1,0 +1,82 @@
+\subsection{Aho-Corasick (Conteo de Múltiples Patrones)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Tengo MUCHOS patrones y debo buscarlos todos en un mismo texto, de modo que correr KMP una vez por patrón sería \bigO{k \cdot n}?
+\item ¿Me piden cuántas veces aparece cada patrón (contando solapamientos), o si aparece alguno, o en qué posiciones terminan?
+\item ¿La suma de longitudes de los patrones está acotada, aunque la cantidad de patrones sea enorme?
+\item ¿Puedo tener patrones repetidos o que sean prefijo o sufijo unos de otros?
+\end{itemize}
+
+\graybold{Utilidad:} Aho-Corasick generaliza KMP a un conjunto de patrones: construye un trie con todos ellos y le agrega enlaces de fallo, obteniendo un autómata que recorre el texto UNA sola vez y en cada posición sabe qué patrones terminan ahí. Es la herramienta estándar para diccionarios de patrones: filtros de palabras, búsqueda de firmas, conteo de ocurrencias de muchas cadenas, y como base de DP sobre autómatas (contar textos que evitan un conjunto de patrones).
+
+\graybold{Complejidad:} \bigO{S + n} para construir y recorrer, donde $S$ es la suma de longitudes de los patrones y $n$ la del texto, más \bigO{S} para propagar los conteos; con diccionarios como hijos, cada transición cuesta \bigO{1} esperado.
+
+\graybold{Fundamento teórico:} Cada nodo del trie representa un prefijo de algún patrón. El enlace de fallo de un nodo $v$ apunta al nodo que representa el SUFIJO PROPIO más largo de la cadena de $v$ que también es prefijo de algún patrón: es exactamente la función de prefijos de KMP, pero calculada sobre el trie en vez de sobre una sola cadena. Se construye en orden BFS (por profundidad), porque el fallo de un nodo depende del fallo de su padre, que está a menor profundidad: para el hijo $v$ de $u$ por la letra $c$, se sigue la cadena de fallos desde $\mathrm{fail}(u)$ hasta encontrar un nodo con hijo por $c$, igual que el retroceso $k \leftarrow \pi[k-1]$ de KMP. Al recorrer el texto, el estado actual es siempre el nodo del sufijo más largo del texto leído que es prefijo de algún patrón; si no hay transición por la letra siguiente, se retrocede por los fallos. El detalle clave para CONTAR es que, cuando el recorrido está en el nodo $v$, terminan en esa posición no solo el patrón de $v$ sino todos los patrones cuyos nodos están en la cadena de fallos de $v$ (son sufijos de lo leído). Recorrer esa cadena en cada paso sería lento; en cambio, se suma 1 solo al nodo visitado y al final se PROPAGA: los enlaces de fallo forman un árbol con raíz en la raíz del trie, y el conteo real de un nodo es la suma de las visitas en su subárbol de fallos. Como el fallo de todo nodo está a menor profundidad, recorrer los nodos en orden BFS INVERSO y hacer $\mathrm{cnt}[\mathrm{fail}(v)] \mathrel{+}= \mathrm{cnt}[v]$ acumula cada subárbol antes de pasarlo hacia arriba. Los patrones repetidos terminan en el mismo nodo, así que se resuelven solos guardando el nodo terminal de cada uno.
+
+\graybold{Ejercicio aplicado}
+
+Dado un texto de hasta \ten{5} letras y hasta $5\cdot10^5$ patrones (con longitud total a lo sumo $5\cdot10^5$), contar para cada patrón en cuántas posiciones del texto aparece.
+
+\graybold{I/O:} Texto, cantidad $k$ y $k$ patrones, todos sin espacios $\Rightarrow$ lectura total + tokenización (patrón 2), trabajando sobre \texttt{bytes} (cada letra se usa directamente como clave entera de diccionario). La salida de hasta $5\cdot10^5$ líneas se une en un solo \texttt{write}. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta (\texttt{find} avanzando de a una posición para contar solapados) en 300 tandas aleatorias, incluyendo patrones repetidos, patrones que se solapan y patrones más largos que el texto, sin discrepancias. Tiempos medidos en CPython 3.12 con los límites máximos: \aprox{}0.13s con $5\cdot10^5$ patrones de una letra, \aprox{}0.14s con subcadenas de un texto binario, \aprox{}0.25s con un único patrón de $5\cdot10^5$ caracteres, y \aprox{}0.55s en el peor caso para esta estructura, $5\cdot10^4$ patrones aleatorios distintos de largo 10, que producen un trie de casi $5\cdot10^5$ nodos; memoria pico \aprox{}112 MB. Con un límite de 1 segundo y un juez con CPython más antiguo, ese último caso deja poco margen.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    text = data[0]
+    k = int(data[1])
+    pats = data[2:2+k]
+
+    # ---- trie de patrones ----
+    ch = [{}]                    # ch[v] = {letra: hijo}
+    fin = [0]*k                  # nodo terminal de cada patron
+    for idx in range(k):
+        v = 0
+        for c in pats[idx]:
+            nv = ch[v].get(c)
+            if nv is None:
+                nv = len(ch)
+                ch.append({})
+                ch[v][c] = nv
+            v = nv
+        fin[idx] = v             # patrones repetidos comparten nodo
+
+    # ---- enlaces de fallo en orden BFS ----
+    m = len(ch)
+    fail = [0]*m
+    orden = [0]
+    for u in orden:              # la lista crece mientras se recorre: es la cola BFS
+        for c, v in ch[u].items():
+            if u:
+                # igual que el retroceso de KMP: se baja por los fallos
+                # hasta un nodo que tenga hijo por c
+                f = fail[u]
+                while f and c not in ch[f]:
+                    f = fail[f]
+                fail[v] = ch[f].get(c, 0)
+            orden.append(v)      # los hijos de la raiz quedan con fallo 0
+
+    # ---- recorrido del texto: solo se marca el nodo visitado ----
+    cnt = [0]*m
+    v = 0
+    for c in text:
+        while v and c not in ch[v]:
+            v = fail[v]
+        v = ch[v].get(c, 0)
+        cnt[v] += 1
+
+    # ---- propagacion por el arbol de fallos, de lo mas profundo a la raiz ----
+    # en v terminan tambien todos los patrones de su cadena de fallos
+    for v in reversed(orden):
+        cnt[fail[v]] += cnt[v]
+    cnt[0] = 0                   # la raiz no representa ningun patron
+
+    sys.stdout.write("\n".join(str(cnt[v]) for v in fin) + "\n")
+
+solve()
+\end{lstlisting}

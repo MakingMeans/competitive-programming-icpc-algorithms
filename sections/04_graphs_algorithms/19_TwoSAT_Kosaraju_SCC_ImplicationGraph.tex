@@ -1,0 +1,83 @@
+\subsection{2-SAT con Componentes Fuertemente Conexas (Kosaraju)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Tengo variables booleanas y restricciones de la forma "$a$ o $b$" con exactamente DOS literales cada una?
+\item ¿Las restricciones se pueden reescribir como "si pasa X, entonces debe pasar Y" (implicaciones), incluyendo exclusiones ("no ambas") y obligaciones ("$x$ debe ser verdadera")?
+\item ¿Debo decidir si existe una asignación que las cumpla todas y, si existe, construir una?
+\item ¿Hay del orden de \ten{5} variables y restricciones, de modo que probar asignaciones es imposible y el DFS debe ser iterativo?
+\end{itemize}
+
+\graybold{Utilidad:} Resuelve en tiempo lineal la satisfacibilidad de fórmulas en forma normal conjuntiva con dos literales por cláusula, que en general (con tres o más) es NP-completo. Aparece disfrazado en asignaciones con conflictos de a pares: elegir una de dos opciones por elemento sin que ciertas combinaciones choquen, orientar aristas, ubicar etiquetas sin solaparse, horarios con dos turnos posibles. Una restricción "exactamente uno de $a$, $b$" se expresa con dos cláusulas, y "$x$ obligatoriamente verdadera" con la cláusula $(x \lor x)$.
+
+\graybold{Complejidad:} \bigO{n + m}: el grafo tiene $2m$ nodos (dos literales por variable) y $2n$ aristas (dos implicaciones por cláusula), y Kosaraju lo recorre dos veces.
+
+\graybold{Fundamento teórico:} La cláusula $(a \lor b)$ es equivalente a las dos implicaciones $\lnot a \Rightarrow b$ y $\lnot b \Rightarrow a$: si una parte falla, la otra tiene que valer. Se arma el GRAFO DE IMPLICACIONES con un nodo por literal y esas aristas; un camino de $u$ a $v$ significa que elegir $u$ verdadero obliga a que $v$ sea verdadero. La fórmula es insatisfacible si y solo si para alguna variable $x$ los literales $x$ y $\lnot x$ están en la misma componente fuertemente conexa: en ese caso $x \Rightarrow \lnot x$ y $\lnot x \Rightarrow x$, y ningún valor de $x$ sirve. Recíprocamente, si ninguna variable está en ese caso, una asignación válida se obtiene del orden topológico del grafo de componentes: a cada variable se le da el valor del literal cuya componente aparece MÁS TARDE en ese orden. La idea es que las implicaciones van "hacia adelante" en el orden topológico, así que eligiendo siempre el literal más avanzado nunca se activa una cadena que termine forzando lo contrario (y el grafo es simétrico: si hay camino $u \to v$ también lo hay $\lnot v \to \lnot u$, lo que garantiza la consistencia). Kosaraju calcula las componentes en dos pasadas: un DFS sobre el grafo que registra el orden de TERMINACIÓN de los nodos, y luego recorridos sobre el grafo TRANSPUESTO tomando los nodos por terminación decreciente. Cada recorrido de la segunda pasada descubre exactamente una componente, y las componentes salen numeradas en orden topológico del grafo original, que es justamente lo que pide la asignación: $x$ es verdadera si $\text{comp}[x] > \text{comp}[\lnot x]$. Con los literales codificados como $2x$ (positivo) y $2x+1$ (negativo), la negación de cualquier literal es un XOR con 1.
+
+\graybold{Ejercicio aplicado}
+
+Hay $n$ familiares y $m$ ingredientes de pizza; cada familiar da dos deseos del tipo "el ingrediente $x$ va" o "el ingrediente $x$ no va". Elegir los ingredientes de modo que a cada familiar se le cumpla al menos un deseo, o informar que es imposible.
+
+\graybold{I/O:} $n, m \le 10^5$ con cuatro tokens por línea (signo, número, signo, número) $\Rightarrow$ lectura total + tokenización (patrón 2), separando los cuatro campos con slices de paso 4 y comparando el signo directamente como \texttt{bytes}. Ambas pasadas de Kosaraju son iterativas: la primera con una pila de iteradores de vecinos (necesita el orden real de terminación), la segunda con una pila simple (solo marca la componente, el orden no importa). Como se acepta cualquier pizza válida, la verificación comprueba que cada familiar tenga al menos un deseo cumplido y que IMPOSSIBLE salga exactamente cuando ninguna de las $2^m$ pizzas sirve: se hizo en 800 instancias con deseos repetidos, familiares que piden $+x$ y $-x$ a la vez, e instancias insatisfacibles, sin fallos. Con $n = m = 10^5$ tarda entre \aprox{}0.24s y \aprox{}0.39s: instancia aleatoria, una cadena de \ten{5} implicaciones (el DFS alcanza esa profundidad) y la misma cadena cerrada en contradicción; el límite es de 1 segundo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); m = int(data[1])
+    N = 2*m                                   # literal +x = 2x, -x = 2x+1; negar = ^ 1
+    g = [[] for _ in range(N)]
+    gt = [[] for _ in range(N)]               # grafo transpuesto
+    s1 = data[2::4]; x1 = data[3::4]; s2 = data[4::4]; x2 = data[5::4]
+    for i in range(n):
+        a = 2*(int(x1[i]) - 1) + (s1[i] == b"-")
+        b = 2*(int(x2[i]) - 1) + (s2[i] == b"-")
+        # (a o b)  ==  (no a => b)  y  (no b => a)
+        g[a ^ 1].append(b); gt[b].append(a ^ 1)
+        g[b ^ 1].append(a); gt[a].append(b ^ 1)
+    # ---- pasada 1: orden de terminacion (DFS iterativo real) ----
+    visto = bytearray(N)
+    post = []
+    for r in range(N):
+        if visto[r]:
+            continue
+        visto[r] = 1
+        nodos = [r]; its = [iter(g[r])]
+        while its:
+            for v in its[-1]:
+                if not visto[v]:
+                    visto[v] = 1
+                    nodos.append(v); its.append(iter(g[v]))
+                    break
+            else:
+                its.pop(); post.append(nodos.pop())   # termino: postorden
+    # ---- pasada 2: transpuesto, por terminacion decreciente ----
+    comp = [-1]*N
+    c = 0                                     # las componentes salen en orden topologico
+    for r in reversed(post):
+        if comp[r] >= 0:
+            continue
+        comp[r] = c
+        pila = [r]
+        while pila:
+            u = pila.pop()
+            for v in gt[u]:
+                if comp[v] < 0:
+                    comp[v] = c
+                    pila.append(v)
+        c += 1
+    res = []
+    for x in range(m):
+        ct = comp[2*x]; cf = comp[2*x + 1]
+        if ct == cf:                          # x => no x  y  no x => x
+            sys.stdout.write("IMPOSSIBLE\n"); return
+        # se elige el literal cuya componente va mas tarde en el orden topologico
+        res.append("+" if ct > cf else "-")
+    sys.stdout.write(" ".join(res) + "\n")
+
+solve()
+\end{lstlisting}

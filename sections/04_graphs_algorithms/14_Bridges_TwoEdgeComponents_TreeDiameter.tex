@@ -1,0 +1,89 @@
+\subsection{Puentes y Árbol de Componentes 2-Arista-Conexas (Diámetro en una Pasada)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden aristas cuya eliminación desconecta el grafo (puentes), o cuántas aristas son obligatorias para ir de un nodo a otro?
+\item ¿El problema se simplifica si contraigo cada componente 2-arista-conexa a un solo nodo, quedando un árbol cuyas aristas son exactamente los puentes?
+\item ¿Después de esa contracción debo calcular algo típico de árboles, como el diámetro?
+\item ¿$n$ y $m$ llegan a $3\cdot10^5$, de modo que en Python necesito un DFS sin recursión y evitar construir el árbol de puentes explícitamente?
+\end{itemize}
+
+\graybold{Utilidad:} Encuentra los puentes de un grafo no dirigido con el low-link de Tarjan y resume su estructura: al contraer cada componente 2-arista-conexa (conjunto de nodos que siguen conectados aunque se quite cualquier arista) el grafo se vuelve un árbol, el ÁRBOL DE PUENTES. Las aristas obligatorias entre dos nodos son exactamente los puentes del camino entre sus componentes en ese árbol, lo que convierte preguntas de "cuántas aristas críticas" en preguntas sobre caminos en un árbol. Sirve para robustez de redes, aristas críticas, y para cualquier problema que se resuelva primero condensando por puentes.
+
+\graybold{Complejidad:} \bigO{n + m}: un DFS y una pasada en orden inverso sobre los nodos, revisando cada lista de adyacencia una vez.
+
+\graybold{Fundamento teórico:} En un DFS de un grafo no dirigido, toda arista que no pertenece al árbol DFS une un nodo con uno de sus ancestros (arista de retroceso). Sea $\text{tin}[u]$ el tiempo de entrada y $\text{low}[u]$ el menor tiempo de entrada alcanzable desde el subárbol de $u$ usando a lo sumo una arista de retroceso. La arista del árbol entre $p$ y su hijo $u$ es un puente si y solo si $\text{low}[u] > \text{tin}[p]$: ninguna arista sale del subárbol de $u$ hacia $p$ o más arriba, así que quitarla lo desconecta. El \texttt{low} se calcula recorriendo los nodos en orden de entrada INVERSO: cuando se procesa $u$, todos sus hijos ya fueron procesados y le pasaron su \texttt{low}; basta combinarlo con el menor \texttt{tin} entre sus vecinos, EXCLUYENDO al padre (la arista por la que se llegó no cuenta como retroceso; el enunciado garantiza que no hay aristas repetidas). Para calcular ese mínimo en C con \texttt{min(map(...))}, el \texttt{tin} del padre se reemplaza temporalmente por infinito. La otra observación clave evita construir el árbol de puentes: en el árbol DFS, las componentes 2-arista-conexas son exactamente los pedazos que quedan al cortar los puentes, porque toda arista de retroceso cubre el camino del árbol entre sus extremos y por lo tanto ninguno de esos tramos es puente. Entonces el árbol de puentes es el árbol DFS con las aristas no-puente CONTRAÍDAS, y contraer aristas de peso 0 no cambia la longitud de ningún camino. Basta asignar peso 1 a los puentes y 0 al resto de las aristas del árbol DFS y calcular el diámetro ponderado, en la misma pasada inversa: \texttt{baja[u]} es el camino más pesado que baja desde $u$, y en cada padre se combinan las dos mejores ramas. Por qué la respuesta es el diámetro: para $s$ y $t$ fijos, las aristas obligatorias son los puentes del único camino entre sus componentes en el árbol de puentes, y maximizar sobre $s$ y $t$ es buscar el camino más largo de ese árbol.
+
+\graybold{Ejercicio aplicado}
+
+Dado un grafo conexo de $n$ lugares y $m$ pasajes, elegir $s$ y $t$ para maximizar la cantidad de pasajes por los que es obligatorio pasar para ir de $s$ a $t$.
+
+\graybold{I/O:} $n, m \le 3\cdot10^5$ con dos enteros por arista $\Rightarrow$ lectura total + tokenización (patrón 2), separando extremos con slices de paso 2. El DFS es iterativo con una pila de iteradores de vecinos, porque la profundidad llega a $3\cdot10^5$. Verificado contra los dos casos de ejemplo y contrastado con una fuerza bruta que aplica literalmente la definición del enunciado (para cada par $s$, $t$ y cada arista, comprobar si quitarla los desconecta) en 700 grafos conexos aleatorios, incluyendo árboles, ciclos y mezclas, sin discrepancias. Con $n = m = 3\cdot10^5$ tarda entre \aprox{}0.42s y \aprox{}0.74s según la topología (camino donde todo es puente y el DFS alcanza profundidad $3\cdot10^5$, un único ciclo sin puentes, árbol aleatorio, cadena de triángulos), frente a un límite de 2 segundos; memoria pico \aprox{}113 MB de 256 MB.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); m = int(data[1])
+    adj = [[] for _ in range(n + 1)]
+    for a, b in zip(map(int, data[2:2 + 2*m:2]), map(int, data[3:3 + 2*m:2])):
+        adj[a].append(b)
+        adj[b].append(a)
+
+    # ---- DFS iterativo: orden de entrada (preorden), tin y padre ----
+    tin = [0]*(n + 1)
+    padre = [0]*(n + 1)
+    orden = [1]
+    tin[1] = 1
+    t = 1
+    nodos = [1]
+    its = [iter(adj[1])]
+    while its:
+        for v in its[-1]:             # el iterador recuerda por donde iba
+            if not tin[v]:
+                t += 1
+                tin[v] = t
+                padre[v] = nodos[-1]
+                orden.append(v)
+                nodos.append(v)
+                its.append(iter(adj[v]))
+                break
+        else:
+            its.pop()
+            nodos.pop()
+
+    # ---- pasada inversa: low, puentes y diametro con pesos 0/1 ----
+    low = tin[:]
+    baja = [0]*(n + 1)                # arista-puentes en el camino mas pesado que baja desde u
+    mejor = 0
+    INF = n + 5
+    for u in reversed(orden):         # los hijos se procesan antes que el padre
+        p = padre[u]
+        if not p:
+            continue
+        # menor tin entre los vecinos de u SIN contar al padre:
+        # se oculta tin[p] un instante para que min(map(...)) corra en C
+        tp = tin[p]
+        tin[p] = INF
+        d = min(map(tin.__getitem__, adj[u]))
+        tin[p] = tp
+        lu = low[u]                   # ya trae el minimo de sus hijos
+        if d < lu:
+            lu = d
+        if lu < low[p]:
+            low[p] = lu
+        # (p, u) es puente si el subarbol de u no llega a p ni mas arriba
+        cand = baja[u] + (1 if lu > tp else 0)
+        # diametro: se combinan las dos mejores ramas que bajan desde p
+        if baja[p] + cand > mejor:
+            mejor = baja[p] + cand
+        if cand > baja[p]:
+            baja[p] = cand
+    print(mejor)
+
+solve()
+\end{lstlisting}

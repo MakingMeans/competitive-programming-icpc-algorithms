@@ -1,0 +1,48 @@
+\subsection{Rectángulo Máximo en Histograma (Pila Monótona)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden el rectángulo de mayor área bajo un histograma, o el mayor valor de (mínimo de un subarreglo) $\times$ (su longitud)?
+\item ¿Para cada elemento necesito saber hasta dónde se puede extender a izquierda y derecha sin encontrar uno más bajo (el "next smaller element" a ambos lados)?
+\item ¿Probar todos los subarreglos sería \bigO{n^2} y $n$ llega a \ten{5} o más?
+\item ¿El problema se puede reformular como "cada elemento es el mínimo de un intervalo maximal", de modo que basta evaluar $n$ candidatos?
+\end{itemize}
+
+\graybold{Utilidad:} Una pila monótona (que mantiene sus elementos ordenados crecientemente desde el fondo) encuentra en tiempo lineal, para cada posición, el elemento menor más cercano a su izquierda y a su derecha. Con eso se resuelven todos los problemas de "intervalo maximal donde este elemento es el mínimo (o máximo)": rectángulo máximo en histograma, submatriz de unos más grande (aplicándolo fila por fila), suma de los mínimos de todos los subarreglos, y los clásicos "next greater element" y "stock span".
+
+\graybold{Complejidad:} \bigO{n}: cada índice entra y sale de la pila exactamente una vez.
+
+\graybold{Fundamento teórico:} En un rectángulo óptimo, la altura está limitada por la tabla más baja que cubre; llamemos $i$ a esa tabla. Entonces el rectángulo óptimo es, para algún $i$, el de altura $h_i$ extendido lo más posible a ambos lados, hasta justo antes de la primera tabla estrictamente más baja por la izquierda y por la derecha. Así basta evaluar $n$ candidatos, uno por tabla. La pila guarda índices con alturas crecientes desde el fondo. Cuando llega la tabla $i$ y la cima de la pila tiene altura $\ge h_i$, esa cima ya no puede extenderse más a la derecha: $i$ es su límite derecho. Y su límite izquierdo es el elemento que queda debajo en la pila, porque todo lo que estaba entre ambos fue sacado antes por ser más alto, así que el de debajo es el primero más bajo hacia la izquierda. Por eso, al sacar el índice con altura $h$, su rectángulo es $h \times (i - \text{debajo} - 1)$, y ambos límites se conocen en el momento de sacarlo: no hacen falta dos pasadas. Dos centinelas simplifican los bordes: un $-1$ en el fondo de la pila hace de límite izquierdo de quien quede más abajo, y una altura $0$ agregada al final saca todo lo que quedó en la pila, porque ninguna altura real es menor. Con alturas repetidas, sacar también las iguales ($\ge$) es correcto: la primera de un grupo de iguales calcula un ancho menor, pero la última del grupo se extiende sobre todas y obtiene el área correcta. Cada índice entra y sale una sola vez, así que el total es lineal aunque un solo paso del \texttt{while} pueda sacar muchos.
+
+\graybold{Ejercicio aplicado}
+
+Dada una cerca de $n$ tablas de ancho 1 y alturas $k_i$, hallar el área máxima de un anuncio rectangular que se pueda pegar sobre ella.
+
+\graybold{I/O:} $n \le 2\cdot10^5$ alturas hasta \ten{9} $\Rightarrow$ lectura total + tokenización (patrón 2). El área puede llegar a $2\cdot10^{14}$, sin problema para los enteros de Python. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta \bigO{n^2} (mínimo acumulado desde cada inicio) en 800 casos con alturas crecientes, decrecientes, todas iguales y aleatorias, sin discrepancias. Con $n = 2\cdot10^5$ tarda \aprox{}0.06s a \aprox{}0.08s en todos los perfiles medidos: aleatorio, creciente (la pila crece hasta $n$), decreciente (cada tabla saca a la anterior), todas iguales y dientes de sierra.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    h = list(map(int, data[1:1+n]))
+    h.append(0)                  # centinela: altura 0 saca todo al final
+    pila = [-1]                  # centinela: limite izquierdo por defecto
+    mejor = 0
+    for i in range(n + 1):
+        hi = h[i]
+        # la cima ya no puede extenderse a la derecha: i es su limite derecho
+        # y el que queda debajo en la pila es su limite izquierdo
+        while len(pila) > 1 and h[pila[-1]] >= hi:
+            alto = h[pila.pop()]
+            area = alto * (i - pila[-1] - 1)
+            if area > mejor: mejor = area
+        pila.append(i)
+    print(mejor)
+
+solve()
+\end{lstlisting}

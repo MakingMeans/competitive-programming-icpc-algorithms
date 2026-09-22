@@ -1,0 +1,83 @@
+\subsection{Grafo Bipartito por Coloreo (y DFS Iterativo Genérico)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden dividir los nodos en dos grupos de modo que ninguna arista quede dentro de un mismo grupo (2-coloreo)?
+\item ¿Debo detectar si el grafo tiene un ciclo de longitud IMPAR, que es exactamente lo que impide la división?
+\item ¿El grafo puede estar desconectado, de modo que hay que recorrer cada componente por separado?
+\item ¿Necesito un recorrido en profundidad con tiempos de entrada y salida (orden topológico, subárboles, puentes) sin recursión, porque la profundidad puede llegar a \ten{5}?
+\end{itemize}
+
+\graybold{Utilidad:} Decide si un grafo es bipartito y, si lo es, construye una asignación de dos colores válida, recorriendo cada componente y dando a cada nodo el color opuesto al de quien lo descubrió. Es la base de problemas de dos equipos, asignaciones con conflictos por pares, detección de ciclos impares y del paso previo al emparejamiento bipartito. El DFS iterativo genérico de los extras es la plantilla para cualquier recorrido en profundidad que necesite el orden real de visita (preorden, postorden, padre en el árbol DFS) sin el límite de recursión de Python.
+
+\graybold{Complejidad:} \bigO{n + m}: cada nodo se colorea una vez y cada arista se revisa dos veces (una desde cada extremo).
+
+\graybold{Fundamento teórico:} Un grafo es bipartito si y solo si no tiene ciclos de longitud impar. Si hay un ciclo impar, al recorrerlo alternando colores el último nodo debe tener el color opuesto al primero y a la vez el mismo, porque el ciclo tiene un número impar de aristas: no hay asignación posible. Recíprocamente, dentro de una componente conexa, fijar el color de un nodo determina el de todos los demás: el color de cada nodo queda fijado por la paridad de cualquier camino desde el origen, y la asignación es consistente exactamente cuando todos los caminos entre dos nodos tienen la misma paridad, lo que equivale a no tener ciclos impares. Por eso el algoritmo no necesita "elegir": colorea el origen con 1, cada nodo descubierto con el color opuesto al de su descubridor, y si alguna arista une dos nodos ya coloreados con el mismo color, encontró un ciclo impar y responde IMPOSSIBLE. Como el color depende solo de la paridad y no del orden, da igual recorrer en profundidad o por capas; se usa una pila simple, que en Python es más barata que una \texttt{deque}. Cada componente es independiente, así que se inicia un recorrido nuevo desde cada nodo aún sin color. El DFS genérico de los extras sí necesita el orden exacto de profundidad: la pila guarda pares (nodo, iterador de vecinos), y el iterador recuerda en qué vecino quedó cada nodo, de modo que al volver a él se continúa donde se había dejado. Al descubrir un vecino no visitado se registra su entrada (preorden) y se lo apila; cuando el iterador de un nodo se agota, la cláusula \texttt{else} del \texttt{for} registra su salida (postorden). Así se reproducen exactamente los mismos tiempos que el DFS recursivo, sin su riesgo de desbordar la pila.
+
+\graybold{Ejercicio aplicado}
+
+Dados $n$ alumnos y $m$ amistades, dividirlos en dos equipos de modo que no haya dos amigos en el mismo equipo, o informar que es imposible.
+
+\graybold{I/O:} $n \le 10^5$, $m \le 2\cdot10^5$ con dos enteros por arista $\Rightarrow$ lectura total + tokenización (patrón 2), separando los extremos con slices de paso 2. Los colores se guardan en un \texttt{bytearray}, que ocupa un byte por nodo. Como se acepta cualquier asignación válida, la verificación no compara texto: en 600 grafos aleatorios de hasta 11 nodos (sin aristas, varias componentes, ciclos pares e impares) se comprobó que la respuesta es IMPOSSIBLE exactamente cuando ninguna de las $2^n$ asignaciones sirve, y que en los demás casos ninguna arista queda dentro de un equipo, sin fallos. Con $n = 10^5$ y $m = 2\cdot10^5$ tarda entre \aprox{}0.06s y \aprox{}0.21s: grafo bipartito aleatorio, camino largo con saltos, un único ciclo impar de 99\,999 nodos, y 50\,000 componentes; el límite es de 1 segundo. El DFS genérico de los extras se verificó contra un DFS recursivo en 500 grafos dirigidos y no dirigidos, obteniendo tiempos de entrada, de salida y padres idénticos, y tarda \aprox{}0.07s en un camino de \ten{5} nodos (donde la versión recursiva desbordaría la pila) y \aprox{}0.14s en un grafo aleatorio de \ten{5} nodos y $2\cdot10^5$ aristas.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); m = int(data[1])
+    adj = [[] for _ in range(n + 1)]
+    for a, b in zip(map(int, data[2:2 + 2*m:2]), map(int, data[3:3 + 2*m:2])):
+        adj[a].append(b)
+        adj[b].append(a)
+    color = bytearray(n + 1)          # 0 = sin color, 1 o 2 = equipo
+    for s in range(1, n + 1):         # una recorrida por cada componente
+        if color[s]:
+            continue
+        color[s] = 1
+        pila = [s]                    # el orden no importa: solo la paridad
+        while pila:
+            u = pila.pop()
+            cu = color[u]
+            otro = 3 - cu             # 1 <-> 2
+            for v in adj[u]:
+                cv = color[v]
+                if not cv:
+                    color[v] = otro
+                    pila.append(v)
+                elif cv == cu:        # arista dentro de un mismo equipo: ciclo impar
+                    sys.stdout.write("IMPOSSIBLE\n"); return
+    sys.stdout.write(" ".join(map(str, color[1:])) + "\n")
+
+solve()
+\end{lstlisting}
+
+\graybold{Extras: DFS iterativo genérico} — plantilla con preorden, postorden, tiempos de entrada y salida y padre en el árbol DFS, recorriendo todas las componentes. Sirve tal cual para grafos dirigidos y no dirigidos. Con los tiempos se responde en \bigO{1} si $u$ es ancestro de $v$ ($\text{tin}[u] \le \text{tin}[v]$ y $\text{tout}[v] \le \text{tout}[u]$), y ordenando los nodos por $\text{tout}$ decreciente se obtiene un orden topológico de un DAG.
+
+\begin{lstlisting}[language=Python]
+def dfs_iterativo(n, adj):
+    tin = [-1]*(n + 1)
+    tout = [-1]*(n + 1)
+    padre = [0]*(n + 1)
+    t = 0
+    for raiz in range(1, n + 1):
+        if tin[raiz] != -1:
+            continue
+        tin[raiz] = t; t += 1
+        pila = [(raiz, iter(adj[raiz]))]
+        while pila:
+            u, it = pila[-1]
+            for v in it:                      # el iterador recuerda por donde iba u
+                if tin[v] == -1:
+                    padre[v] = u
+                    tin[v] = t; t += 1        # ---- PREORDEN: entrar a v ----
+                    pila.append((v, iter(adj[v])))
+                    break                     # bajar a v antes de seguir con u
+            else:                             # se agotaron los vecinos de u
+                pila.pop()
+                tout[u] = t; t += 1           # ---- POSTORDEN: salir de u ----
+    return tin, tout, padre
+\end{lstlisting}

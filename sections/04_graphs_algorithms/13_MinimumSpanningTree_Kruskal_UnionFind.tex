@@ -1,0 +1,59 @@
+\subsection{Árbol de Expansión Mínima (Kruskal + Union-Find)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden conectar todos los nodos de un grafo no dirigido con el menor costo total posible, eligiendo un subconjunto de aristas?
+\item ¿Debo detectar si el grafo es desconectado, caso en que no existe tal conjunto de aristas?
+\item ¿Las aristas vienen como lista y el grafo es disperso, de modo que ordenarlas por peso es barato?
+\item ¿Ya tengo un Union-Find a mano para saber si dos nodos ya quedaron conectados?
+\end{itemize}
+
+\graybold{Utilidad:} Encuentra el árbol de expansión mínima (MST): el conjunto de $n-1$ aristas que conecta todos los nodos con costo total mínimo. Aplica a redes de costo mínimo (caminos, cables, tuberías), a agrupamiento (cortar las $k-1$ aristas más caras del MST deja $k$ grupos lo más separados posible), y a problemas de "minimizar el máximo" en un camino, porque el MST también minimiza la arista más cara entre cualquier par de nodos. Kruskal es la variante natural cuando el grafo viene como lista de aristas.
+
+\graybold{Complejidad:} \bigO{m \log m} dominado por el ordenamiento de las aristas, más \bigO{m \alpha(n)} para las operaciones del Union-Find.
+
+\graybold{Fundamento teórico:} La corrección de Kruskal se apoya en la PROPIEDAD DEL CORTE: para cualquier partición de los nodos en dos lados, la arista más barata que cruza de un lado al otro pertenece a algún MST. Si un MST no la usara, agregarla formaría un ciclo que cruza el corte al menos otra vez, por alguna arista de costo mayor o igual; cambiar esa arista por la nueva no aumenta el costo y sigue siendo un árbol. Kruskal recorre las aristas de la más barata a la más cara y toma una arista $(a, b)$ solo si $a$ y $b$ están en componentes distintas: en ese momento, el corte que separa la componente de $a$ del resto no fue cruzado por ninguna arista más barata (si hubiera existido, ya se habría tomado y $a$, $b$ estarían conectados), así que la arista actual es la más barata de ese corte y la propiedad garantiza que es segura. Las aristas que unirían dos nodos ya conectados cerrarían un ciclo y se descartan. El Union-Find responde en tiempo casi constante si dos nodos ya están en la misma componente (misma raíz) y las une en una asignación. Cada arista aceptada reduce en uno la cantidad de componentes, así que al llegar a $n-1$ aristas el árbol está completo y se puede cortar el recorrido; si al terminar hay menos, el grafo era desconectado. Con pesos repetidos puede haber varios MST distintos, pero todos tienen el mismo costo, que es lo que se pide.
+
+\graybold{Ejercicio aplicado}
+
+Dadas $n$ ciudades y $m$ caminos con costo de reparación, elegir qué caminos reparar para que todas las ciudades queden conectadas con costo total mínimo, o informar que es imposible.
+
+\graybold{I/O:} $n \le 10^5$, $m \le 2\cdot10^5$ con tres enteros por arista $\Rightarrow$ lectura total + tokenización (patrón 2), separando extremos y pesos con slices de paso 3. En vez de ordenar tuplas, se ordenan los ÍNDICES de las aristas con \texttt{key=C.\_\_getitem\_\_}, que ordena por peso sin crear tuplas y con la comparación en C. El costo total puede llegar a \aprox{}\ten{14}, sin problema para los enteros de Python. Verificado contra el caso de ejemplo y contrastado con el algoritmo de Prim en 600 grafos aleatorios (conexos, desconectados, $n = 1$ y pesos pequeños con muchos empates), sin discrepancias. Con $n = 10^5$ y $m = 2\cdot10^5$ tarda entre \aprox{}0.15s y \aprox{}0.24s: grafo aleatorio conexo, un árbol formado por las aristas más caras (el recorrido no puede cortarse temprano) y un grafo desconectado (hay que revisar todas las aristas para responder IMPOSSIBLE); el límite es de 1 segundo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); m = int(data[1])
+    A = list(map(int, data[2:2 + 3*m:3]))
+    B = list(map(int, data[3:3 + 3*m:3]))
+    C = list(map(int, data[4:4 + 3*m:3]))
+    # se ordenan los indices de las aristas por peso, sin crear tuplas
+    orden = sorted(range(m), key=C.__getitem__)
+    padre = list(range(n + 1))
+    total = 0
+    usadas = 0
+    for e in orden:
+        x = A[e]
+        while padre[x] != x:           # find con path halving
+            padre[x] = padre[padre[x]]
+            x = padre[x]
+        y = B[e]
+        while padre[y] != y:
+            padre[y] = padre[padre[y]]
+            y = padre[y]
+        if x != y:                     # une dos componentes distintas: arista segura
+            padre[x] = y
+            total += C[e]
+            usadas += 1
+            if usadas == n - 1:        # arbol completo: el resto sobra
+                break
+        # si x == y, la arista cerraria un ciclo y se descarta
+    sys.stdout.write((str(total) if usadas == n - 1 else "IMPOSSIBLE") + "\n")
+
+solve()
+\end{lstlisting}

@@ -1,0 +1,73 @@
+\subsection{Sumas de Prefijos 2D (y Arreglo de Diferencias 2D)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo responder muchas consultas de suma (o conteo) sobre rectángulos de una matriz que NO cambia?
+\item ¿Recorrer cada rectángulo en cada consulta sería \bigO{n^2} por consulta y hay cientos de miles de consultas?
+\item ¿Al revés: me piden SUMAR un valor a muchos rectángulos y solo al final leer la matriz resultante (arreglo de diferencias 2D)?
+\item ¿La matriz cabe en memoria, del orden de \ten{6} celdas?
+\end{itemize}
+
+\graybold{Utilidad:} La tabla de prefijos 2D precalcula en \bigO{n^2} la suma de cada rectángulo que parte de la esquina superior izquierda, y con eso responde la suma de CUALQUIER rectángulo en \bigO{1} combinando cuatro valores. Es la versión bidimensional de la suma de prefijos: sirve para contar celdas marcadas, sumar valores en regiones, y como base de técnicas como buscar la submatriz de suma máxima o verificar si un rectángulo está vacío. Su operación inversa, el arreglo de diferencias 2D, resuelve el problema dual: aplicar muchas sumas sobre rectángulos en \bigO{1} cada una y reconstruir la matriz completa al final.
+
+\graybold{Complejidad:} \bigO{n^2} para construir la tabla, \bigO{1} por consulta. Para el arreglo de diferencias, \bigO{1} por actualización y \bigO{n^2} para reconstruir.
+
+\graybold{Fundamento teórico:} Sea $P[i][j]$ la suma del rectángulo con esquinas $(1,1)$ y $(i,j)$, con $P[0][\cdot] = P[\cdot][0] = 0$. La suma del rectángulo $[y_1..y_2] \times [x_1..x_2]$ se obtiene por inclusión-exclusión: $P[y_2][x_2]$ incluye todo lo que está arriba y a la izquierda de $(y_2, x_2)$; se le resta la franja superior $P[y_1-1][x_2]$ y la franja izquierda $P[y_2][x_1-1]$, pero la esquina $P[y_1-1][x_1-1]$ quedó restada dos veces, así que se suma una vez. La construcción usa que la tabla de la fila $i$ es la de la fila $i-1$ más las sumas de prefijo de la fila $i$ sola: $P[i][j] = P[i-1][j] + \sum_{t \le j} g[i][t]$. Escrito así, cada fila se arma con dos operaciones que Python ejecuta en C: \texttt{accumulate} sobre la fila y \texttt{map(add, ...)} con la fila anterior, sin un bucle interpretado por celda; convertir cada fila de texto a ceros y unos con \texttt{bytes.translate} también ocurre en C. El arreglo de diferencias 2D es la operación inversa: si $D$ es tal que su tabla de prefijos es la matriz buscada, sumar $v$ a un rectángulo equivale a modificar solo sus cuatro esquinas de $D$ ($+v$ en $(y_1, x_1)$, $-v$ en $(y_1, x_2+1)$ y $(y_2+1, x_1)$, $+v$ en $(y_2+1, x_2+1)$), porque al acumular, el $+v$ se propaga hacia abajo y a la derecha, y los tres ajustes lo cancelan exactamente fuera del rectángulo. Al final, una sola pasada de prefijos 2D sobre $D$ reconstruye la matriz.
+
+\graybold{Ejercicio aplicado}
+
+Dado un bosque de $n \times n$ celdas (árbol \texttt{*} o vacío \texttt{.}), responder $q$ consultas de cuántos árboles hay dentro de un rectángulo dado.
+
+\graybold{I/O:} $n \le 1000$ filas de texto sin espacios y $q \le 2\cdot10^5$ consultas de cuatro enteros $\Rightarrow$ lectura total + tokenización (patrón 2): cada fila del bosque es un token y se procesa como \texttt{bytes}. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta (contar celda por celda) en 400 tandas con bosques vacíos, llenos, densidades intermedias y $n = 1$, incluyendo el rectángulo completo y rectángulos de una celda, sin discrepancias. Con $n = 1000$ y $q = 2\cdot10^5$ tarda \aprox{}0.30s. El arreglo de diferencias de los extras se verificó por separado contra fuerza bruta en 400 tandas (incluyendo valores negativos), y aplicar $2\cdot10^5$ sumas de rectángulo sobre una matriz de $1000 \times 1000$ y reconstruirla tarda \aprox{}0.27s.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from itertools import accumulate
+from operator import add
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); q = int(data[1])
+    tabla = bytes.maketrans(b".*", b"\x00\x01")   # '.' -> 0, '*' -> 1
+    # P[i][j] = arboles en el rectangulo (1,1)-(i,j); fila y columna 0 en cero
+    P = [[0]*(n + 1)]
+    for i in range(n):
+        fila = data[2 + i].translate(tabla)       # conversion en C
+        # fila de P = fila anterior de P + prefijos de esta fila del bosque
+        P.append(list(map(add, P[-1], accumulate(fila, initial=0))))
+    out = []
+    idx = 2 + n
+    for _ in range(q):
+        y1 = int(data[idx]); x1 = int(data[idx+1]); y2 = int(data[idx+2]); x2 = int(data[idx+3]); idx += 4
+        A = P[y2]; B = P[y1 - 1]
+        # inclusion-exclusion: la esquina se resto dos veces, se suma una
+        out.append(A[x2] - B[x2] - A[x1 - 1] + B[x1 - 1])
+    sys.stdout.write("\n".join(map(str, out)) + "\n")
+
+solve()
+\end{lstlisting}
+
+\graybold{Extras: arreglo de diferencias 2D} — para el problema inverso: aplicar muchas sumas de un valor sobre rectángulos y leer la matriz al final. Cada actualización toca solo cuatro celdas, y la reconstrucción es la misma construcción de prefijos 2D de arriba.
+
+\begin{lstlisting}[language=Python]
+from itertools import accumulate
+from operator import add
+
+def aplicar(n, updates):
+    # updates: lista de (y1, x1, y2, x2, v), 1-indexado e inclusivo
+    D = [[0]*(n + 2) for _ in range(n + 2)]
+    for y1, x1, y2, x2, v in updates:
+        D[y1][x1] += v             # empieza a sumar desde la esquina
+        D[y1][x2 + 1] -= v         # corta a la derecha del rectangulo
+        D[y2 + 1][x1] -= v         # corta debajo del rectangulo
+        D[y2 + 1][x2 + 1] += v     # la esquina de abajo a la derecha se corto dos veces
+    M = []
+    prev = [0]*(n + 2)
+    for i in range(1, n + 1):
+        prev = list(map(add, prev, accumulate(D[i])))   # prefijos 2D sobre D
+        M.append(prev[1:n + 1])
+    return M                       # M[y-1][x-1] = valor final de la celda (y, x)
+\end{lstlisting}

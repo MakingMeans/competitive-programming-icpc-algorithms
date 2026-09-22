@@ -1,0 +1,80 @@
+\subsection{Distancias en Árbol con LCA por RMQ sobre el Preorden (Sparse Table)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden distancias (o el ancestro común más bajo, LCA) entre muchos pares de nodos de un árbol FIJO?
+\item ¿Puedo expresar la respuesta con profundidades: $\text{dist}(u,v) = \text{prof}[u] + \text{prof}[v] - 2\,\text{prof}[\text{LCA}]$?
+\item ¿Hay del orden de \ten{5} consultas y en Python necesito que cada una cueste \bigO{1} en vez de \bigO{\log n} pasos interpretados?
+\item ¿Ya tengo una sparse table de mínimo en rango que puedo reutilizar?
+\end{itemize}
+
+\graybold{Utilidad:} Reduce el cálculo del LCA a un mínimo en rango sobre el arreglo de profundidades en preorden DFS, que una sparse table responde en tiempo constante. Con la profundidad del LCA se obtiene la distancia entre dos nodos, y con variantes menores se responde si un nodo es ancestro de otro o la longitud de caminos en árboles con pesos (usando la distancia ponderada desde la raíz en lugar de la profundidad). A diferencia del tour de Euler clásico, este arreglo mide $n$ y no $2n-1$, lo que reduce a la mitad el tiempo y la memoria de la tabla.
+
+\graybold{Complejidad:} \bigO{n \log n} para construir la sparse table, \bigO{n} para el recorrido, y \bigO{1} por consulta.
+
+\graybold{Fundamento teórico:} En un preorden DFS, el subárbol de cada nodo ocupa un bloque contiguo de posiciones que empieza en el propio nodo. Sean $u \ne v$ con $\text{tin}[u] < \text{tin}[v]$, y $w$ su LCA. Se afirma que la menor profundidad entre las posiciones $(\text{tin}[u],\ \text{tin}[v]]$ es exactamente $\text{prof}[w] + 1$. Primero, todos esos nodos pertenecen al subárbol de $w$: el bloque de $w$ contiene a $u$ y a $v$, y por contigüidad también todo lo que queda entre ellos. Segundo, $w$ mismo no está en el rango: si $w = u$, el rango empieza justo después de $u$; si $w \ne u$, entonces $\text{tin}[w] < \text{tin}[u]$. Por lo tanto toda profundidad en el rango es al menos $\text{prof}[w] + 1$. Tercero, ese valor se alcanza: el hijo $c$ de $w$ que contiene a $v$ cumple $\text{tin}[u] < \text{tin}[c] \le \text{tin}[v]$ (si $w = u$, porque $c$ está en el subárbol de $u$ y no es $u$; si no, porque el subárbol que contiene a $u$ se recorre antes que el de $c$, dado que $\text{tin}[u] < \text{tin}[v]$), y su profundidad es $\text{prof}[w] + 1$. Con eso, $\text{dist}(u,v) = \text{prof}[u] + \text{prof}[v] - 2(\text{mín} - 1)$, y ni siquiera hace falta saber CUÁL nodo es el LCA, solo su profundidad, así que la tabla guarda enteros y no pares. Un recorrido con pila que al sacar un nodo apila todos sus hijos produce un preorden válido de un DFS (los hijos quedan en orden inverso, lo cual no importa), porque la pila termina el subárbol del último hijo apilado antes de pasar al siguiente: los subárboles quedan contiguos.
+
+\graybold{Ejercicio aplicado}
+
+Dado un árbol de $n$ nodos, responder $q$ consultas de la distancia (cantidad de aristas) entre dos nodos.
+
+\graybold{I/O:} $n, q \le 2\cdot10^5$ con dos enteros por arista y por consulta $\Rightarrow$ lectura total + tokenización (patrón 2), separando aristas y consultas con slices de paso 2. Verificado contra el caso de ejemplo y contrastado con distancias por BFS desde cada consulta en 400 árboles aleatorios, caminos, estrellas y orugas, renumerados al azar, incluyendo $n = 1$ y consultas con $a = b$, sin discrepancias. Con $n = q = 2\cdot10^5$ tarda entre \aprox{}0.45s y \aprox{}0.65s según la forma del árbol (aleatorio, estrella, binario completo, y un camino de profundidad $2\cdot10^5$, el más lento). Como comparación, binary lifting, verificado igual de correcto, tarda entre \aprox{}0.75s y \aprox{}1.40s en los mismos árboles, por los \bigO{\log n} pasos interpretados de cada consulta: con límite de 1 segundo, esa versión no es segura en Python.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); q = int(data[1])
+    adj = [[] for _ in range(n + 1)]
+    fin = 2 + 2*(n - 1)                       # fin de las aristas, inicio de las consultas
+    for a, b in zip(map(int, data[2:fin:2]), map(int, data[3:fin:2])):
+        adj[a].append(b)
+        adj[b].append(a)
+    # ---- preorden DFS con pila: los subarboles quedan contiguos ----
+    prof = [0]*(n + 1)
+    visto = bytearray(n + 1)
+    visto[1] = 1
+    orden = []
+    pila = [1]
+    while pila:
+        u = pila.pop()
+        orden.append(u)
+        pu = prof[u] + 1
+        for v in adj[u]:
+            if not visto[v]:
+                visto[v] = 1
+                prof[v] = pu
+                pila.append(v)
+    tin = [0]*(n + 1)
+    for i, v in enumerate(orden):
+        tin[v] = i
+    # ---- sparse table de minimo sobre las profundidades en preorden ----
+    fila = [prof[v] for v in orden]
+    st = [fila]
+    j = 1
+    while (1 << j) <= n:
+        mitad = 1 << (j - 1)
+        prev = st[-1]
+        st.append([x if x < y else y for x, y in zip(prev[:n - (1 << j) + 1], prev[mitad:])])
+        j += 1
+    out = []
+    for a, b in zip(map(int, data[fin::2]), map(int, data[fin + 1::2])):
+        if a == b:
+            out.append(0); continue
+        ta = tin[a]; tb = tin[b]
+        if ta > tb: ta, tb = tb, ta
+        # minimo de profundidad en (ta, tb] = prof(LCA) + 1
+        l = ta + 1; r = tb + 1                # rango semiabierto [l, r)
+        k = (r - l).bit_length() - 1
+        t = st[k]
+        x = t[l]; y = t[r - (1 << k)]
+        mn = x if x < y else y
+        out.append(prof[a] + prof[b] - 2*(mn - 1))
+    sys.stdout.write("\n".join(map(str, out)) + "\n")
+
+solve()
+\end{lstlisting}

@@ -1,0 +1,102 @@
+\subsection{BFS en Grilla con Reconstrucción del Camino (y 0-1 BFS)}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden el camino más corto en una grilla o grafo donde todos los movimientos cuestan lo mismo?
+\item ¿Además de la distancia, debo imprimir el camino (la secuencia de movimientos o de nodos)?
+\item ¿La grilla llega a \ten{6} celdas, de modo que en Python necesito evitar tuplas de coordenadas y chequeos de borde en cada paso?
+\item ¿Los movimientos cuestan 0 o 1 (por ejemplo, romper una pared cuesta 1 y caminar cuesta 0), caso en que sirve el 0-1 BFS de los extras?
+\end{itemize}
+
+\graybold{Utilidad:} El BFS recorre el grafo por capas desde el origen, así que la primera vez que alcanza un nodo lo hace por un camino de la menor cantidad de pasos posible. Guardando en cada nodo por dónde se llegó, se reconstruye el camino completo al final. Es la herramienta para laberintos, mínimo número de movimientos en un tablero, distancias en grafos no ponderados y, con varios orígenes en la cola inicial, distancia de cada celda a la fuente más cercana. Su variante 0-1 BFS resuelve caminos mínimos cuando cada arista pesa 0 o 1, sin el costo de un heap.
+
+\graybold{Complejidad:} \bigO{n m} para una grilla de $n \times m$ (cada celda entra a la cola una sola vez), y lo mismo para reconstruir el camino, que tiene a lo sumo $nm$ pasos. El 0-1 BFS también es \bigO{V + E}.
+
+\graybold{Fundamento teórico:} El BFS mantiene la invariante de que la cola contiene nodos de a lo sumo dos distancias consecutivas, $d$ y $d+1$, con todos los de distancia $d$ adelante. Por eso los nodos se extraen en orden creciente de distancia, y al descubrir un nodo por primera vez desde uno a distancia $d$, su distancia es exactamente $d+1$: si existiera un camino más corto, lo habría descubierto antes algún nodo de una capa anterior. Esto permite marcar cada celda como visitada en el momento de agregarla a la cola, sin volver a mirarla. Para reconstruir, no hace falta guardar la celda padre: basta guardar la DIRECCIÓN con la que se entró (U, D, L, R), y desde el destino se camina hacia atrás deshaciendo cada movimiento hasta llegar al origen; el camino sale invertido y se da vuelta al final. Dos decisiones de implementación hacen que en Python recorra un millón de celdas con holgura: la grilla se APLANA en un solo arreglo de ancho $W = m + 2$, donde los vecinos de $u$ son $u \pm 1$ y $u \pm W$, y se RODEA de un marco de paredes, de modo que un vecino fuera de la grilla es simplemente una pared y no hace falta comparar índices en cada paso. El 0-1 BFS generaliza la invariante: con aristas de peso 0 o 1, un nodo alcanzado por una arista de peso 0 tiene la misma distancia que el actual, así que se pone al FRENTE de la deque (\texttt{appendleft}), y uno alcanzado por peso 1 va al final. La deque sigue ordenada por distancia con solo dos valores distintos, lo que reemplaza al heap de Dijkstra por operaciones \bigO{1}. A diferencia del BFS simple, en el 0-1 BFS un nodo puede mejorar después de descubierto (primero por peso 1, luego por un camino con aristas de peso 0), por eso se compara contra su distancia actual en vez de marcarlo como visitado de una vez.
+
+\graybold{Ejercicio aplicado}
+
+Dado un laberinto de $n \times m$ con paredes, un inicio A y un destino B, decidir si existe un camino moviéndose en las cuatro direcciones y, si existe, imprimir su longitud mínima y los movimientos.
+
+\graybold{I/O:} $n, m \le 1000$ con filas de texto sin espacios $\Rightarrow$ lectura total + tokenización (patrón 2), donde cada fila del laberinto es un token que se concatena como \texttt{bytes} en la grilla aplanada. La conversión a pasable/no pasable se hace con \texttt{bytes.translate}, en C. Como se acepta cualquier camino óptimo, la verificación no compara texto sino que comprueba la respuesta YES/NO, que la longitud sea la mínima y que el camino recorrido no atraviese paredes y termine en B: se hizo en 500 laberintos aleatorios sin paredes, densos, con A pegado a B y con $n$ o $m$ igual a 1, sin fallos. En grillas de $1000 \times 1000$ tarda \aprox{}0.22s sin paredes con A y B en esquinas opuestas (recorre todo), \aprox{}0.15s en un laberinto en zigzag con un camino de casi 500\,000 pasos (reconstrucción más larga), y \aprox{}0.22s cuando B está encerrado y la respuesta es NO; el límite es de 1 segundo. La versión de libro, con tuplas de coordenadas, \texttt{deque} y chequeo de bordes, da lo mismo pero tarda hasta \aprox{}0.61s. El 0-1 BFS de los extras se verificó contra Dijkstra en 600 grillas aleatorias y recorre una de $1000 \times 1000$ en \aprox{}0.42s.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); m = int(data[1])
+    W = m + 2
+    # grilla aplanada con un marco de paredes: nunca hay que chequear bordes
+    g = bytearray(b"#"*W)
+    for i in range(n):
+        g += b"#" + data[2 + i] + b"#"
+    g += b"#"*W
+    s = g.find(b"A"); t = g.find(b"B")
+    libre = bytearray(len(g))
+    libre[:] = g.translate(bytes.maketrans(b".AB#", b"\x01\x01\x01\x00"))
+    vino = bytearray(len(g))          # letra del movimiento con que se llego (0 = no visitada)
+    libre[s] = 0
+    cola = [s]
+    U, D, L, R = -W, W, -1, 1         # vecinos en la grilla aplanada
+    for u in cola:                    # la lista crece mientras se recorre: es la cola BFS
+        if u == t:
+            break
+        # se marca al encolar: la primera vez que se alcanza es con distancia minima
+        v = u + U
+        if libre[v]: libre[v] = 0; vino[v] = 85; cola.append(v)   # 'U'
+        v = u + D
+        if libre[v]: libre[v] = 0; vino[v] = 68; cola.append(v)   # 'D'
+        v = u + L
+        if libre[v]: libre[v] = 0; vino[v] = 76; cola.append(v)   # 'L'
+        v = u + R
+        if libre[v]: libre[v] = 0; vino[v] = 82; cola.append(v)   # 'R'
+    if not vino[t]:
+        sys.stdout.write("NO\n"); return
+    atras = {85: W, 68: -W, 76: 1, 82: -1}   # desplazamiento que deshace cada movimiento
+    camino = bytearray()
+    u = t
+    while u != s:                     # del destino al origen, deshaciendo movimientos
+        c = vino[u]
+        camino.append(c)
+        u += atras[c]
+    camino.reverse()
+    sys.stdout.write("YES\n%d\n%s\n" % (len(camino), camino.decode()))
+
+solve()
+\end{lstlisting}
+
+\graybold{Extras: 0-1 BFS} — caminos mínimos cuando cada movimiento cuesta 0 o 1. Ejemplo verificado: mínima cantidad de paredes a romper para ir de A a B, donde entrar a \texttt{.} cuesta 0 y entrar a \texttt{\#} cuesta 1. Usa la misma grilla aplanada con marco (aquí el marco se marca con costo 2 para distinguirlo).
+
+\begin{lstlisting}[language=Python]
+from collections import deque
+
+def paredes_minimas(g, n, m):
+    # g: lista de n filas (bytes) de largo m
+    W = m + 2
+    INF = 1 << 30
+    costo = bytearray(b"\x02"*W)             # 2 = fuera de la grilla
+    for fila in g:
+        costo += b"\x02" + fila.translate(bytes.maketrans(b".AB#", b"\x00\x00\x00\x01")) + b"\x02"
+    costo += b"\x02"*W
+    plano = b"".join(b"#" + f + b"#" for f in g)
+    s = W + plano.find(b"A"); t = W + plano.find(b"B")
+    dist = [INF]*len(costo)
+    dist[s] = 0
+    dq = deque([s])
+    while dq:
+        u = dq.popleft()
+        du = dist[u]
+        for v in (u - W, u + W, u - 1, u + 1):
+            c = costo[v]
+            if c == 2: continue
+            nd = du + c
+            if nd < dist[v]:                 # un nodo puede mejorar despues de descubierto
+                dist[v] = nd
+                if c: dq.append(v)           # peso 1: al final de la deque
+                else: dq.appendleft(v)       # peso 0: al frente (misma distancia)
+    return dist[t]
+\end{lstlisting}
