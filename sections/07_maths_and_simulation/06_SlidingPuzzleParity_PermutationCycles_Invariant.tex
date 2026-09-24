@@ -1,0 +1,65 @@
+\subsection{Invariante de Paridad por Ciclos de Permutación (rompecabezas deslizante)}
+\label{alg:7-6}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me preguntan si una configuración es ALCANZABLE mediante ciertos movimientos, sin pedir la secuencia de movimientos?
+\item ¿Puedo encontrar una cantidad que NO cambie con ningún movimiento válido (un invariante), y comparar su valor inicial con el del estado objetivo?
+\item ¿El espacio de estados es astronómico, de modo que una búsqueda (BFS/DFS) es imposible y hace falta un argumento matemático?
+\item ¿Hay casos degenerados donde el invariante deja de ser suficiente y el problema se vuelve otro?
+\end{itemize}
+
+\graybold{Utilidad:} Decide alcanzabilidad sin explorar el espacio de estados, buscando una función invariante bajo los movimientos permitidos: si dos configuraciones difieren en su valor, ninguna sucesión de movimientos lleva de una a la otra. Es la técnica para problemas de "¿se puede llegar de A a B?" con operaciones definidas: rompecabezas deslizantes, fichas que se intercambian, coloreos, monedas que se voltean de a pares. Aquí el invariante es la paridad de la permutación combinada con la paridad de la distancia del hueco a su posición final.
+
+\graybold{Complejidad:} \bigO{mn} por caso de prueba, con una sola pasada para la descomposición en ciclos.
+
+\graybold{Fundamento teórico:} Cada movimiento intercambia el hueco con una pieza vecina, es decir, aplica una TRANSPOSICIÓN a la permutación, lo que invierte su paridad. A la vez, el hueco se mueve una casilla en horizontal o vertical, lo que cambia en exactamente 1 su distancia Manhattan a la esquina inferior derecha, invirtiendo también esa paridad. Por lo tanto la SUMA de ambas paridades no cambia nunca: es un invariante. En la configuración objetivo la permutación es la identidad (paridad par) y el hueco está en la esquina (distancia 0, par), así que la suma vale 0; una configuración es resoluble solo si su suma es par, y para tableros con al menos dos filas y dos columnas esa condición además es suficiente. Para calcular la paridad de la permutación conviene evitar contar inversiones: toda permutación se descompone de forma única en ciclos disjuntos, y un ciclo de longitud $\ell$ es producto de $\ell - 1$ transposiciones, así que la paridad es $\left(\sum (\ell_i - 1)\right) \bmod 2 = (N - \#\text{ciclos}) \bmod 2$, calculable en una pasada lineal siguiendo cada ciclo, sin estructuras auxiliares ni \bigO{N \log N}. Hay un caso degenerado que el argumento del enunciado no cubre: cuando el tablero tiene UNA sola fila o UNA sola columna, un movimiento sigue invirtiendo ambas paridades, pero la condición deja de ser suficiente, porque las piezas solo pueden desplazarse y nunca cambian su orden relativo. En ese caso la configuración es resoluble si y solo si las piezas, ignorando el hueco, ya están en orden creciente. Esto se verificó explorando con BFS todas las configuraciones alcanzables: en un tablero $1\times4$ solo 4 de las 24 permutaciones son resolubles, mientras que el criterio de paridad declararía resolubles a 12.
+
+\graybold{Ejercicio aplicado}
+
+Dadas varias configuraciones de rompecabezas deslizantes de $m \times n$ (la pieza $mn$ representa el hueco), decidir para cada una si puede llevarse, deslizando piezas, a la configuración ordenada $1, 2, \ldots, mn$.
+
+\graybold{I/O:} Varios casos hasta agotar la entrada, cada uno con $m$, $n$ y luego $mn$ números, con $m \cdot n \le 10^5$ y cantidad de casos no acotada $\Rightarrow$ lectura total + tokenización con índice (patrón 2 combinado con el 4: se consumen casos mientras queden tokens). Verificado contra los cuatro casos de ejemplo y, exhaustivamente, contra un BFS que explora todas las configuraciones realmente alcanzables desde la posición resuelta en 14 tableros ($1\times2$ hasta $3\times3$, incluyendo $1\times n$ y $n\times1$), cubriendo las 362\,880 permutaciones del $3\times3$, sin discrepancias. Tiempos medidos: \aprox{}0.04s con un único caso de \ten{5} piezas, \aprox{}0.27s con diez casos máximos (5.7 MB de entrada), \aprox{}0.05s con 20\,000 casos pequeños y \aprox{}0.03s con una fila de \ten{5} piezas.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    pos = 0
+    total = len(data)
+    out = []
+    while pos + 1 < total:                 # se consumen casos hasta agotar la entrada
+        m = int(data[pos]); n = int(data[pos+1]); pos += 2
+        N = m*n
+        p = list(map(int, data[pos:pos+N])); pos += N
+        if m == 1 or n == 1:
+            # una sola fila (o columna): las piezas solo se desplazan, nunca
+            # cambian de orden relativo -> solo sirve si ya estan ordenadas
+            resto = [v for v in p if v != N]
+            out.append("Y" if resto == list(range(1, N)) else "N")
+            continue
+        # paridad de la permutacion = (N - numero de ciclos) mod 2,
+        # porque un ciclo de largo L son L-1 transposiciones
+        visto = bytearray(N + 1)
+        ciclos = 0
+        for i in range(1, N + 1):
+            if visto[i]:
+                continue
+            ciclos += 1
+            j = i
+            while not visto[j]:            # recorre el ciclo que contiene a i
+                visto[j] = 1
+                j = p[j - 1]
+        par = (N - ciclos) & 1
+        idx = p.index(N)                   # posicion del hueco (la pieza mn)
+        dist = (m - 1 - idx // n) + (n - 1 - idx % n)   # distancia Manhattan a la esquina
+        # cada movimiento invierte AMBAS paridades: su suma es invariante
+        out.append("Y" if not ((par + dist) & 1) else "N")
+    sys.stdout.write("\n".join(out) + "\n")
+
+solve()
+\end{lstlisting}

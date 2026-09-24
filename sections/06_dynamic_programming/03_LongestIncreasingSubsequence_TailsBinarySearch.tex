@@ -1,0 +1,46 @@
+\subsection{Subsecuencia Creciente Más Larga (Arreglo de Colas + Búsqueda Binaria)}
+\label{alg:6-3}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden la longitud de la subsecuencia creciente (o decreciente, o no decreciente) más larga de un arreglo?
+\item ¿El DP clásico \bigO{n^2} es inviable porque $n$ llega a \ten{5} o más?
+\item ¿Me basta con la LONGITUD, o también necesito reconstruir la subsecuencia?
+\item ¿El problema pide estrictamente creciente o admite iguales? (eso decide entre \texttt{bisect\_left} y \texttt{bisect\_right})
+\end{itemize}
+
+\graybold{Utilidad:} Calcula la longitud de la subsecuencia creciente más larga en tiempo \bigO{n \log n} manteniendo, para cada longitud posible, el menor valor con el que puede terminar una subsecuencia de esa longitud. Aparece disfrazado en problemas de apilar cajas, plataformas o sobres (ordenar por una dimensión y hacer LIS sobre la otra), en el mínimo número de sistemas de misiles (por el teorema de Dilworth, es la longitud de la subsecuencia no creciente más larga) y en particiones en cadenas monótonas.
+
+\graybold{Complejidad:} \bigO{n \log n}: una búsqueda binaria por elemento sobre un arreglo de a lo sumo $n$ posiciones.
+
+\graybold{Fundamento teórico:} Se mantiene un arreglo \texttt{colas} donde \texttt{colas[k]} es el MENOR valor con el que puede terminar una subsecuencia creciente de longitud $k+1$ entre los elementos procesados. Ese arreglo es estrictamente creciente: una subsecuencia de longitud $k+1$ contiene una de longitud $k$ que termina antes y con un valor menor, así que el mejor final para $k$ es menor que el mejor para $k+1$; gracias a eso se puede buscar en él binariamente. Al procesar un elemento $x$ se busca la primera posición $i$ con $\texttt{colas}[i] \ge x$: si no existe, $x$ extiende la subsecuencia más larga conocida y se agrega al final; si existe, $x$ es un final mejor (o igual) para longitud $i+1$ y reemplaza a \texttt{colas[i]}. Reemplazar nunca pierde soluciones: no cambia la longitud máxima actual, pero deja el arreglo con finales más chicos, lo que solo puede facilitar extensiones futuras. La longitud de la LIS es el tamaño final del arreglo. Es importante notar que \texttt{colas} NO es una subsecuencia válida del arreglo original, solo un resumen de los mejores finales por longitud; para reconstruir la subsecuencia hay que guardar además, para cada elemento, en qué posición del arreglo se ubicó y quién lo precedía. La elección entre \texttt{bisect\_left} y \texttt{bisect\_right} es lo que distingue creciente ESTRICTA de no decreciente: con \texttt{bisect\_left}, un valor igual reemplaza al existente en vez de extender, que es exactamente lo que impide contar dos elementos iguales en la misma subsecuencia.~\cite{fredman1975}
+
+\graybold{Ejercicio aplicado}
+
+(CSES 1145 — Increasing Subsequence) Dado un arreglo de $n$ enteros, hallar la longitud de la subsecuencia estrictamente creciente más larga.
+
+\graybold{I/O:} $n \le 2\cdot10^5$ con muchos números sueltos $\Rightarrow$ lectura total + tokenización (patrón 2), convirtiendo con \texttt{map(int, ...)} directamente sobre el iterador del bucle para no materializar una lista intermedia. Verificado contra el caso de ejemplo y contrastado con el DP clásico \bigO{n^2} en 600 casos aleatorios, incluyendo arreglos crecientes, decrecientes, todos iguales y con valores repetidos, sin discrepancias. Con $n = 2\cdot10^5$ tarda entre \aprox{}0.04s y \aprox{}0.08s en todos los perfiles medidos (aleatorio, creciente donde la LIS es $n$, decreciente, todos iguales y sierra); el límite es de 1 segundo. Como referencia de por qué no sirve el DP clásico: con $n = 5000$ ya tarda \aprox{}1.18s, lo que extrapolado a $n = 2\cdot10^5$ daría del orden de media hora.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from bisect import bisect_left
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    # colas[k] = menor valor con el que puede terminar una subsecuencia
+    # creciente de largo k+1; queda siempre ordenado, por eso se puede bisecar
+    colas = []
+    for x in map(int, data[1:1+n]):
+        i = bisect_left(colas, x)     # bisect_left => creciente ESTRICTA
+        if i == len(colas):
+            colas.append(x)           # x extiende la subsecuencia mas larga
+        else:
+            colas[i] = x              # x es un final mejor para ese largo
+    print(len(colas))                 # el largo del arreglo es la respuesta
+
+solve()
+\end{lstlisting}

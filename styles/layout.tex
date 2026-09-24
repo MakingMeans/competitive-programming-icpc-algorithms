@@ -19,6 +19,19 @@
 \fancyfoot[R]{\footnotesize P\'ag.\ \thepage}
 
 % ------------------------------------------------------------
+%  Índice compacto
+%  IEEEtran deja 1em en blanco antes de cada capítulo del índice; con 10
+%  capítulos eso lo desborda a una segunda página. Misma definición que
+%  IEEEtran.cls, cambiando solo ese espacio a 0.4em.
+% ------------------------------------------------------------
+\makeatletter
+\def\l@section#1#2{\addpenalty{\@secpenalty}\addvspace{0.4em plus 1pt}%
+    \@tempdima 2.75em \begingroup \parindent \z@ \rightskip \@pnumwidth%
+    \parfillskip-\@pnumwidth {\bfseries\leavevmode #1}\hfil\hbox to\@pnumwidth{\hss #2}\par%
+    \endgroup}
+\makeatother
+
+% ------------------------------------------------------------
 %  Ecuaciones en display: menos aire arriba/abajo.
 %  IEEEtran usa 1.5ex (~7pt) a cada lado; en dos columnas es mucho.
 % ------------------------------------------------------------

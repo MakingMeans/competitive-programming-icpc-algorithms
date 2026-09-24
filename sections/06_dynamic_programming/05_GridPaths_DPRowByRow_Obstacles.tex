@@ -1,0 +1,50 @@
+\subsection{Conteo de Caminos en Grilla con Obstáculos (DP por Filas)}
+\label{alg:6-5}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden CONTAR caminos en una grilla donde solo se avanza hacia la derecha y hacia abajo?
+\item ¿Hay casillas bloqueadas, de modo que la fórmula combinatoria con binomios no aplica?
+\item ¿El valor de cada celda depende solo de la celda de arriba y la de la izquierda, permitiendo guardar una sola fila?
+\item ¿El resultado se pide módulo un primo porque crece exponencialmente?
+\end{itemize}
+
+\graybold{Utilidad:} Cuenta caminos monótonos en una grilla con obstáculos mediante un DP que recorre las celdas en un orden donde las dependencias ya están calculadas. Es el DP bidimensional más simple y la base de muchas variantes: caminos con costo mínimo o máximo en vez de conteo, caminos que deben pasar por ciertas celdas, o grillas con más direcciones permitidas. Cuando NO hay obstáculos, el mismo conteo sale por combinatoria con un solo binomio, así que el DP se justifica precisamente por los bloqueos.
+
+\graybold{Complejidad:} \bigO{n^2} en tiempo y \bigO{n} en memoria, guardando una sola fila.
+
+\graybold{Fundamento teórico:} Sea $dp[i][j]$ la cantidad de caminos desde la esquina superior izquierda hasta la celda $(i,j)$. Como solo se puede llegar desde arriba o desde la izquierda, y esos dos conjuntos de caminos son disjuntos (se distinguen por el último movimiento), vale $dp[i][j] = dp[i-1][j] + dp[i][j-1]$, con $dp[i][j] = 0$ si la celda tiene una trampa. Recorriendo las filas de arriba hacia abajo y cada fila de izquierda a derecha, ambas dependencias ya están calculadas cuando se necesita la celda actual; además, la de arriba es la fila anterior y la de la izquierda es la celda recién calculada, así que basta un arreglo de una fila más una variable con el valor de la izquierda. Un detalle de implementación que evita casos especiales: en lugar de inicializar la primera fila a mano, se arranca con una fila virtual que vale 1 en la primera columna y 0 en el resto; al procesar la fila 0, la celda $(0,0)$ recibe ese 1 y el resto se propaga solo, incluido el caso en que la propia casilla de salida esté bloqueada. Como la cantidad de caminos crece exponencialmente (sin obstáculos es $\binom{2n-2}{n-1}$), todo se lleva módulo $\ten{9}+7$, y como el enunciado solo pide el conteo final, no hace falta guardar la tabla completa.
+
+\graybold{Ejercicio aplicado}
+
+(CSES 1638 — Grid Paths I) Dada una grilla de $n \times n$ donde algunas casillas tienen trampas, contar módulo $\ten{9}+7$ los caminos de la esquina superior izquierda a la inferior derecha moviéndose solo a la derecha o hacia abajo.
+
+\graybold{I/O:} $n \le 1000$ con filas de texto sin espacios $\Rightarrow$ lectura total + tokenización (patrón 2), donde cada fila es un token que se recorre como \texttt{bytes} comparando contra 42, el código ASCII de \texttt{*}. Verificado contra el caso de ejemplo y contrastado con un conteo recursivo exacto (sin módulo, con memoización) en 500 grillas aleatorias, incluyendo grillas sin trampas, muy densas, con la casilla inicial o final bloqueada y con $n = 1$, sin discrepancias. Con $n = 1000$ (un millón de celdas) tarda entre \aprox{}0.05s y \aprox{}0.09s según la densidad de trampas, frente a un límite de 1 segundo. Se probó también una versión que reemplaza el bucle interno por sumas de prefijos con \texttt{accumulate} sobre los tramos sin trampas, ejecutadas en C: da lo mismo y es marginalmente más rápida sin trampas (\aprox{}0.06s), pero más lenta cuando abundan (\aprox{}0.17s) porque se fragmenta en muchos tramos cortos, así que no se justifica la complicación.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    MOD = 10**9 + 7
+    prev = [0]*n
+    prev[0] = 1                      # fila virtual: la entrada a la casilla (0,0)
+    for i in range(n):
+        fila = data[1 + i]
+        cur = [0]*n
+        izq = 0                      # caminos que llegan desde la izquierda
+        for j in range(n):
+            if fila[j] == 42:        # 42 = '*', trampa: no se puede pasar
+                izq = 0
+            else:
+                izq = (izq + prev[j]) % MOD   # desde la izquierda + desde arriba
+            cur[j] = izq
+        prev = cur
+    print(prev[n-1] % MOD)
+
+solve()
+\end{lstlisting}

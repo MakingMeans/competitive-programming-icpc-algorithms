@@ -1,0 +1,54 @@
+\subsection{Mochila 0/1 con DP Bit-Paralelo (SWAR)}
+\label{alg:6-4}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo elegir un subconjunto de objetos, cada uno usable a lo sumo UNA vez, maximizando un valor sin pasarme de una capacidad?
+\item ¿El producto (cantidad de objetos) $\times$ (capacidad) llega a \ten{7} o más, de modo que el DP celda por celda en Python es inviable?
+\item ¿Los valores del DP son enteros acotados y chicos, de modo que puedo empaquetar toda la tabla en un entero grande?
+\item ¿La transición es "desplazar la tabla por el peso, sumar el valor y quedarme con el máximo"?
+\end{itemize}
+
+\graybold{Utilidad:} Resuelve la mochila 0/1 (elegir objetos con peso y valor sin repetir, maximizando valor bajo una capacidad) cuando el DP clásico es correcto pero demasiado lento en Python. La idea general — empaquetar una fila entera del DP en un solo entero y hacer la transición con operaciones de bits — aplica a cualquier DP unidimensional cuyos valores sean enteros chicos y cuya transición sea un desplazamiento más un máximo o un mínimo: mochila, subset-sum con valores, cambio de monedas con conteo acotado.
+
+\graybold{Complejidad:} \bigO{n x} operaciones elementales, pero ejecutadas dentro de C: el bucle interpretado hace solo \bigO{n} iteraciones, cada una con unas once operaciones sobre un entero de $x \cdot W$ bits.
+
+\graybold{Fundamento teórico:} El DP clásico recorre los objetos y mantiene $dp[j]$ = mejor valor alcanzable con capacidad $j$, actualizando $dp[j] = \max(dp[j],\ dp[j - h] + s)$ para el objeto de peso $h$ y valor $s$. Que cada objeto se use a lo sumo una vez se garantiza usando siempre la fila ANTERIOR del lado derecho (de ahí que la versión con listas recorra $j$ de mayor a menor, o tome una copia por slicing). Visto como operación sobre el arreglo completo, la transición es: tomar el arreglo, sumarle $s$ a todas sus entradas, DESPLAZARLO $h$ posiciones hacia arriba (las posiciones nuevas quedan en cero, que es lo correcto: con capacidad menor que $h$ el objeto no se puede comprar), y quedarse con el máximo elemento a elemento entre eso y el arreglo original. Si el arreglo se empaqueta en un entero con un campo de $W$ bits por posición, "sumar $s$ a todas las entradas" es multiplicar por la constante de unos y sumar, y "desplazar $h$ posiciones" es un corrimiento de $W h$ bits: ambas operaciones ya existen en los enteros de Python y corren en C. El máximo elemento a elemento se hace con la técnica SWAR: si cada campo reserva su bit más alto como GUARDIA y todos los valores caben por debajo, entonces en $D = (X \mathbin{|} G_0) - Y$ no hay préstamos entre campos, y el bit de guardia de cada campo queda encendido exactamente donde $X_j \ge Y_j$, con los bits bajos valiendo $X_j - Y_j$. Expandiendo esas guardias a una máscara de campo completo mediante $M = G - (G \gg (W-1))$, resulta $\max = Y + (D \mathbin{\&} M)$: donde $X$ ganaba se le suma la diferencia y donde no, queda $Y$. La elección de $W$ depende de la cota de los valores: aquí el total de páginas es a lo sumo $1000 \times 1000 = 10^6 < 2^{20}$, y el candidato intermedio $dp + s$ tampoco pasa de $2^{20}$, así que bastan 20 bits de valor más 1 de guardia. Esa cota es AJUSTADA: si el problema permitiera más objetos o valores más grandes, habría que subir $W$ o el método daría resultados corruptos en silencio.~\cite{bellman1957}
+
+\graybold{Ejercicio aplicado}
+
+(CSES 1158 — Book Shop) Dados $n$ libros con precio y cantidad de páginas y un presupuesto $x$, hallar la máxima cantidad de páginas comprable sin repetir libros ni pasarse del presupuesto.
+
+\graybold{I/O:} $n \le 1000$, $x \le 10^5$, precios y páginas hasta 1000 $\Rightarrow$ lectura total + tokenización (patrón 2). La constante de unos se construye con el truco del repunit, $\text{ONES} = (2^{Wc} - 1)/(2^W - 1)$ con $c$ campos, en una sola división. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta que prueba todos los subconjuntos en 400 casos con $n \le 12$, sin discrepancias, y además contra una implementación con listas y \texttt{map} en el caso máximo, con idéntico resultado. Sobre el rendimiento conviene ser explícito: esa versión con listas, que ya usa \texttt{map} en C y evita bucles por celda, tarda \aprox{}14.6s con $n = 1000$ y $x = 10^5$; la versión bit-paralela resuelve el mismo caso en \aprox{}0.56s, unas 25 veces más rápido, con un límite de 1 segundo. Los otros perfiles medidos dan \aprox{}0.41s (todos los precios iguales a 1) y \aprox{}0.60s (todos iguales a 1000).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); x = int(data[1])
+    H = list(map(int, data[2:2+n])); S = list(map(int, data[2+n:2+2*n]))
+    W = 21                                   # 20 bits de valor (paginas <= 10^6) + 1 de guardia
+    W1 = W - 1
+    campos = x + 1
+    MASK = (1 << (W*campos)) - 1
+    ONES = MASK // ((1 << W) - 1)            # un 1 en el bit bajo de cada campo (repunit)
+    G0 = ONES << W1                          # bit de guardia de cada campo
+    X = 0                                    # dp empaquetado: campo j = paginas con presupuesto j
+    for h, s in zip(H, S):
+        if h > x:
+            continue
+        # candidato: dp con s paginas mas, desplazado h campos.
+        # los h campos bajos quedan en 0 = no alcanza el presupuesto para este libro
+        Y = ((X + s*ONES) << (W*h)) & MASK
+        D = (X | G0) - Y                     # sin prestamos entre campos: guardia = (X_j >= Y_j)
+        G = D & G0
+        M = G - (G >> W1)                    # expande cada guardia a todo su campo
+        X = Y + (D & M)                      # maximo campo a campo
+    print((X >> (W*x)) & ((1 << W) - 1))
+
+solve()
+\end{lstlisting}

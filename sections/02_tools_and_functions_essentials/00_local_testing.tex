@@ -1,0 +1,96 @@
+\subsection{Probar con un archivo de entrada}
+\label{alg:2-0}
+
+Copiar el caso de ejemplo a mano cada vez que se corre la solución es lento y
+propenso a errores. Lo práctico es dejarlo en un \texttt{input.txt} y que un script
+aparte se lo entregue al programa por \texttt{stdin}. Lo importante es que la
+solución NO se toca: lee de \texttt{stdin} igual que en el juez, así que el archivo
+que se prueba es exactamente el que se envía.
+
+\subsubsection{Lo mínimo: redirección de la terminal}
+
+Sin script y sin nada que instalar, la terminal ya conecta un archivo a
+\texttt{stdin} con \texttt{<}:
+
+\begin{lstlisting}[language=bash]
+python sol.py < input.txt
+pypy3 sol.py < input.txt            # PyPy, varias veces mas rapido
+g++ -O2 -std=c++17 -o sol sol.cpp && ./sol < input.txt
+\end{lstlisting}
+
+\vspace{0.3cm}
+\subsubsection{Script de apoyo: un solo comando para Python y C++}
+
+El script siguiente recibe el nombre de la solución, le pasa \texttt{input.txt},
+imprime la salida y el tiempo, y si se le da un archivo con la salida esperada la
+compara. Si la solución es \texttt{.cpp} la compila antes, de modo que el equipo usa
+el mismo comando sin importar el lenguaje.
+
+\begin{lstlisting}[language=bash]
+python correr.py sol.py                    # usa input.txt
+python correr.py sol.py caso.txt           # otra entrada
+python correr.py sol.py caso.txt esp.txt   # compara con la esperada
+python correr.py sol.cpp caso.txt esp.txt  # compila con g++ y ejecuta
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python]
+import subprocess, sys, os, time
+
+sol = sys.argv[1]                        # sol.py o sol.cpp
+ent = sys.argv[2] if len(sys.argv) > 2 else "input.txt"
+
+if sol.endswith(".py"):
+    cmd = [sys.executable, sol]
+else:                                    # C++: compilar primero
+    exe = os.path.abspath(sol.rsplit(".", 1)[0])
+    if os.name == "nt": exe += ".exe"    # ruta absoluta: Windows no busca en .
+    if subprocess.run(["g++", "-O2", "-std=c++17",
+                       "-o", exe, sol]).returncode:
+        sys.exit("error de compilacion")
+    cmd = [exe]
+
+t = time.perf_counter()
+with open(ent, "rb") as f:               # el archivo ENTRA por stdin
+    r = subprocess.run(cmd, stdin=f, capture_output=True)
+dt = time.perf_counter() - t
+
+sal = r.stdout.decode()
+print(sal, end="" if sal.endswith("\n") else "\n")
+if r.stderr: print("[stderr]", r.stderr.decode())
+print("-- %.3fs  codigo %d" % (dt, r.returncode))
+
+if len(sys.argv) > 3:                    # salida esperada
+    esp = open(sys.argv[3]).read()
+    print("OK" if sal.split() == esp.split()
+          else "DIFERENTE, se esperaba:\n" + esp)
+\end{lstlisting}
+
+La comparación usa \texttt{.split()} en ambos lados, así que ignora espacios y
+saltos de línea sobrantes, que es como corrige la mayoría de jueces. El tiempo
+impreso sirve para saber si se está cerca del límite, y el código de salida delata
+un error de ejecución aunque el programa haya alcanzado a imprimir algo.
+
+Solo usa \texttt{subprocess}, \texttt{sys}, \texttt{os} y \texttt{time}, los cuatro
+de la biblioteca estándar: no hay nada que instalar. Como la solución se ejecuta con
+\texttt{sys.executable}, el intérprete que mide es el mismo con el que se lanza el
+script; para cronometrar igual que el juez cuando se va a enviar en PyPy, hay que
+correrlo con \texttt{pypy3 correr.py sol.py}, no con \texttt{python}.
+
+\vspace{0.3cm}
+\subsubsection{Si se ejecuta con el botón Run del editor}
+
+Cuando no hay dónde escribir argumentos ni redirección, la alternativa es redirigir
+\texttt{stdin} desde el propio código, con una condición que lo desactiva sola en el
+juez (allí no existe \texttt{input.txt}), de modo que tampoco hay que borrar nada
+antes de enviar:
+
+\begin{lstlisting}[language=Python]
+import sys, os
+if os.path.exists("input.txt"):      # en el juez no existe -> stdin real
+    sys.stdin = open("input.txt")
+\end{lstlisting}
+
+\graybold{Cuidado:} lo que NO se debe hacer es leer el archivo directamente
+(\texttt{open("input.txt").read()}) en lugar de reasignar \texttt{sys.stdin}: eso
+obliga a editar la solución antes de enviarla, y si se olvida, el juez da error de
+ejecución porque ese archivo no existe.

@@ -1,0 +1,63 @@
+\subsection{DP de Dígitos (Conteo en un Rango con Restricciones)}
+\label{alg:6-7}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden CONTAR cuántos números de un rango $[a, b]$ cumplen una propiedad, con $b$ tan grande que recorrerlos uno por uno es imposible?
+\item ¿La propiedad se puede verificar leyendo el número dígito a dígito, recordando solo un resumen chico del prefijo (último dígito, suma parcial, resto)?
+\item ¿Puedo reducir el rango a dos conteos desde cero, es decir, $f(b) - f(a-1)$?
+\item ¿Necesito distinguir los ceros a la izquierda de los ceros que son parte del número?
+\end{itemize}
+
+\graybold{Utilidad:} Cuenta números en un rango que cumplen una propiedad decidible dígito a dígito, construyéndolos de izquierda a derecha y memorizando estados repetidos. Sirve para condiciones sobre dígitos adyacentes, sumas de dígitos, divisibilidad, dígitos prohibidos, cantidad de apariciones de un dígito, o combinaciones de todas ellas: lo único que cambia es qué se guarda en el estado.
+
+\graybold{Complejidad:} \bigO{D \cdot E \cdot 10} donde $D \le 19$ es la cantidad de dígitos y $E$ el tamaño del estado (aquí 10 valores del último dígito por dos banderas), es decir unos pocos miles de operaciones por consulta.
+
+\graybold{Fundamento teórico:} Contar en un rango se reduce a contar desde cero: $|[a,b]| = f(b) - f(a-1)$, donde $f(x)$ cuenta los válidos en $[0, x]$. Para calcular $f(x)$ se construye el número dígito a dígito de izquierda a derecha, eligiendo en cada posición un dígito y llevando tres piezas de información. La primera es el estado propio de la propiedad: aquí, el ÚLTIMO dígito colocado, que es todo lo que hace falta para saber si el siguiente lo repite. La segunda es la bandera de PEGADO al límite: si todos los dígitos elegidos hasta ahora coinciden con los de $x$, el dígito actual no puede pasarse del dígito correspondiente de $x$; en cuanto se elige uno estrictamente menor, el resto de las posiciones queda libre de 0 a 9 y esa bandera se apaga para siempre. La tercera es la bandera de EMPEZADO, que distingue los ceros a la izquierda (que no son dígitos del número) de los ceros reales: mientras no se empezó, un cero no cuenta como dígito y por lo tanto no puede "repetirse" con el siguiente, que es justamente por qué la comparación de repetición se hace solo cuando la bandera está encendida. Sin esa distinción, un número como 101 se rechazaría al comparar contra los ceros de relleno. Como muchas ramas distintas llegan al mismo estado $(\text{posición}, \text{último}, \text{empezado}, \text{pegado})$, memorizarlo convierte una exploración exponencial en unos pocos miles de estados. El caso $a = 0$ se resuelve solo: $f(-1) = 0$ por la guarda inicial. Nótese que el número 0 se cuenta como válido (nunca enciende la bandera de empezado y llega al final sin repetir nada), que es lo correcto.
+
+\graybold{Ejercicio aplicado}
+
+(CSES 2220 — Counting Numbers) Dados $a$ y $b$ con $0 \le a \le b \le 10^{18}$, contar cuántos enteros del rango no tienen dos dígitos adyacentes iguales.
+
+\graybold{I/O:} Una sola línea con dos enteros $\Rightarrow$ lectura total + tokenización (patrón 2); \ten{18} entra sin problema en los enteros de Python. La recursión tiene profundidad 19 como máximo, así que no hace falta tocar el límite de recursión, y la caché se limpia entre las dos llamadas porque los estados dependen de los dígitos de $x$. Verificado contra el caso de ejemplo y contrastado con un conteo directo número por número en 310 rangos, incluyendo $a = b$, $a = 0$, rangos de un solo elemento y cruces de decena y centena, sin discrepancias. Con los límites máximos tarda \aprox{}0.013s, frente a un límite de 1 segundo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from functools import lru_cache
+
+def contar(x):
+    # cuantos numeros de 0 a x no tienen dos digitos adyacentes iguales
+    if x < 0:
+        return 0
+    s = str(x)
+    n = len(s)
+
+    @lru_cache(maxsize=None)
+    def ir(i, ult, empezo, pegado):
+        if i == n:
+            return 1
+        # pegado: todos los digitos previos son iguales a los de x,
+        # asi que este no puede pasarse del digito correspondiente
+        tope = int(s[i]) if pegado else 9
+        total = 0
+        for d in range(tope + 1):
+            if empezo and d == ult:      # digito repetido consecutivo
+                continue
+            # empezo se enciende con el primer digito no nulo: antes de eso
+            # los ceros son relleno y no cuentan como digitos del numero
+            total += ir(i + 1, d, empezo or d > 0, pegado and d == tope)
+        return total
+
+    r = ir(0, -1, False, True)
+    ir.cache_clear()                     # los estados dependen de los digitos de x
+    return r
+
+def solve():
+    a, b = map(int, sys.stdin.buffer.read().split())
+    print(contar(b) - contar(a - 1))     # contar(-1) = 0 cubre el caso a = 0
+
+solve()
+\end{lstlisting}

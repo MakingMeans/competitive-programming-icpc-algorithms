@@ -1,0 +1,65 @@
+\subsection{DP en Árboles con Recorrido Iterativo (emparejamiento máximo)}
+\label{alg:6-6}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿El grafo es un ÁRBOL y me piden optimizar algo que se puede decidir subárbol por subárbol?
+\item ¿El estado de cada nodo se resume en pocos casos (usado / libre, tomado / no tomado, pintado de tal color)?
+\item ¿La respuesta de un nodo depende solo de las respuestas de sus hijos, permitiendo procesar de las hojas hacia la raíz?
+\item ¿La profundidad puede llegar a \ten{5} o más, obligando a un recorrido iterativo en vez de recursivo?
+\end{itemize}
+
+\graybold{Utilidad:} Es la plantilla del DP sobre árboles: se recorre el árbol de las hojas hacia la raíz y cada nodo combina los resultados de sus hijos según un estado pequeño. Con dos estados por nodo se resuelven emparejamiento máximo, conjunto independiente máximo (con o sin pesos), cobertura mínima de vértices y coloreos; con más estados, variantes como "a lo sumo $k$ hijos elegidos". Todas comparten la estructura de esta entrada: un orden que garantiza hijos antes que padres, y una combinación aditiva con una corrección por el caso especial.
+
+\graybold{Complejidad:} \bigO{n} en tiempo y memoria: cada nodo y cada arista se visitan una vez.
+
+\graybold{Fundamento teórico:} Para cada nodo $v$ se definen dos valores sobre su subárbol: $dp_0[v]$, el mejor emparejamiento dejando a $v$ SIN emparejar, y $dp_1[v]$, el mejor dejándolo emparejado con alguno de sus hijos. Si $v$ queda libre, cada hijo aporta lo mejor que pueda por su cuenta: $dp_0[v] = \sum_{c} \max(dp_0[c], dp_1[c])$. Si $v$ se empareja con un hijo $c$, ese hijo debe estar libre, así que aporta $dp_0[c] + 1$ en lugar de $\max(dp_0[c], dp_1[c])$, y el resto de los hijos sigue aportando su máximo; por lo tanto
+\[dp_1[v] = dp_0[v] + \max_{c}\big(dp_0[c] + 1 - \max(dp_0[c], dp_1[c])\big).\]
+Escrito así, no hace falta recorrer los hijos dos veces ni guardar listas de hijos: basta acumular en el padre, mientras se procesan los hijos, la suma de los máximos y por separado la mayor de esas diferencias. La respuesta del nodo es $\max(dp_0[v], dp_1[v])$, que equivale a sumar la diferencia solo si es positiva. Hay dos detalles de implementación que evitan problemas. Primero, el ORDEN: se construye un recorrido por capas desde la raíz, que garantiza que todo nodo aparece después de su padre; recorrerlo AL REVÉS garantiza que los hijos se procesan antes, que es lo que el DP necesita, y evita la recursión, inviable con profundidad $2\cdot10^5$. Segundo, no hace falta separar hijos de padre en la lista de adyacencia: al marcar el padre de cada nodo durante la construcción del orden, el recorrido inverso ya sabe a quién aportar.
+
+\graybold{Ejercicio aplicado}
+
+(CSES 1130 — Tree Matching) Dado un árbol de $n$ nodos, hallar la máxima cantidad de aristas que se pueden elegir sin que dos compartan un nodo (emparejamiento máximo).
+
+\graybold{I/O:} $n \le 2\cdot10^5$ con dos enteros por arista $\Rightarrow$ lectura total + tokenización (patrón 2), separando extremos con slices de paso 2. Se atiende aparte $n = 1$, donde no hay aristas que leer. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta que prueba todos los subconjuntos de aristas en 500 árboles de hasta 11 nodos (caminos, estrellas, orugas, binarios y aleatorios, con los nodos renumerados al azar y las aristas mezcladas), sin discrepancias. Con $n = 2\cdot10^5$ tarda entre \aprox{}0.19s y \aprox{}0.26s en todas las formas medidas, incluido un camino de profundidad $2\cdot10^5$ donde una versión recursiva desbordaría la pila; el límite es de 1 segundo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    if n == 1:
+        print(0); return
+    adj = [[] for _ in range(n + 1)]
+    fin = 1 + 2*(n - 1)
+    for a, b in zip(map(int, data[1:fin:2]), map(int, data[2:fin:2])):
+        adj[a].append(b)
+        adj[b].append(a)
+    # orden por capas: cada nodo aparece despues de su padre
+    padre = [0]*(n + 1)
+    orden = [1]; padre[1] = 1          # la raiz se marca a si misma para no revisitarla
+    for u in orden:                    # la lista crece mientras se recorre
+        for v in adj[u]:
+            if not padre[v]:
+                padre[v] = u
+                orden.append(v)
+    libre = [0]*(n + 1)   # dp0: mejor emparejamiento del subarbol con el nodo LIBRE
+    ganan = [0]*(n + 1)   # mayor (dp0[hijo] + 1 - max(dp0,dp1)[hijo]) entre los hijos
+    for v in reversed(orden):          # al revés: los hijos ya estan procesados
+        # max(dp0[v], dp1[v]): emparejar a v con un hijo solo si la diferencia suma
+        mejor = libre[v] + (ganan[v] if ganan[v] > 0 else 0)
+        if v == 1:
+            print(mejor); return
+        p = padre[v]
+        libre[p] += mejor              # aporte de v si el padre queda libre
+        # si el padre se empareja CON v, v debe quedar libre: aporta dp0[v] + 1
+        cand = libre[v] + 1 - mejor
+        if cand > ganan[p]:
+            ganan[p] = cand
+
+solve()
+\end{lstlisting}
