@@ -1,0 +1,124 @@
+\subsection{Recorridos básicos: BFS y DFS}
+\label{alg:2-9}
+
+Casi todo problema de grafos empieza con uno de estos dos recorridos. Aquí van las
+versiones mínimas, listas para copiar; las entradas de grafos \ref{alg:4-11} y \ref{alg:4-12} tienen las
+completas (reconstrucción del camino, 0-1 BFS, DFS con preorden y postorden).
+
+\subsubsection{Leer el grafo}
+
+La representación estándar es una lista de adyacencia: \texttt{adj[u]} guarda los
+vecinos de \texttt{u}.
+
+\begin{lstlisting}[language=Python]
+import sys
+from collections import deque
+
+data = sys.stdin.buffer.read().split()
+n, m = int(data[0]), int(data[1])
+adj = [[] for _ in range(n + 1)]          # nodos 1..n
+for i in range(m):
+    a, b = int(data[2 + 2*i]), int(data[3 + 2*i])
+    adj[a].append(b)
+    adj[b].append(a)                      # quitar si es dirigido
+\end{lstlisting}
+
+\vspace{0.3cm}
+\subsubsection{BFS: distancias desde un origen}
+
+Recorre por capas: la primera vez que llega a un nodo lo hace por el camino con
+menos aristas. Sirve para caminos mínimos sin pesos, "mínimo número de pasos" y
+todo lo que sea explorar por niveles. Costo \bigO{V + E}.
+
+\begin{lstlisting}[language=Python]
+def bfs(s):
+    dist = [-1] * (n + 1)                 # -1 = no visitado
+    dist[s] = 0
+    q = deque([s])
+    while q:
+        u = q.popleft()
+        for v in adj[u]:
+            if dist[v] == -1:
+                dist[v] = dist[u] + 1
+                q.append(v)
+    return dist
+\end{lstlisting}
+
+\graybold{Cuidado:} la cola debe ser un \texttt{deque}. Con una lista,
+\texttt{q.pop(0)} cuesta \bigO{n} y vuelve cuadrático el recorrido.
+
+\vspace{0.3cm}
+\subsubsection{BFS en grilla}
+
+La grilla es un grafo implícito: cada casilla libre conecta con sus cuatro vecinas.
+
+\begin{lstlisting}[language=Python]
+def bfs_grilla(g, sr, sc):                # g: lista de strings, '#' = pared
+    R, C = len(g), len(g[0])
+    dist = [[-1] * C for _ in range(R)]
+    dist[sr][sc] = 0
+    q = deque([(sr, sc)])
+    while q:
+        r, c = q.popleft()
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < R and 0 <= nc < C and g[nr][nc] != '#'
+                    and dist[nr][nc] == -1):
+                dist[nr][nc] = dist[r][c] + 1
+                q.append((nr, nc))
+    return dist
+\end{lstlisting}
+
+La matriz se crea con \texttt{[[-1] * C for \_ in range(R)]} y no con
+\texttt{[[-1] * C] * R}: esta segunda forma repite la MISMA fila $R$ veces, y
+modificar una casilla las cambia todas.
+
+\vspace{0.3cm}
+\subsubsection{DFS iterativo: componentes conexas}
+
+En Python conviene el DFS con pila explícita: no depende del límite de recursión ni
+de la versión del intérprete.
+
+\begin{lstlisting}[language=Python]
+def componentes():
+    comp = [0] * (n + 1)                  # 0 = sin visitar
+    c = 0
+    for s in range(1, n + 1):
+        if comp[s]:
+            continue
+        c += 1
+        comp[s] = c
+        pila = [s]
+        while pila:
+            u = pila.pop()
+            for v in adj[u]:
+                if not comp[v]:
+                    comp[v] = c
+                    pila.append(v)
+    return c, comp                        # cantidad y etiqueta de cada nodo
+\end{lstlisting}
+
+Marca cada nodo al meterlo en la pila, así ninguno entra dos veces. Alcanza para
+componentes, alcanzabilidad y detección de bipartito; cuando hace falta el orden
+exacto de entrada y salida de cada nodo (puentes, orden topológico por DFS), la
+plantilla es la de la entrada \ref{alg:4-12}.
+
+\vspace{0.3cm}
+\subsubsection{DFS recursivo (solo con poca profundidad)}
+
+Es la forma más corta de escribir, y basta cuando el grafo es pequeño:
+
+\begin{lstlisting}[language=Python]
+sys.setrecursionlimit(1 << 25)
+vis = [False] * (n + 1)
+
+def dfs(u):
+    vis[u] = True
+    for v in adj[u]:
+        if not vis[v]:
+            dfs(v)
+\end{lstlisting}
+
+Con miles de niveles de profundidad (un camino largo, por ejemplo), revisar la nota
+sobre recursión del módulo \texttt{sys} (\ref{sub:sys}), o usar la versión
+iterativa.

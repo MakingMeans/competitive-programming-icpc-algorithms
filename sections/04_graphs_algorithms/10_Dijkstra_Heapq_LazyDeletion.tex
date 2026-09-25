@@ -53,7 +53,7 @@ def solve():
 solve()
 \end{lstlisting}
 
-\graybold{Extras: versión con entradas codificadas en un entero} — aproximadamente un 20\% más rápida, útil si el grafo es más grande o el límite más ajustado. En lugar de tuplas, cada arista se guarda como \texttt{peso << 17 | destino} y cada entrada del heap como \texttt{distancia << 17 | nodo}: comparar enteros es más barato que comparar tuplas, y como la distancia ocupa los bits altos, el orden del heap sigue siendo por distancia. Requiere que $2^{\text{SH}}$ supere al mayor número de nodo; con $n \le 10^5$ basta $\text{SH} = 17$. Verificada igual que la versión principal; en los mismos grafos tarda entre \aprox{}0.22s y \aprox{}0.28s.
+\graybold{Extras: versión con entradas codificadas en un entero} — aproximadamente un 20\% más rápida, útil si el grafo es más grande o el límite más ajustado. En lugar de tuplas, cada arista se guarda como \texttt{peso <{}< 17 | destino} y cada entrada del heap como \texttt{distancia <{}< 17 | nodo}: comparar enteros es más barato que comparar tuplas, y como la distancia ocupa los bits altos, el orden del heap sigue siendo por distancia. Requiere que $2^{\text{SH}}$ supere al mayor número de nodo; con $n \le 10^5$ basta $\text{SH} = 17$. Verificada igual que la versión principal; en los mismos grafos tarda entre \aprox{}0.22s y \aprox{}0.28s.
 
 \begin{lstlisting}[language=Python]
 import sys

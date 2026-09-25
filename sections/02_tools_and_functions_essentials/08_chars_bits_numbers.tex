@@ -1,0 +1,102 @@
+\subsection{Caracteres, bits y números}
+\label{alg:2-8}
+
+\subsubsection{ord() y chr()}
+
+Convierten entre un carácter y su código. Es la forma de hacer aritmética con
+letras: pasar de letra a índice, desplazar un cifrado, contar por alfabeto.
+
+\begin{lstlisting}[language=Python]
+ord("a"), chr(98)                  # (97, 'b')
+c = "d"
+i = ord(c) - ord("a")              # letra -> indice 0..25: 3
+chr(ord("a") + (i + 2) % 26)       # desplazar 2 letras: 'f'
+cnt = [0] * 26
+for ch in "banana":
+    cnt[ord(ch) - 97] += 1         # cnt[0] == 3 (tres 'a')
+\end{lstlisting}
+
+Al leer con \texttt{sys.stdin.buffer} no hace falta \texttt{ord}: indexar un
+\texttt{bytes} ya da el código (\texttt{b"a"[0] == 97}).
+
+\begin{lstlisting}[language=Python]
+import string
+string.ascii_lowercase             # 'abcdefghijklmnopqrstuvwxyz'
+string.ascii_uppercase             # 'ABC...Z'
+string.digits                      # '0123456789'
+\end{lstlisting}
+
+\vspace{0.3cm}
+\subsubsection{Operaciones de bits}
+
+\begin{lstlisting}[language=Python]
+x = 12                             # 0b1100
+bin(x), bin(x)[2:]                 # ('0b1100', '1100')
+format(5, "08b")                   # '00000101': 8 bits con ceros
+int("1010", 2)                     # 10
+x.bit_length()                     # 4: bits necesarios
+bin(x).count("1")                  # 2 bits en 1 (x.bit_count() en 3.10+)
+x & -x                             # 4: bit encendido mas bajo
+x & (x - 1)                        # 8: apaga ese bit
+j = 1
+(x >> j) & 1                       # leer el bit j: 0
+x | (1 << j)                       # encender el bit j: 14
+x & ~(1 << j)                      # apagar el bit j
+x ^ (1 << j)                       # invertir el bit j: 14
+\end{lstlisting}
+
+Los enteros de Python no tienen ancho fijo, así que \texttt{\textasciitilde x} vale
+$-x-1$ en vez de invertir 32 o 64 bits; para complementar solo $n$ bits se usa
+\texttt{x \^{} ((1 <{}< n) - 1)}.
+
+Recorrer todas las submáscaras de una máscara, de mayor a menor:
+
+\begin{lstlisting}[language=Python]
+mask = 0b1011
+sub = mask
+while sub:
+    ...                            # procesar sub: 1011, 1010, 1001, 1000, 11, 10, 1
+    sub = (sub - 1) & mask
+# la submascara vacia (0) no entra en el ciclo: procesarla aparte si hace falta
+\end{lstlisting}
+
+Hacer esto para todas las máscaras de $n$ bits cuesta \bigO{\pow{3}{n}}, no
+\bigO{\pow{4}{n}}: es el límite usual de los DP sobre subconjuntos de subconjuntos.
+
+\vspace{0.3cm}
+\subsubsection{Enteros grandes}
+
+Los enteros de Python no se desbordan: factoriales, productos de números de
+\ten{18} o potencias enormes se calculan exactos, sin \texttt{long long} ni módulo
+forzado. Dos advertencias. Operar con números de miles de dígitos ya no cuesta
+\bigO{1}. Y desde Python 3.11, convertir entre entero y texto un número de más de
+4300 dígitos lanza \texttt{ValueError}, tanto al imprimirlo como al leerlo con
+\texttt{int()}:
+
+\begin{lstlisting}[language=Python]
+import sys, math
+if hasattr(sys, "set_int_max_str_digits"):   # solo existe desde 3.11
+    sys.set_int_max_str_digits(0)            # 0 = sin limite
+print(math.factorial(2000))                  # 5736 digitos
+\end{lstlisting}
+
+El \texttt{hasattr} hace que la misma línea sirva en cualquier versión: en las
+anteriores a 3.11 no hay límite y la función no existe.
+
+\vspace{0.3cm}
+\subsubsection{Números reales}
+
+\begin{lstlisting}[language=Python]
+import math
+INF = float("inf")                 # mayor que cualquier numero (o math.inf)
+0.1 + 0.2 == 0.3                   # False
+EPS = 1e-9
+abs((0.1 + 0.2) - 0.3) < EPS       # True: comparar con tolerancia
+math.isclose(1e-12, 0)             # False!
+math.isclose(1e-12, 0, abs_tol=EPS)  # True
+\end{lstlisting}
+
+\texttt{math.isclose} usa solo tolerancia relativa por defecto, y cerca de cero eso
+no sirve: hay que pasarle \texttt{abs\_tol}. Siempre que se pueda, mejor evitar los
+reales: \texttt{a/b < c/d} se compara como \texttt{a*d < c*b} (con $b, d > 0$) y
+queda exacto.

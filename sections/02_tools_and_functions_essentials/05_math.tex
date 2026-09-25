@@ -35,6 +35,19 @@ floor_n = math.floor(x * factor) / factor
 ceil_n  = math.ceil(x * factor) / factor
 \end{lstlisting}
 
+\graybold{Cuidado:} \texttt{round} usa redondeo bancario (los empates van al par),
+no el "0.5 sube" del colegio, y además arrastra el error del punto flotante:
+
+\begin{lstlisting}[language=Python]
+round(0.5)       # 0     (no 1)
+round(2.5)       # 2     (no 3)
+round(2.675, 2)  # 2.67  (2.675 no es exacto en binario)
+int(x + 0.5)     # "0.5 sube" para x >= 0
+\end{lstlisting}
+
+Para imprimir con $n$ decimales, \texttt{f"\{x:.2f\}"} es lo habitual y lo que
+esperan los jueces.
+
 \vspace{0.3cm}
 
 \subsubsection{Valor absoluto}
@@ -80,7 +93,10 @@ math.gcd(a,b)
 math.lcm(a,b)
 \end{lstlisting}
 
-También aceptan más de dos argumentos.
+También aceptan más de dos argumentos. Tanto \texttt{math.lcm} como el
+\texttt{gcd} de varios argumentos requieren Python 3.9 o posterior; en una versión
+anterior se usa \texttt{reduce(math.gcd, lista)} y
+\texttt{a * b // math.gcd(a, b)}.
 
 \begin{lstlisting}[language=Python]
 math.gcd(a,b,c)
@@ -234,13 +250,16 @@ No existe error de redondeo.
 En Python la división entera siempre redondea hacia menos infinito.
 
 \begin{lstlisting}[language=Python]
-7 // 2
-# 3
--7 // 2
-# -4
+7 // 2       # 3
+-7 // 2      # -4    (C++ y Java dan -3)
+-7 % 2       # 1     (C++ y Java dan -1)
+int(-7 / 2)  # -3    truncar hacia cero, como C++
+divmod(-7, 2)  # (-4, 1)  cociente y resto de una vez
 \end{lstlisting}
 
-Este comportamiento es diferente al de C++ y Java.
+Este comportamiento es diferente al de C++ y Java, y tiene una ventaja: \texttt{x \%
+m} siempre queda en $[0, m)$ con $m > 0$, así que en aritmética modular no hace
+falta sumar $m$ para corregir restos negativos.
 
 \vspace{0.3cm}
 

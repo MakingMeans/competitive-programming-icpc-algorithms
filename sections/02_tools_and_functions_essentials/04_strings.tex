@@ -152,6 +152,7 @@ s.isspace()
 Divide únicamente en la primera aparición del separador.
 
 \begin{lstlisting}[language=Python]
+s = "x=15"
 s.partition("=")
 # ('x', '=', '15')
 \end{lstlisting}
@@ -238,7 +239,8 @@ if s.find("abc") != -1:
 Contar caracteres.
 
 \begin{lstlisting}[language=Python]
-vocales = s.count("a")
+cant_a = s.count("a")
+vocales = sum(s.count(v) for v in "aeiou")
 \end{lstlisting}
 
 \vspace{0.3cm}

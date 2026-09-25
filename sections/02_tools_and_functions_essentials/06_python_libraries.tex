@@ -24,7 +24,7 @@ Clase & Uso \\ \hline
 deque & Cola doble, BFS, Sliding Window \\ \hline
 defaultdict & Dict con valor por defecto \\ \hline
 Counter & Conteo automático de frecuencias \\ \hline
-OrderedDict & Dict que conserva operaciones de orden \\ \hline
+OrderedDict & Dict con move\_to\_end y popitem(last=False) \\ \hline
 namedtuple & Tuplas con nombres para los campos \\ \hline
 \end{tabular}
 \end{center}
@@ -110,6 +110,16 @@ heapq.heappop(heap)
 
 Todas las operaciones de inserción y extracción tienen complejidad \bigO{\log n}
 
+\texttt{heapq} solo implementa heap de MÍNIMOS. Para uno de máximos se guardan los
+valores negados, y para ordenar por prioridad se usan tuplas, que se comparan por
+su primer campo:
+
+\begin{lstlisting}[language=Python]
+heapq.heappush(heap, -x)        # heap de maximos
+mayor = -heapq.heappop(heap)
+heapq.heappush(heap, (dist, nodo))   # tupla: ordena por dist, desempata por nodo
+\end{lstlisting}
+
 Se utiliza principalmente en:
 
 \begin{itemize}
@@ -137,7 +147,11 @@ bisect_right(arr,x)
 insort(arr,x)
 \end{lstlisting}
 
-Todas las búsquedas tienen complejidad \bigO{\log n}
+Las búsquedas (\texttt{bisect\_left}, \texttt{bisect\_right}) cuestan
+\bigO{\log n}, pero \texttt{insort} cuesta \bigO{n}: encuentra la posición en
+\bigO{\log n} y luego desplaza todos los elementos siguientes para insertar. Con
+muchas inserciones sobre una lista grande se vuelve cuadrático; ahí conviene el
+ordered set con Fenwick de la entrada \ref{alg:3-9}.
 
 \vspace{0.3cm}
 
@@ -147,7 +161,7 @@ Funciones de orden superior.
 
 \begin{lstlisting}[language=Python]
 from functools import lru_cache
-from functools import cache
+from functools import cache             # Python 3.9 o posterior
 from functools import cmp_to_key
 from functools import reduce
 \end{lstlisting}
@@ -184,7 +198,7 @@ from itertools import product
 from itertools import accumulate
 from itertools import cycle
 from itertools import repeat
-from itertools import pairwise
+from itertools import pairwise          # Python 3.10 o posterior
 \end{lstlisting}
 
 \begin{center}
@@ -284,6 +298,7 @@ por ser considerablemente más rápido.
 \vspace{0.3cm}
 
 \subsubsection{sys}
+\label{sub:sys}
 
 El módulo más utilizado para entrada y salida rápida.
 
@@ -294,6 +309,38 @@ input = sys.stdin.readline
 
 sys.setrecursionlimit(200000)
 \end{lstlisting}
+
+\graybold{Recursión profunda.} El límite por defecto es 1000 niveles; pasarlo da
+\texttt{RecursionError}, así que un DFS o una memoización profunda siempre necesitan
+\texttt{setrecursionlimit}. Si eso ALCANZA depende del intérprete:
+
+\begin{itemize}
+\item \textbf{CPython 3.11 o posterior}: alcanza. Desde 3.11 las llamadas entre
+funciones de Python no consumen la pila del sistema (probado en 3.12:
+profundidad \ten{6} sin nada más).
+\item \textbf{PyPy o CPython hasta 3.10}: puede no alcanzar. La recursión sí usa la
+pila del sistema, y con suficiente profundidad el programa muere sin mensaje
+(\emph{Runtime Error}). Hay que correr el código en un hilo con pila grande.
+\end{itemize}
+
+Como en el concurso no siempre se sabe qué versión corre el juez, la forma segura
+sirve en todos:
+
+\begin{lstlisting}[language=Python]
+import sys, threading
+sys.setrecursionlimit(1 << 25)
+threading.stack_size(1 << 27)          # 128 MB; 256 MB o mas falla en Windows
+
+def main():
+    ...                                # toda la solucion va aqui
+
+t = threading.Thread(target=main)
+t.start()
+t.join()
+\end{lstlisting}
+
+Mejor todavía es evitar la recursión: todas las entradas de grafos de este libro
+usan pila explícita por esta razón.
 
 \vspace{0.3cm}
 

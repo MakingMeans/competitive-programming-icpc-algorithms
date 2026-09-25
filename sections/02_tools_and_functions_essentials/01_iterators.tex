@@ -50,10 +50,10 @@ next() consume el siguiente elemento del iterador.
 Se suelen usar cuando se procesan tokens manualmente.
 
 \begin{lstlisting}[language=Python]
-data = ["5", "10", "20", "30"]
+data = ["3", "10", "20", "30"]          # n y luego n valores
 it = iter(data)
 n = int(next(it))
-arr = [int(next(it)) for _ in range(n - 1)]
+arr = [int(next(it)) for _ in range(n)] # [10, 20, 30]
 \end{lstlisting}
 
 También puede especificarse un valor por defecto.
@@ -140,29 +140,21 @@ arr[::-1]
 
 \subsubsection{encode() y decode()}
 
-Aunque rara vez aparecen en ICPC, pueden resultar útiles cuando un problema involucra archivos, comunicación o codificaciones específicas.
-
-encode() convierte un string en bytes.
-decode() realiza la operación inversa.
+encode() convierte un string en bytes; decode() hace lo contrario. En este libro
+aparecen todo el tiempo, porque la lectura rápida (sección 1) usa
+\texttt{sys.stdin.buffer}, que entrega \texttt{bytes} y no \texttt{str}.
 
 \begin{lstlisting}[language=Python]
-s = "ICPC"
-b = s.encode("utf-8")
-print(b)
-# b'ICPC'
-texto = b.decode("utf-8")
-print(texto)
-# ICPC
+data = sys.stdin.buffer.read().split()   # lista de bytes: [b'3', b'abc', ...]
+n = int(data[0])                         # int() acepta bytes directamente
+s = data[1].decode()                     # decode() solo si se necesitan metodos de str
+if data[2] == b"L": ...                  # comparar bytes con bytes, sin decodificar
 \end{lstlisting}
 
-Las codificaciones más comunes:
-\begin{itemize}
-\item utf-8
-\item ascii
-\item latin-1
-\end{itemize}
-
-En programación competitiva normalmente toda la entrada ya llega como texto UTF-8, por lo que estas funciones aparecen con poca frecuencia.
+Dos detalles que causan errores silenciosos: un \texttt{bytes} nunca es igual a un
+\texttt{str} (\texttt{b"L" == "L"} es \texttt{False}), e indexar un \texttt{bytes}
+devuelve un entero, no un carácter (\texttt{b"abc"[0]} es \texttt{97}). Por eso las
+entradas del libro comparan contra códigos ASCII o contra \texttt{b"..."}.
 
 \vspace{0.3cm}
 

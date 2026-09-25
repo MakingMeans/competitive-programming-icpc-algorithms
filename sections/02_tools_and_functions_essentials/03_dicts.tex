@@ -5,9 +5,7 @@ Los diccionarios son una de las estructuras de datos más utilizadas en programa
 Permiten almacenar pares \texttt{clave : valor} con acceso promedio en tiempo constante.
 
 En Python, la implementación utiliza una tabla hash, por lo que la mayoría de operaciones tienen complejidad promedio
-\bigO{1} aunque en el peor caso pueden degradarse a \bigO{n}
-
-si existen muchas colisiones.
+\bigO{1}, aunque en el peor caso pueden degradarse a \bigO{n} si existen muchas colisiones.
 
 \vspace{0.3cm}
 
@@ -137,11 +135,14 @@ if "python" in freq:
     ...
 \end{lstlisting}
 
-Eliminar una copia sin modificar el original.
+Otra forma de crear una copia sin modificar el original.
 
 \begin{lstlisting}[language=Python]
 nuevo = dict(freq)
 \end{lstlisting}
+
+Ambas copias son superficiales: si los valores son listas, la copia comparte esas
+listas con el original.
 
 \vspace{0.3cm}
 

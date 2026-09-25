@@ -1,0 +1,107 @@
+\subsection{Listas y conjuntos}
+\label{alg:2-7}
+
+La lista es la estructura por defecto en Python y el conjunto es su complemento para
+preguntar "¿está?" rápido. Casi todos los errores de tiempo con listas vienen de
+usar una operación \bigO{n} dentro de un ciclo sin notarlo.
+
+\subsubsection{Crear listas}
+
+\begin{lstlisting}[language=Python]
+n, m = 3, 4
+a = [0] * n                        # [0, 0, 0]
+g = [[0] * m for _ in range(n)]    # matriz n x m con filas independientes
+c = list(range(1, n + 1))          # [1, 2, 3]
+b = [x * x for x in c if x > 1]    # [4, 9]  comprension con filtro
+\end{lstlisting}
+
+\graybold{Cuidado:} \texttt{[[0] * m] * n} NO crea una matriz: repite la misma fila
+$n$ veces, y cambiar una casilla cambia toda la columna.
+
+\vspace{0.3cm}
+\subsubsection{Ordenar}
+
+\begin{lstlisting}[language=Python]
+a = [3, 1, 2]
+a.sort()                           # ordena la misma lista, devuelve None
+b = sorted(a, reverse=True)        # lista nueva: [3, 2, 1]
+p = [(1, 5), (2, 3), (3, 5)]
+p.sort(key=lambda t: (-t[1], t[0]))  # por t[1] descendente; empate: t[0] asc.
+# p == [(1, 5), (3, 5), (2, 3)]
+\end{lstlisting}
+
+Las tuplas se comparan campo por campo, así que una llave de tupla ordena por
+varios criterios a la vez; negar un campo numérico lo invierte. El error típico es
+\texttt{a = a.sort()}, que deja \texttt{a} en \texttt{None}.
+
+\vspace{0.3cm}
+\subsubsection{Costo de las operaciones}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Operación & Costo \\ \hline
+\texttt{a[i]}, \texttt{len(a)}, \texttt{a.append(x)}, \texttt{a.pop()} & \bigO{1} \\ \hline
+\texttt{a.pop(0)}, \texttt{a.insert(0, x)} & \bigO{n} \\ \hline
+\texttt{x in a}, \texttt{a.index(x)}, \texttt{a.count(x)} & \bigO{n} \\ \hline
+\texttt{a[l:r]} (crea una copia) & \bigO{r - l} \\ \hline
+\texttt{x in s} con \texttt{s} conjunto & \bigO{1} \\ \hline
+\end{tabular}
+\end{center}
+
+Para sacar por el frente se usa \texttt{deque}; para preguntar pertenencia muchas
+veces, un \texttt{set}.
+
+\vspace{0.3cm}
+\subsubsection{min, max y sum}
+
+\begin{lstlisting}[language=Python]
+pal = ["aa", "b", "cccc"]
+max(pal, key=len)                  # 'cccc'
+min([(1, 9), (2, 4)], key=lambda t: t[1])   # (2, 4)
+max([], default=0)                 # 0; sin default da ValueError
+sum(x for x in range(10) if x % 2) # 25
+\end{lstlisting}
+
+\vspace{0.3cm}
+\subsubsection{Imprimir listas}
+
+\begin{lstlisting}[language=Python]
+a = [1, 2, 3]
+print(*a)                          # 1 2 3
+print(*a, sep="\n")                # uno por linea
+print(*a, sep="")                  # 123
+\end{lstlisting}
+
+Es cómodo para salidas cortas; con miles de líneas conviene
+\texttt{sys.stdout.write} con \texttt{join} (sección 1).
+
+\vspace{0.3cm}
+\subsubsection{Conjuntos}
+
+\begin{lstlisting}[language=Python]
+s = {1, 2, 3}
+s.add(4)
+s.discard(9)                       # no falla si no esta (remove si falla)
+a, b = {1, 2, 3}, {2, 3, 4}
+a | b, a & b, a - b, a ^ b         # union, interseccion, diferencia, simetrica
+len(set([5, 5, 7]))                # 2: cantidad de distintos
+visto = frozenset(a)               # inmutable: sirve como llave de un dict
+\end{lstlisting}
+
+Un \texttt{set} no tiene orden: para imprimirlo ordenado, \texttt{sorted(s)}.
+
+\vspace{0.3cm}
+\subsubsection{Copiar}
+
+\begin{lstlisting}[language=Python]
+import copy
+a = [1, 2, 3]
+b = a[:]                           # copia (igual que a.copy() o list(a))
+g = [[1, 2], [3, 4]]
+g2 = [fila[:] for fila in g]       # copia de matriz: rapida
+g3 = copy.deepcopy(g)              # copia de cualquier anidamiento: mas lenta
+\end{lstlisting}
+
+\texttt{b = a} no copia nada: son dos nombres para la misma lista. Y \texttt{a[:]}
+sobre una matriz copia solo la lista exterior; las filas siguen compartidas.
