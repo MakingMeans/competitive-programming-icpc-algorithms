@@ -1,0 +1,50 @@
+\subsection{Barrido de Eventos (Máximo Solapamiento de Intervalos)}
+\label{alg:5-5}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Tengo intervalos (entrada y salida, inicio y fin, reserva y devolución) y me piden cuántos coinciden como máximo en algún instante?
+\item ¿Me sirve olvidar qué intervalo es cada uno y quedarme solo con los EVENTOS ordenados en el tiempo?
+\item ¿El estado cambia únicamente en los extremos de los intervalos, de modo que basta revisar esos instantes?
+\item ¿Los tiempos son enormes (\ten{9}) pero la cantidad de eventos es manejable, descartando recorrer la línea de tiempo entera?
+\end{itemize}
+
+\graybold{Utilidad:} El barrido de eventos convierte un problema sobre intervalos en un problema sobre una lista ordenada de puntos: cada intervalo se descompone en un evento de apertura y uno de cierre, se ordenan todos por tiempo y se recorre llevando un contador. Resuelve máximo solapamiento (salas necesarias, clientes simultáneos, canales de un horario), unión de longitudes cubiertas, y es la base de los barridos en geometría. La clave es que el contador solo cambia en los extremos, así que los \ten{9} instantes posibles se reducen a $2n$ puntos relevantes.
+
+\graybold{Complejidad:} \bigO{n \log n} dominado por el ordenamiento de los $2n$ eventos, más \bigO{n} para el recorrido.
+
+\graybold{Fundamento teórico:} Sea $f(t)$ la cantidad de intervalos que contienen al instante $t$. Esa función solo cambia en los extremos: sube en uno en cada llegada y baja en uno en cada salida, y entre dos eventos consecutivos es constante. Por lo tanto su máximo se alcanza inmediatamente después de alguna llegada, y basta recorrer los eventos en orden cronológico acumulando $+1$ y $-1$ y registrando el máximo del acumulado. El enunciado garantiza que todos los tiempos son DISTINTOS, lo que evita la única ambigüedad del método: cuando una salida y una llegada coinciden en el mismo instante, hay que decidir si el cliente que se va todavía cuenta, y según el problema conviene procesar primero una o la otra (si los intervalos son cerrados y tocarse cuenta como coincidir, la llegada va primero; si son semiabiertos, la salida). Aquí, en lugar de ordenar pares, cada evento se codifica en un solo entero, $2t+1$ para una llegada y $2t$ para una salida: al duplicar el tiempo, el bit bajo queda libre para marcar el tipo sin alterar el orden temporal, ordenar una lista de enteros es más rápido que ordenar tuplas, y la desigualdad $2t < 2t+1$ deja a las salidas antes que las llegadas del mismo instante, que es el criterio conservador. El bit se lee después con un \texttt{and} para saber si sumar o restar.~\cite{shamos1976}
+
+\graybold{Ejercicio aplicado}
+
+(CSES 1619 — Restaurant Customers) Dadas las horas de llegada y salida de $n$ clientes de un restaurante, hallar la máxima cantidad de clientes presentes simultáneamente.
+
+\graybold{I/O:} $n \le 2\cdot10^5$ con dos enteros por cliente $\Rightarrow$ lectura total + tokenización (patrón 2), separando llegadas y salidas con slices de paso 2 y codificándolas directamente al construir la lista, sin pasar por una estructura intermedia. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta que, para cada instante relevante, cuenta cuántos intervalos lo contienen, en 500 casos aleatorios con tiempos todos distintos como garantiza el enunciado, sin discrepancias. Con $n = 2\cdot10^5$ tarda entre \aprox{}0.08s (intervalos todos anidados o todos disjuntos, donde el ordenamiento encuentra datos casi ordenados) y \aprox{}0.20s (tiempos aleatorios); el límite es de 1 segundo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    # cada evento se codifica en un entero: llegada = 2t+1, salida = 2t.
+    # duplicar el tiempo deja libre el bit bajo para marcar el tipo sin
+    # alterar el orden cronologico, y ordenar enteros es mas rapido que tuplas
+    ev = [2*int(v) + 1 for v in data[1:1 + 2*n:2]]     # llegadas
+    ev += [2*int(v) for v in data[2:2 + 2*n:2]]        # salidas
+    ev.sort()
+    cur = 0
+    mejor = 0
+    for v in ev:
+        if v & 1:                # bit bajo encendido: es una llegada
+            cur += 1
+            if cur > mejor: mejor = cur
+        else:
+            cur -= 1
+    print(mejor)
+
+solve()
+\end{lstlisting}

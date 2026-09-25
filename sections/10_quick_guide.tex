@@ -106,6 +106,15 @@ otro más grande, así que hay que seguir revisando.
 \ej la ruta \texttt{a!b!c!b!a!d} se reduce a \texttt{a!d}: primero desaparece
 \texttt{c}, y eso deja \texttt{b} junto a \texttt{b}.
 
+\guia{Consultas Offline}{alg:3-13}
+Cuando todas las preguntas se conocen de antemano, se pueden responder en el orden
+que más convenga y no en el que llegan. Para "cuántos elementos mayores que $k$ hay
+en este tramo", ordenar las consultas por $k$ hace que una de las dos condiciones se
+cumpla sola. Luego solo queda contar posiciones en un rango; en
+Python, con prefijos por bloques es más rápido que con un Fenwick.
+\ej en \texttt{[5, 1, 2, 3, 4]}, entre las posiciones 2 y 4 hay \texttt{2}
+elementos mayores que 1.
+
 % ============================================================
 \subsection*{Grafos}
 
@@ -285,6 +294,22 @@ datos.
 \ej pesos \texttt{[1, 2, 3]}: unir 1+2 (cuesta 3) y luego 3+3 (cuesta 6) da un
 total de \texttt{9}, que es el mínimo.
 
+\guia{Barrido de Eventos (Line Sweep)}{alg:5-5}
+Para preguntas sobre muchos intervalos a la vez: cuánta gente hay como máximo al
+mismo tiempo, cuántas salas hacen falta, cuándo se solapan. Cada intervalo se
+parte en un evento de entrada y uno de salida, se ordenan por tiempo y se recorren
+llevando un contador. Nada de revisar par contra par.
+\ej clientes que están de 5 a 8, de 2 a 4 y de 3 a 9: como máximo hay
+\texttt{2} a la vez.
+
+\guia{Ventana Deslizante (dos punteros)}{alg:5-6}
+El tramo contiguo más largo (o más corto) que cumple una condición. Los dos bordes
+de la ventana solo avanzan, así que todo se recorre una vez aunque parezca que hay
+que probar cada par de extremos. Sirve para "sin repetidos", "suma al menos $x$" o
+"a lo sumo $k$ valores distintos".
+\ej en \texttt{[1, 2, 1, 3, 2, 7, 4, 2]} el tramo más largo sin repetir es
+\texttt{1, 3, 2, 7, 4}, de largo \texttt{5}.
+
 % ============================================================
 \subsection*{Programación Dinámica}
 
@@ -354,6 +379,14 @@ propiedad del costo (la optimización de Knuth) permite probar muchos menos punt
 \ej en una barra de 100 con cortes en 25, 50 y 75, cortar primero en el centro
 cuesta \texttt{200}; de izquierda a derecha, \texttt{225}.
 
+\guia{DP con Ventana Mínima (deque monótona)}{alg:6-9}
+Un DP de partición donde cada paso necesita el mínimo de los últimos $c$ valores.
+Recalcularlo cada vez sería lento; una deque que conserva solo los candidatos útiles
+lo da al instante, porque cada elemento entra y sale una sola vez. Es el uso más
+frecuente de la ventana de tamaño fijo en concurso.
+\ej con $c = 10$ y \texttt{[1, 1, 10, 10, 10, 10, 10, 9, 10, 10, 10, 10]}, lo
+óptimo es separar \texttt{[1, 1]} del resto: costo total \texttt{92}.
+
 % ============================================================
 \subsection*{Matemáticas y Simulación}
 
@@ -408,6 +441,13 @@ búsqueda parece infinito, pero se puede acotar: la primera fracción no puede s
 demasiado pequeña, y eso limita cuánto hay que probar. Es el ejemplo típico de
 "búsqueda que parece imposible hasta que demuestras una cota".
 \ej $4/5 = 1/2 + 1/4 + 1/20$.
+
+\guia{Fibonacci Rápido y Potencia de Matrices}{alg:7-8}
+Calcular el término $n$ de una recurrencia cuando $n$ es astronómico. En vez de
+avanzar de uno en uno, se duplica el índice en cada paso, así que llegar a \ten{18}
+toma unos 60 pasos. La versión con matrices sirve para cualquier recurrencia lineal,
+cambiando solo la matriz.
+\ej $F_{10} = 55$; y $F_{10^{18}}$ módulo $\ten{9}+7$ sale en milisegundos.
 
 % ============================================================
 \subsection*{Construcción y Combinatoria}

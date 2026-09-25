@@ -1,0 +1,48 @@
+\subsection{Ventana Deslizante con Dos Punteros (Subarreglo sin Repetidos)}
+\label{alg:5-6}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me piden el subarreglo CONTIGUO más largo (o más corto) que cumple una condición?
+\item ¿La condición es MONÓTONA respecto al tamaño de la ventana: si un subarreglo la cumple, todos sus subarreglos también?
+\item ¿Puedo mantener un resumen de la ventana actual que se actualice en tiempo constante al mover cualquiera de sus extremos?
+\item ¿El extremo izquierdo nunca necesita retroceder cuando el derecho avanza?
+\end{itemize}
+
+\graybold{Utilidad:} Recorre todos los subarreglos relevantes en tiempo lineal manteniendo una ventana cuyos dos extremos solo avanzan. Sirve para el subarreglo más largo sin elementos repetidos, el más corto con suma mayor o igual a un objetivo, el más largo con a lo sumo $k$ valores distintos, y en general para cualquier condición que se rompa al agrandar y se arregle al achicar. Lo que cambia entre esos problemas es solo la estructura que resume la ventana: un diccionario, un contador o una suma.
+
+\graybold{Complejidad:} \bigO{n} amortizado: cada extremo recorre el arreglo una sola vez, y cada operación sobre el diccionario es \bigO{1} esperado.
+
+\graybold{Fundamento teórico:} La propiedad que habilita los dos punteros es la MONOTONÍA: si el subarreglo $[l, r]$ no tiene repetidos, ningún subarreglo suyo los tiene tampoco; y recíprocamente, si $[l, r]$ tiene un repetido, agrandarlo por la derecha no lo arregla. Por eso, al avanzar el extremo derecho, el menor inicio válido nunca DISMINUYE, y basta empujarlo hacia adelante sin volver atrás: cada índice entra y sale una sola vez, lo que da el costo lineal. Para saber a dónde empujarlo no hace falta recorrer la ventana: guardando en un diccionario la ÚLTIMA posición de cada valor, cuando el elemento nuevo en la posición $r$ ya apareció en una posición $p$, el conflicto solo se resuelve dejando afuera esa aparición, así que el nuevo inicio es $p+1$. La comparación $p \ge \text{ini}$ es imprescindible: si la aparición anterior quedó fuera de la ventana actual, no hay conflicto y el inicio no debe moverse; sin esa comprobación el inicio podría retroceder y la respuesta saldría menor. Un detalle de implementación: los identificadores se usan como claves SIN convertirlos a entero, directamente los \texttt{bytes} de la entrada, porque solo se los compara por igualdad y convertirlos costaría una pasada extra.
+
+\graybold{Ejercicio aplicado}
+
+(CSES 1141 — Playlist) Dada una lista de $n$ identificadores de canciones, hallar la longitud de la secuencia contigua más larga en la que ninguna canción se repite.
+
+\graybold{I/O:} $n \le 2\cdot10^5$ con muchos números sueltos $\Rightarrow$ lectura total + tokenización (patrón 2), usando los tokens crudos como claves del diccionario. Verificado contra el caso de ejemplo y contrastado con una fuerza bruta que prueba todas las ventanas en 500 casos aleatorios, incluyendo arreglos con todos los elementos iguales, todos distintos y repeticiones al azar, sin discrepancias. Con $n = 2\cdot10^5$ tarda entre \aprox{}0.04s y \aprox{}0.07s en todos los perfiles medidos (todos distintos, todos iguales, aleatorio, solo dos valores, y cíclico de período 1000); el límite es de 1 segundo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    ultima = {}                       # id de cancion -> ultima posicion donde aparecio
+    ini = 0                           # inicio de la ventana actual
+    mejor = 0
+    for r in range(n):
+        v = data[1 + r]               # se usan los bytes tal cual como clave
+        p = ultima.get(v, -1)
+        # solo hay conflicto si la aparicion anterior cae DENTRO de la ventana
+        if p >= ini:
+            ini = p + 1
+        ultima[v] = r
+        largo = r - ini + 1
+        if largo > mejor: mejor = largo
+    print(mejor)
+
+solve()
+\end{lstlisting}

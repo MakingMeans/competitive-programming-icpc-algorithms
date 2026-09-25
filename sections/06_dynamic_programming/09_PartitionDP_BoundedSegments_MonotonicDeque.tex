@@ -1,0 +1,56 @@
+\subsection{DP de Particiones con Segmentos Acotados (Ventana Mínima)}
+\label{alg:6-9}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Debo partir un arreglo en segmentos CONTIGUOS minimizando la suma de un costo por segmento?
+\item ¿Puedo demostrar que los segmentos largos nunca convienen, reduciendo las transiciones a unos pocos largos fijos?
+\item ¿El costo de un segmento se calcula con sumas de prefijos más algún extremo (mínimo o máximo) del segmento?
+\item ¿Ese extremo se puede mantener con una ventana deslizante en vez de recalcularlo?
+\end{itemize}
+
+\graybold{Utilidad:} Resuelve particiones óptimas en segmentos contiguos cuando el DP ingenuo sería \bigO{n^2} porque cada posición probaría todos los cortes anteriores. La técnica consiste en acotar primero qué largos de segmento pueden aparecer en una solución óptima, y después calcular el costo de cada transición en tiempo constante con sumas de prefijos y una ventana deslizante. El esqueleto sirve para cualquier partición donde el costo del segmento combine su suma con su mínimo, su máximo o su largo.
+
+\graybold{Complejidad:} \bigO{n}: una sola pasada, con cada índice entrando y saliendo de la deque una vez.
+
+\graybold{Fundamento teórico:} El valor de un segmento de largo $k$ es su suma menos la de sus $\lfloor k/c \rfloor$ elementos MENORES, así que minimizar el total equivale a maximizar lo descartado. La observación que acota el problema es que un segmento largo nunca es estrictamente mejor que partirlo. Si un segmento de largo $k$ se parte en $\lfloor k/c \rfloor$ bloques de largo exactamente $c$ más el resto como elementos sueltos, la cantidad de elementos descartados es la misma, $\lfloor k/c \rfloor$, pero los descartados son ahora el mínimo de cada bloque. Como el conjunto de los $\lfloor k/c \rfloor$ menores del segmento entero es, por definición, la elección de esa cantidad de elementos con SUMA MÍNIMA, cualquier otra elección —en particular la de los mínimos por bloque— descarta una suma mayor o igual. Es decir, partir descarta al menos tanto como no partir, y por lo tanto existe siempre una solución óptima formada solo por segmentos de largo 1 y de largo exactamente $c$ (los largos intermedios descartan cero elementos, igual que los sueltos, así que no aportan nada). Con eso el DP tiene solo dos transiciones: $dp[i] = \min(dp[i-1] + a_i,\ dp[i-c] + S(i-c+1, i) - \min(a_{i-c+1..i}))$, donde la suma del bloque sale de las sumas de prefijos y el mínimo de una DEQUE MONÓTONA que mantiene los índices de la ventana de largo $c$ ordenados por valor creciente: al entrar un elemento se descartan por atrás todos los que ya no pueden ser mínimo, y por delante se saca el que se salió de la ventana, de modo que el frente es siempre el mínimo y el costo total es lineal. Conviene subrayar que el argumento de acotar el largo es una hipótesis no evidente, y por eso se verificó contra un DP que prueba todos los largos posibles.
+
+\graybold{Ejercicio aplicado}
+
+(Codeforces 940E — Cashback) Dado un arreglo de $n$ enteros y un entero $c$, partirlo en subarreglos contiguos minimizando la suma de los valores de cada uno, donde el valor de un subarreglo de largo $k$ es su suma menos la de sus $\lfloor k/c \rfloor$ elementos menores.
+
+\graybold{I/O:} $n, c \le 10^5$ con muchos números sueltos $\Rightarrow$ lectura total + tokenización (patrón 2). Las sumas llegan al orden de \ten{14}, sin problema para los enteros de Python. Verificado contra los cuatro casos de ejemplo y contrastado con un DP que prueba TODOS los largos de segmento (sin asumir la acotación) en 600 casos aleatorios, incluyendo $c = 1$, $c$ mayor que $n$ y valores repetidos, sin discrepancias: esa comparación es la que respalda la hipótesis del fundamento teórico. Con $n = 10^5$ tarda entre \aprox{}0.05s y \aprox{}0.07s en todas las combinaciones medidas ($c$ igual a 1, 2, 1000 y $n$; arreglo aleatorio, creciente, decreciente y constante).
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from collections import deque
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0]); c = int(data[1])
+    a = list(map(int, data[2:2+n]))
+    pre = [0]*(n + 1)
+    for i in range(n):
+        pre[i+1] = pre[i] + a[i]
+    dp = [0]*(n + 1)
+    dq = deque()                       # deque monotona: el frente es el minimo de la ventana
+    for i in range(1, n + 1):
+        v = a[i-1]
+        while dq and a[dq[-1]] >= v:   # los mayores ya no pueden ser minimo
+            dq.pop()
+        dq.append(i-1)
+        if dq[0] <= i - 1 - c:         # se salio de la ventana de largo c
+            dq.popleft()
+        mejor = dp[i-1] + v            # opcion 1: este elemento va solo
+        if i >= c:
+            # opcion 2: cerrar un bloque de largo exactamente c y descartar su minimo
+            alt = dp[i-c] + (pre[i] - pre[i-c]) - a[dq[0]]
+            if alt < mejor: mejor = alt
+        dp[i] = mejor
+    print(dp[n])
+
+solve()
+\end{lstlisting}

@@ -1,0 +1,69 @@
+\subsection{Consultas Offline con Prefijos por Bloques (mayores que K en un rango)}
+\label{alg:3-13}
+
+\graybold{Preguntas guía:}
+
+\begin{itemize}
+\item ¿Me dan TODAS las consultas por adelantado, de modo que puedo responderlas en el orden que me convenga y no en el que vienen?
+\item ¿Cada consulta combina un rango de posiciones con un umbral de valor, haciendo que una sola estructura ordenada no alcance?
+\item ¿Puedo ordenar consultas y elementos por valor para que la condición "mayor que k" se vuelva "ya insertado"?
+\item ¿Hay muchas más consultas que elementos, de modo que conviene una estructura con consultas baratas aunque las inserciones cuesten más?
+\end{itemize}
+
+\graybold{Utilidad:} Resuelve consultas que mezclan dos dimensiones (posición y valor) convirtiéndolas en una sola: se procesan las consultas en un orden elegido de modo que una de las dos condiciones se cumpla automáticamente por construcción. Es la técnica base de "consultas offline" y sirve para contar elementos menores o mayores que un umbral en un rango, para consultas de distintos en un rango, y en general para cualquier problema donde reordenar las preguntas simplifica la estructura de datos necesaria.
+
+\graybold{Complejidad:} \bigO{(n + q) \log(n + q)} por los ordenamientos, más \bigO{n^2 / B + q} para el barrido, donde $B$ es el tamaño de bloque de consolidación.
+
+\graybold{Fundamento teórico:} La condición "elementos mayores que $k$ dentro de $[i,j]$" mezcla un filtro por VALOR con un filtro por POSICIÓN. Procesando las consultas en orden decreciente de $k$ e insertando en una estructura, antes de cada consulta, todos los elementos cuyo valor supera su $k$, el filtro por valor deja de existir: todo lo insertado ya cumple la condición y solo queda contar cuántos caen en el rango de posiciones. Como las consultas están ordenadas por $k$ decreciente y los elementos también, cada elemento se inserta UNA sola vez en todo el barrido, con un puntero que nunca retrocede. Queda entonces el problema clásico de contar elementos insertados en un prefijo de posiciones, y ahí conviene elegir la estructura según el balance del problema: aquí hay casi siete veces más consultas que elementos ($q = 2\cdot10^5$ contra $n = 3\cdot10^4$), así que interesa abaratar la consulta aunque la inserción cueste más. En lugar de un Fenwick (donde consulta e inserción cuestan ambas \bigO{\log n} pasos INTERPRETADOS), se usa una consolidación por bloques: se mantiene un arreglo $F$ con las sumas de prefijo ya consolidadas y una lista ordenada con las posiciones insertadas desde la última consolidación. Una consulta de prefijo es entonces $F[p]$ más cuántas posiciones pendientes son $\le p$, es decir una indexación y un \texttt{bisect}, ambos en C. Cada $B$ inserciones se reconstruye $F$ entero con \texttt{accumulate}, también en C. El costo total de reconstrucciones es $\frac{n}{B}\cdot n$ operaciones en C, que con $B$ del orden de 1000 son unos pocos millones y resultan más baratas que los millones de pasos interpretados que costarían los recorridos del Fenwick.
+
+\graybold{Ejercicio aplicado}
+
+(SPOJ KQUERY — K-query) Dada una secuencia de $n$ números y $q$ consultas $(i, j, k)$, responder para cada una cuántos elementos de $a_i \ldots a_j$ son mayores que $k$.
+
+\graybold{I/O:} $n \le 3\cdot10^4$, $q \le 2\cdot10^5$ con tres enteros por consulta $\Rightarrow$ lectura total + tokenización (patrón 2), separando los tres campos con slices de paso 3. Los ordenamientos se hacen sobre ÍNDICES con \texttt{key=lista.\_\_getitem\_\_}, sin construir tuplas. Verificado contra el caso de ejemplo y contrastado con un conteo directo en 900 casos aleatorios, incluyendo valores repetidos, $k$ por debajo y por encima de todos los elementos, y rangos de un solo elemento, sin discrepancias. Con $n = 3\cdot10^4$ y $q = 2\cdot10^5$ tarda entre \aprox{}0.12s y \aprox{}0.28s según el patrón de consultas, frente a un límite de 1 segundo; conviene tener presente que el juez corre en un procesador bastante más lento que una máquina actual. Como referencia del balance elegido, la misma solución con un Fenwick clásico, verificada igual de correcta, tarda \aprox{}0.47s: cerca de un 70\% más que el peor caso de la versión por bloques. El piso inevitable (leer la entrada, ordenar las consultas y escribir la salida, sin resolver nada) es \aprox{}0.16s, así que el algoritmo en sí aporta solo \aprox{}0.12s. El tamaño de bloque se midió entre 100 y 12\,000: cualquier valor entre 600 y 3000 da el mismo tiempo.
+
+\graybold{Código solución}
+
+\begin{lstlisting}[language=Python]
+import sys
+from bisect import insort, bisect_right
+from itertools import accumulate
+
+def solve():
+    data = sys.stdin.buffer.read().split()
+    n = int(data[0])
+    A = list(map(int, data[1:1+n]))
+    q = int(data[1+n])
+    base = 2 + n
+    I = list(map(int, data[base:base + 3*q:3]))
+    J = list(map(int, data[base+1:base+1 + 3*q:3]))
+    K = list(map(int, data[base+2:base+2 + 3*q:3]))
+
+    # se ordenan INDICES, sin construir tuplas
+    porValor = sorted(range(n), key=A.__getitem__, reverse=True)   # elementos de mayor a menor
+    porK = sorted(range(q), key=K.__getitem__, reverse=True)       # consultas de mayor a menor k
+
+    cnt = [0]*(n + 1)
+    F = [0]*(n + 1)                     # sumas de prefijo ya consolidadas
+    pend = []                           # posiciones insertadas desde la ultima consolidacion
+    B = 1000
+    res = [0]*q
+    p = 0
+    for idx in porK:
+        k = K[idx]
+        # todo lo que supera a k queda insertado: el filtro por valor desaparece
+        while p < n and A[porValor[p]] > k:
+            pos = porValor[p] + 1
+            insort(pend, pos)
+            if len(pend) >= B:
+                for t in pend: cnt[t] = 1
+                F = list(accumulate(cnt))   # se reconstruye en C
+                pend.clear()
+            p += 1
+        # prefijo(p) = consolidado + pendientes <= p, ambas cosas en C
+        j = J[idx]; i = I[idx] - 1
+        res[idx] = (F[j] + bisect_right(pend, j)) - (F[i] + bisect_right(pend, i))
+    sys.stdout.write("\n".join(map(str, res)) + "\n")
+
+solve()
+\end{lstlisting}
