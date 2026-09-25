@@ -4,14 +4,14 @@
 \graybold{Preguntas guía:}
 
 \begin{itemize}
-\item ¿Necesito encontrar un clique máximo o todos los cliques máximos de un grafo no dirigido?
+\item ¿Necesito encontrar el clique máximo o todos los cliques maximales (no ampliables) de un grafo no dirigido?
 \item ¿El número de vértices es relativamente pequeño (aproximadamente $n \le 50$)?
 \item ¿La solución requiere explorar todas las posibles extensiones de un conjunto de vértices compatible?
 \end{itemize}
 
-\graybold{Utilidad:} Encontrar todos los cliques máximos o el clique máximo de un grafo no dirigido mediante backtracking con poda. Es la técnica estándar para resolver problemas de máxima compatibilidad, grupos completamente conectados y optimización sobre grafos pequeños.
+\graybold{Utilidad:} Encontrar todos los cliques maximales o el clique máximo de un grafo no dirigido mediante backtracking con poda. Es la técnica estándar para resolver problemas de máxima compatibilidad, grupos completamente conectados y optimización sobre grafos pequeños.
 
-\graybold{Complejidad:} \bigO{3^{n/3}} en el peor caso, que es óptimo para la enumeración de todos los cliques máximos; memoria \bigO{n}. En la práctica, el uso de pivote reduce considerablemente el número de llamadas recursivas.
+\graybold{Complejidad:} \bigO{3^{n/3}} en el peor caso con el pivote de Tomita (el que maximiza $|P \cap N(u)|$), que es óptimo para enumerar todos los cliques maximales; aquí el pivote se elige arbitrariamente, así que esa cota no está garantizada, aunque en la práctica igual reduce mucho las llamadas recursivas. Memoria \bigO{n^2}: cada nivel de la recursión crea conjuntos nuevos de tamaño \bigO{n}.
 
 \graybold{Fundamento teórico:} Durante la búsqueda se mantienen tres conjuntos:
 \begin{itemize}
@@ -19,13 +19,13 @@
 \item $P$: vértices que todavía pueden añadirse al clique.
 \item $X$: vértices ya procesados, utilizados para evitar generar soluciones repetidas.
 \end{itemize}
-Cuando tanto $P$ como $X$ quedan vacíos, el conjunto $R$ constituye un clique máximo. Para reducir la cantidad de ramas exploradas se selecciona un pivote $u$ y únicamente se consideran los vértices de $P \setminus N(u)$, donde $N(u)$ representa los vecinos del pivote. Esta optimización disminuye significativamente el árbol de búsqueda.~\cite{bron1973}
+Cuando tanto $P$ como $X$ quedan vacíos, el conjunto $R$ es un clique maximal (ya no se puede ampliar); el clique máximo es el mayor de todos ellos. Para reducir la cantidad de ramas exploradas se selecciona un pivote $u$ y únicamente se consideran los vértices de $P \setminus N(u)$, donde $N(u)$ representa los vecinos del pivote. Esta optimización disminuye significativamente el árbol de búsqueda.~\cite{bron1973}
 
 \graybold{Ejercicio aplicado}
 
 Dado un grafo no dirigido, determinar el tamaño del mayor clique del grafo. Cada vértice representa una persona y existe una arista cuando dos personas son compatibles. Se desea encontrar el grupo más grande donde todos los integrantes sean compatibles entre sí.
 
-\graybold{I/O:} Se reciben múltiples casos de prueba; cada caso especifica el número de vértices y aristas seguido por la lista de conexiones. El algoritmo resulta adecuado para grafos pequeños, donde una búsqueda exhaustiva con poda es suficiente para obtener la solución óptima.
+\graybold{I/O:} Un solo caso: $n$ y $m$ en la primera línea y luego $m$ líneas con las aristas, con vértices numerados de 0 a $n-1$; se lee línea a línea con \texttt{input()}. El algoritmo resulta adecuado para grafos pequeños, donde una búsqueda exhaustiva con poda es suficiente para obtener la solución óptima.
 
 \graybold{Código solución}
 

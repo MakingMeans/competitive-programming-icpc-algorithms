@@ -5,22 +5,22 @@
 
 \begin{itemize}
 \item ¿Me piden un término de Fibonacci (o de otra recurrencia lineal) con un índice enorme, \ten{18} o más?
-\item ¿El resultado se pide módulo algo, porque el valor exacto tendría cientos de millones de dígitos?
+\item ¿El resultado se pide módulo algo, porque el valor exacto tendría del orden de \ten{17} dígitos?
 \item ¿Puedo saltar de $n$ a $2n$ en vez de avanzar de a un término?
 \item ¿La recurrencia es lineal con coeficientes constantes, de modo que también serviría exponenciación de matrices?
 \end{itemize}
 
 \graybold{Utilidad:} Calcula $F_n$ en \bigO{\log n} operaciones usando dos identidades que permiten duplicar el índice. Es la versión más rápida y corta para Fibonacci; la técnica general detrás (exponenciación binaria aplicada a una recurrencia) sirve para cualquier recurrencia lineal con coeficientes constantes, y también para contar caminos de longitud $n$ en un grafo o para aplicar $n$ veces una transformación lineal.
 
-\graybold{Complejidad:} \bigO{\log n} multiplicaciones modulares: una por cada bit de $n$, es decir a lo sumo 60 para $n \le 10^{18}$.
+\graybold{Complejidad:} \bigO{\log n} multiplicaciones modulares: tres por cada bit de $n$, que tiene a lo sumo 60 bits para $n \le \ten{18}$.
 
-\graybold{Fundamento teórico:} De la identidad de Fibonacci $F_{m+k} = F_m F_{k+1} + F_{m-1} F_k$ se derivan, tomando $m = k$, las dos fórmulas de duplicación:
+\graybold{Fundamento teórico:} De la identidad de Fibonacci $F_{m+k} = F_m F_{k+1} + F_{m-1} F_k$ se derivan, tomando $m = k$ y $m = k+1$, las dos fórmulas de duplicación:
 \[F_{2k} = F_k\,(2F_{k+1} - F_k), \qquad F_{2k+1} = F_k^2 + F_{k+1}^2.\]
-Ambas expresan el par $(F_{2k}, F_{2k+1})$ en función del par $(F_k, F_{k+1})$, así que manteniendo siempre un par consecutivo se puede duplicar el índice con cuatro multiplicaciones. Para llegar a un $n$ arbitrario se recorren sus bits de mayor a menor empezando en $(F_0, F_1) = (0,1)$: en cada paso se duplica el índice acumulado y, si el bit vale 1, se avanza además un término, pasando de $(F_{2k}, F_{2k+1})$ a $(F_{2k+1}, F_{2k+2})$. Esto es exponenciación binaria disfrazada: el índice se construye bit a bit igual que el exponente en una potenciación rápida. Como todo se hace módulo $\ten{9}+7$, las magnitudes se mantienen chicas; la única sutileza es que $2F_{k+1} - F_k$ puede quedar negativo tras reducir, y el operador módulo de Python ya devuelve un representante no negativo, así que no hace falta corregirlo a mano (en C++ sí haría falta). La alternativa clásica es elevar a la potencia $n$ la matriz de $2\times2$ cuya primera fila es $(1,\,1)$ y cuya segunda fila es $(1,\,0)$: da el mismo resultado con ocho multiplicaciones por paso en lugar de cuatro, pero tiene la ventaja de generalizarse a cualquier recurrencia lineal cambiando la matriz.~\cite{knuth1997}
+Ambas expresan el par $(F_{2k}, F_{2k+1})$ en función del par $(F_k, F_{k+1})$, así que manteniendo siempre un par consecutivo se puede duplicar el índice con tres multiplicaciones. Para llegar a un $n$ arbitrario se recorren sus bits de mayor a menor empezando en $(F_0, F_1) = (0,1)$: en cada paso se duplica el índice acumulado y, si el bit vale 1, se avanza además un término, pasando de $(F_{2k}, F_{2k+1})$ a $(F_{2k+1}, F_{2k+2})$. Esto es exponenciación binaria disfrazada: el índice se construye bit a bit igual que el exponente en una potenciación rápida. Como todo se hace módulo $\ten{9}+7$, las magnitudes se mantienen chicas; la única sutileza es que $2F_{k+1} - F_k$ puede quedar negativo tras reducir, y el operador módulo de Python ya devuelve un representante no negativo, así que no hace falta corregirlo a mano (en C++ sí haría falta). La alternativa clásica es elevar a la potencia $n$ la matriz de $2\times2$ cuya primera fila es $(1,\,1)$ y cuya segunda fila es $(1,\,0)$: da el mismo resultado con hasta dieciséis multiplicaciones por bit (dos productos de matrices de ocho cada uno) en lugar de tres, pero tiene la ventaja de generalizarse a cualquier recurrencia lineal cambiando la matriz.~\cite{knuth1997}
 
 \graybold{Ejercicio aplicado}
 
-(CSES 1722 — Fibonacci Numbers) Dado $n$ con $0 \le n \le 10^{18}$, imprimir $F_n$ módulo $\ten{9}+7$.
+(CSES 1722 — Fibonacci Numbers) Dado $n$ con $0 \le n \le \ten{18}$, imprimir $F_n$ módulo $\ten{9}+7$.
 
 \graybold{I/O:} Una sola línea con un entero que llega a \ten{18}, sin problema para los enteros de Python; se lee todo de una y se convierte directamente. Verificado en 500 valores (todos los de 0 a 299 y 200 al azar hasta $2\cdot10^5$) contra la iteración directa de la recurrencia, y en 65 valores gigantes (incluidos \ten{18}, $\ten{18}-1$ y \pow{2}{60}) contra una implementación independiente por exponenciación de matrices, sin discrepancias. El tiempo medido con $n = 10^{18}$ es \aprox{}0.009s, que es esencialmente el arranque del intérprete.
 

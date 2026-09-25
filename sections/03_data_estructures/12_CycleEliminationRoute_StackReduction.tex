@@ -9,7 +9,7 @@
 \item ¿Necesito conservar el orden original mientras simplifico la secuencia al máximo?
 \end{itemize}
 
-\graybold{Utilidad:} Simplificar recorridos o secuencias eliminando ciclos innecesarios. Cada vez que un elemento vuelve a aparecer, todo el recorrido intermedio deja de ser útil y puede eliminarse. Después de cada eliminación es necesario volver a comprobar si ahora se formó un nuevo ciclo con los elementos restantes. Este patrón aparece en problemas de rutas, navegación, directorios, historial de movimientos y simplificación de secuencias.
+\graybold{Utilidad:} Simplificar recorridos o secuencias eliminando ciclos innecesarios. Elimina dos rodeos locales: un elemento repetido dos veces seguidas (A A) y una ida y vuelta inmediata (A B A). Después de cada eliminación hay que volver a comprobar, porque pueden quedar juntos elementos que forman otro rodeo: así se deshacen en cascada rodeos anidados como a!b!c!b!a, pero no un ciclo general como a!b!c!a. Este patrón aparece en problemas de rutas, navegación, directorios, historial de movimientos y simplificación de secuencias.
 
 \graybold{Complejidad:} \bigO{n}.
 

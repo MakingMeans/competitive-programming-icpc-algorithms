@@ -19,7 +19,7 @@
 
 Dada una muralla de N segmentos con alturas iniciales, y un refuerzo que agrega $K$ bloques al segmento elegido, $K-1$ al anterior, y así sucesivamente, hallar la mayor altura mínima posible tras aplicar el refuerzo en un único segmento.
 
-\graybold{I/O:} N ≤ \ten{5} → lectura total con tokenización (patrón 2). Verificado contra fuerza bruta en 300 casos aleatorios pequeños.
+\graybold{I/O:} N ≤ \ten{5} → lectura total con tokenización (patrón 2). Verificado contra fuerza bruta en 300 casos aleatorios pequeños con alturas de al menos 1. Ojo: la búsqueda binaria arranca en 1, así que el código supone alturas positivas; si el enunciado admitiera alturas 0, nunca respondería 0.
 
 \graybold{Código solución}
 

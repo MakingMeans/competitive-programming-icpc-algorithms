@@ -10,7 +10,7 @@
 \item ¿El problema pide estrictamente creciente o admite iguales? (eso decide entre \texttt{bisect\_left} y \texttt{bisect\_right})
 \end{itemize}
 
-\graybold{Utilidad:} Calcula la longitud de la subsecuencia creciente más larga en tiempo \bigO{n \log n} manteniendo, para cada longitud posible, el menor valor con el que puede terminar una subsecuencia de esa longitud. Aparece disfrazado en problemas de apilar cajas, plataformas o sobres (ordenar por una dimensión y hacer LIS sobre la otra), en el mínimo número de sistemas de misiles (por el teorema de Dilworth, es la longitud de la subsecuencia no creciente más larga) y en particiones en cadenas monótonas.
+\graybold{Utilidad:} Calcula la longitud de la subsecuencia creciente más larga en tiempo \bigO{n \log n} manteniendo, para cada longitud posible, el menor valor con el que puede terminar una subsecuencia de esa longitud. Aparece disfrazado en problemas de apilar cajas, plataformas o sobres (ordenar por una dimensión y hacer LIS sobre la otra), en el mínimo número de sistemas de misiles (si cada sistema intercepta alturas no crecientes, por el teorema de Dilworth el mínimo es la longitud de la subsecuencia estrictamente creciente más larga) y en particiones en cadenas monótonas.
 
 \graybold{Complejidad:} \bigO{n \log n}: una búsqueda binaria por elemento sobre un arreglo de a lo sumo $n$ posiciones.
 

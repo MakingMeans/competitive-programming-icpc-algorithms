@@ -13,7 +13,7 @@
 
 \graybold{Complejidad:} \bigO{n} por caso.
 
-\graybold{Fundamento teórico:} Si cada a\_i = S / k\_i (S = suma total), la condición "S divisible por cada a\_i" equivale a que los k\_i sean enteros positivos distintos con Σ(1/k\_i) = 1. Partiendo de la identidad 1 = 1/2 + 1/3 + 1/6 y extendiendo el término 1/6 con una cadena de potencias de 2, se obtiene una familia de k\_i distintos para cualquier n ≥ 3: la construcción cerrada \{1, 2, 3, 6, 12, 24, ..., 3·\pow{2}{n-3}\}. Los casos n=1 y n=2 se resuelven aparte (trivial e imposible, respectivamente).
+\graybold{Fundamento teórico:} Si cada a\_i = S / k\_i (S = suma total), la condición "S divisible por cada a\_i" equivale a que los k\_i sean enteros positivos distintos con Σ(1/k\_i) = 1. Se parte de la identidad 1 = 1/2 + 1/3 + 1/6, que para n = 3 da los valores \{1, 2, 3\} con S = 6. Cada paso agrega un valor nuevo igual a la suma actual: S se duplica y sigue siendo divisible por todos los anteriores y por el nuevo (en términos de los k\_i, todas las fracciones se dividen entre 2 y se agrega 1/2). Así se obtiene, para cualquier n ≥ 3, la construcción cerrada de los valores a\_i: \{1, 2, 3, 6, 12, 24, ..., 3·\pow{2}{n-3}\}. Los casos n=1 y n=2 se resuelven aparte (trivial e imposible, respectivamente).
 
 \graybold{Ejercicio aplicado}
 

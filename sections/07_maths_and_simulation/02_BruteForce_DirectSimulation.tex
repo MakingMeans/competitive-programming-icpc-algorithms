@@ -11,7 +11,7 @@
 
 \graybold{Utilidad:} Reconocer cuándo NO hace falta un algoritmo sofisticado: con restricciones pequeñas, iterar directamente (simulando la definición del problema) es la solución más simple, rápida de programar y menos propensa a errores. Identificar esto ahorra tiempo valioso en el contrarreloj.
 
-\graybold{Complejidad:} Depende del problema; en este caso \bigO{n} con aritmética de punto flotante.
+\graybold{Complejidad:} Depende del problema; en este caso \bigO{\sqrt{n}} con aritmética de punto flotante, porque la probabilidad cae por debajo de 1/2 tras unas $1.18\sqrt{n}$ personas.
 
 \graybold{Fundamento teórico:} Se calcula directamente la probabilidad de que NO haya coincidencia de cumpleaños entre k personas, multiplicando factores (1 − (k−1)/n) sucesivamente (extensión del problema del cumpleaños), deteniéndose apenas esa probabilidad cae por debajo de 0.5 (la probabilidad de coincidencia supera el 50\%).
 

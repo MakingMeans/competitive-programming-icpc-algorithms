@@ -33,13 +33,10 @@ def solve():
     right = list(map(int, data[2 + h:2 + 2 * h]))
     max_sum = max(left[i] + right[i] for i in range(h))
     ans = (w - max_sum) / 2
-\end{lstlisting}
+    if ans.is_integer():        # verifica parseo de float a int
+        print(int(ans))
+    else:
+        print(ans)
 
-
-\begin{lstlisting}[language=Python]
-if ans.is_integer():        # verifica parseo de float a int
-    print(int(ans))
-else:
-    print(ans)
 solve()
 \end{lstlisting}

@@ -19,7 +19,7 @@
 
 Juan y Frank juegan Nim sobre columnas de fragmentos: en cada turno, un jugador retira cualquier cantidad positiva de fragmentos de UNA columna; pierde quien no puede mover. Dadas Q consultas, cada una una "profecía" (determinar el ganador en un rango $[l,r]$, sabiendo que Frank siempre empieza) o un "ritual" (sumar $x$ fragmentos a una columna), resolver cada profecía.
 
-\graybold{I/O:} N,Q ≤ \ten{6} → lectura total con tokenización (patrón 2), y las funciones de update/query del Fenwick se escriben SIN llamadas a función (inline) para reducir el overhead de Python en este volumen de operaciones. Aun así, en el peor caso (N=Q=\ten{6}) la solución pura en Python ronda \aprox{}7s si el juez es muy estricto con el límite de tiempo, este es el techo práctico de Python puro para este volumen sin cambiar de lenguaje.
+\graybold{I/O:} N,Q ≤ \ten{6} → lectura total con tokenización (patrón 2), y las funciones de update/query del Fenwick se escriben SIN llamadas a función (inline) para reducir el overhead de Python en este volumen de operaciones. Aun así, en el peor caso (N=Q=\ten{6}) la solución pura en Python ronda \aprox{}7s; si el juez es estricto con el límite de tiempo, este es el techo práctico de Python puro para este volumen y solo queda cambiar de lenguaje.
 
 \graybold{Código solución}
 

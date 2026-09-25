@@ -19,7 +19,7 @@
 
 Se conocen las posiciones de todos los oasis de una ruta. Para cada consulta se recibe un oasis destino y el número exacto de días que debe durar el viaje. Calcular cuántos planes distintos existen para distribuir los días de espera manteniendo siempre el mismo recorrido.
 
-\graybold{I/O:} $5 \le N \le 20$, $1 \le M \le 10$. Las distancias a los oasis no superan los 60 días, por lo que todos los factoriales necesarios pueden precomputarse una única vez antes de responder las consultas; cada consulta se responde en tiempo constante.
+\graybold{I/O:} $5 \le N \le 20$, $1 \le M \le 10$. Las distancias a los oasis no superan los 60 días. Los factoriales se precomputan una única vez hasta MAX = 80 y cada consulta se responde en tiempo constante; ese tope alcanza mientras $T - O + D \le 80$ (por ejemplo, con $T \le 60$ y $D \le 20$). El código supone además $T \ge O$, es decir, que el tiempo pedido alcanza para llegar al destino.
 
 \graybold{Código solución}
 

@@ -317,14 +317,18 @@ sys.setrecursionlimit(200000)
 \begin{itemize}
 \item \textbf{CPython 3.11 o posterior}: alcanza. Desde 3.11 las llamadas entre
 funciones de Python no consumen la pila del sistema (probado en 3.12:
-profundidad \ten{6} sin nada más).
+profundidad \ten{6} sin nada más). Excepción: \texttt{@lru\_cache} y
+\texttt{@cache} están escritos en C y cuentan contra un límite propio que
+\texttt{setrecursionlimit} no mueve; en 3.12 sobre Windows fallan hacia los 500
+niveles, incluso dentro de un hilo con pila grande. Para memoizar a mucha
+profundidad, usar un diccionario propio.
 \item \textbf{PyPy o CPython hasta 3.10}: puede no alcanzar. La recursión sí usa la
 pila del sistema, y con suficiente profundidad el programa muere sin mensaje
 (\emph{Runtime Error}). Hay que correr el código en un hilo con pila grande.
 \end{itemize}
 
 Como en el concurso no siempre se sabe qué versión corre el juez, la forma segura
-sirve en todos:
+sirve en todos (salvo con \texttt{@lru\_cache}, por lo dicho arriba):
 
 \begin{lstlisting}[language=Python]
 import sys, threading
@@ -339,8 +343,10 @@ t.start()
 t.join()
 \end{lstlisting}
 
-Mejor todavía es evitar la recursión: todas las entradas de grafos de este libro
-usan pila explícita por esta razón.
+Mejor todavía es evitar la recursión: los recorridos de grafos de este libro usan
+pila explícita por esta razón. Las excepciones son Kuhn (\ref{alg:4-1} a
+\ref{alg:4-3}), Bron--Kerbosch (\ref{alg:4-7}) y la DFS de Dinic (\ref{alg:4-18}),
+cuya profundidad queda acotada por el tamaño de sus grafos.
 
 \vspace{0.3cm}
 

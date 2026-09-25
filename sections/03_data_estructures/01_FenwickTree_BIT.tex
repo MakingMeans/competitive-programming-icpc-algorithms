@@ -19,7 +19,7 @@
 
 (SPOJ DQUERY — D-query) Dado un arreglo de n números y q consultas (i, j), responder para cada una cuántos valores distintos hay en el subarreglo [i, j]. Técnica: procesar las consultas offline ordenadas por extremo derecho r, recorriendo el arreglo de izquierda a derecha y manteniendo en el BIT un "1" solo en la última aparición de cada valor.
 
-\graybold{I/O:} n ≤ 30 000 y q ≤ 200 000 hasta \aprox{}430 000 tokens de entrada: se usa lectura total + tokenización (patrón 2) en vez de readline por línea.
+\graybold{I/O:} n ≤ 30 000 y q ≤ 200 000, hasta \aprox{}430 000 tokens de entrada. El código lee línea a línea con readline (patrón 1): en el caso máximo tarda \aprox{}0.7s. Si el límite de tiempo aprieta, la lectura total + tokenización (patrón 2) es la alternativa más rápida.
 
 \graybold{Código solución}
 

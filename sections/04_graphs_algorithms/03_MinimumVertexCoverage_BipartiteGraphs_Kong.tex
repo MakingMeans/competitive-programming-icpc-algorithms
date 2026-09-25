@@ -13,7 +13,7 @@
 
 \graybold{Complejidad:} \bigO{V \cdot E}, la misma del emparejamiento bipartito máximo del que depende.
 
-\graybold{Fundamento teórico:} El teorema de König establece que, en cualquier grafo bipartito, el tamaño de la cobertura mínima de vértices es EXACTAMENTE igual al tamaño del emparejamiento máximo. Basta con correr Kuhn (entrada anterior) y esa cifra ya es la respuesta. Importante: heurísticas locales (como quitar iterativamente puntos de articulación, o dividir el número de vértices con grado \textgreater{} 0 entre 2) NO son válidas para este problema en general - solo coinciden por casualidad en casos muy simples (aristas aisladas, caminos, estrellas) y fallan en cuanto el grafo tiene una estructura más rica (por ejemplo, un grafo bipartito 2-conexo sin puntos de articulación).~\cite{konig1931}
+\graybold{Fundamento teórico:} El teorema de König establece que, en cualquier grafo bipartito, el tamaño de la cobertura mínima de vértices es EXACTAMENTE igual al tamaño del emparejamiento máximo. Basta con correr Kuhn (entrada anterior) y esa cifra ya es la respuesta. Importante: heurísticas locales (como quitar iterativamente puntos de articulación, o dividir el número de vértices con grado \textgreater{} 0 entre 2) NO son válidas para este problema en general - solo coinciden por casualidad y fallan incluso en grafos muy simples: dividir entre 2 falla en una estrella ($K_{1,3}$ da 2, pero basta 1 vértice) y quitar puntos de articulación falla en una arista aislada (no tiene ninguno, pero hace falta 1 vértice); con más razón fallan cuando el grafo tiene una estructura más rica (por ejemplo, un grafo bipartito 2-conexo sin puntos de articulación).~\cite{konig1931}
 
 \graybold{Ejercicio aplicado}
 

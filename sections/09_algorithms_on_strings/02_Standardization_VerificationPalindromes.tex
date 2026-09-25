@@ -19,7 +19,7 @@
 
 Dada una oración, determinar si es un palíndromo ignorando mayúsculas, espacios, y cualquier carácter que no sea una letra del alfabeto inglés.
 
-\graybold{I/O:} Múltiples líneas hasta el centinela "*" (patrón 3), N < 1000 por línea → se recorre línea por línea con \texttt{for line in sys.stdin}, ya que es texto libre (no se puede tokenizar con \texttt{.split()}).
+\graybold{I/O:} Múltiples líneas hasta el centinela "*" (patrón 3), N < 1000 por línea → se recorre línea por línea con \texttt{for line in sys.stdin}, ya que es texto libre (no se puede tokenizar con \texttt{.split()}). El filtro usa \texttt{isalpha()}, que también acepta letras no inglesas como ñ o é; con entrada ASCII da lo mismo.
 
 \graybold{Código solución}
 

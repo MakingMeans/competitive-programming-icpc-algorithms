@@ -100,8 +100,8 @@ lleva el control de qué está abierto, y cada cierre verifica la condición.
 9} no lo es.
 
 \guia{Reducción con Pila}{alg:3-12}
-Simplificar un recorrido eliminando los rodeos: si pasaste por un sitio y volviste,
-todo lo del medio sobra. Lo importante es que al quitar un rodeo puede aparecer
+Simplificar un recorrido eliminando los rodeos: un sitio repetido dos veces seguidas
+sobra, y una ida y vuelta inmediata (\texttt{a!b!a}) se reduce a \texttt{a}. Lo importante es que al quitar un rodeo puede aparecer
 otro más grande, así que hay que seguir revisando.
 \ej la ruta \texttt{a!b!c!b!a!d} se reduce a \texttt{a!d}: primero desaparece
 \texttt{c}, y eso deja \texttt{b} junto a \texttt{b}.
@@ -153,7 +153,8 @@ reino y el 4 es otro.
 Recorrer TODAS las calles exactamente una vez y volver al punto de partida. Ojo con
 la confusión frecuente: esto es sobre aristas, no sobre nodos (pasar por todos los
 nodos una vez es otro problema, mucho más difícil). Se comprueba antes si existe:
-todos los nodos deben tener grado par.
+las aristas deben formar un solo componente conexo y todos los nodos deben tener
+grado par.
 \ej un triángulo tiene circuito (\texttt{1 2 3 1}); una "Y" de tres brazos no
 tiene, porque sus cuatro nodos quedan con grado impar.
 
@@ -430,8 +431,9 @@ Para preguntas de "¿se puede llegar de esta configuración a esta otra?" donde
 probar todas las combinaciones es imposible. Se busca una cantidad que NUNCA cambie
 por más movimientos que hagas; si vale distinto en las dos configuraciones, la
 respuesta es no y no hace falta buscar nada. En los rompecabezas deslizantes esa
-cantidad es la paridad: cada movimiento intercambia dos piezas, y eso la invierte
-siempre.
+cantidad combina dos paridades: la de la permutación de las piezas y la de la
+distancia del hueco a su lugar final. Cada movimiento invierte las dos a la vez,
+así que su combinación nunca cambia.
 \ej el clásico 15-puzzle con las dos últimas piezas cambiadas es imposible de
 resolver, y se sabe sin mover ni una ficha.
 
@@ -456,8 +458,8 @@ cambiando solo la matriz.
 Problemas de "construye algo que cumpla X" donde no hay que buscar nada: se propone
 una fórmula y se argumenta que cierta propiedad (típicamente la paridad) nunca
 puede romperse, sin importar las decisiones que se tomen.
-\ej construir una permutación donde el resultado nunca pueda dar cero, sin
-importar los signos que se elijan.
+\ej construir una permutación donde el resultado nunca pueda dar 1, sin
+importar los signos que se elijan: todos los términos quedan pares.
 
 \guia{Constructivo Explícito}{alg:8-2}
 El mismo tipo de problema resuelto dando directamente la respuesta a partir de una

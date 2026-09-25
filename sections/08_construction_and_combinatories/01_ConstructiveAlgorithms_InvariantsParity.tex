@@ -13,7 +13,7 @@
 
 \graybold{Complejidad:} \bigO{n} por caso - construir y emitir la respuesta.
 
-\graybold{Fundamento teórico:} Se particiona \{1,...,n\} en pares consecutivos (2k−1, 2k) y se intercambian entre sí. Cada par contribuye al contador un valor relacionado con V\_k = (2k−1)(2k), que siempre es par; y ese aporte entra a la suma final como −V\_k, 0 o V\_k (las tres opciones son pares). Como la suma de términos pares es par, el resultado nunca puede ser impar - en particular, nunca puede ser 1.
+\graybold{Fundamento teórico:} Se particiona \{1,...,n\} en pares consecutivos (2k−1, 2k) y se intercambian entre sí. Tras el intercambio, los dos términos de cada par valen V\_k = (2k−1)(2k), que siempre es par, y cada uno entra a la suma final como −V\_k, 0 o V\_k (las tres opciones son pares). Como la suma de términos pares es par, el resultado nunca puede ser impar - en particular, nunca puede ser 1.
 
 \graybold{Ejercicio aplicado}
 

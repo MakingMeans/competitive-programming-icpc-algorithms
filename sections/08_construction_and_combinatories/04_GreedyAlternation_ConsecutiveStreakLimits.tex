@@ -11,9 +11,9 @@
 
 \graybold{Utilidad:} Construir una secuencia válida de longitud D usando N opciones con límites de racha consecutiva, sin necesidad de una búsqueda ni un algoritmo sofisticado: alternar entre las DOS opciones con mayor límite es siempre suficiente (si el problema es factible), porque cualquier racha se puede "romper" con un solo turno de la segunda opción antes de retomar la primera.
 
-\graybold{Complejidad:} \bigO{D}.
+\graybold{Complejidad:} \bigO{N \log N + D}: ordenar los lugares por límite y luego escribir los D días.
 
-\graybold{Fundamento teórico:} El problema es imposible si ningún lugar admite ni una sola noche (todos los límites son 0), o si solo UN lugar tiene límite positivo y ese límite es menor que D (no hay forma de "descansar" de él). En cualquier otro caso (al menos dos lugares con límite $>0$), siempre es posible: se usa el lugar de mayor límite hasta agotar su racha, se intercala un solo día en el segundo mejor lugar (lo cual reinicia la racha del primero), y se repite este patrón hasta completar los D días. Este patrón simple es suficiente porque no hay ningún límite en el número TOTAL de veces que se puede volver a un lugar, solo en la racha consecutiva.
+\graybold{Fundamento teórico:} El problema es imposible si ningún lugar admite ni una sola noche (todos los límites son 0), o si solo UN lugar tiene límite positivo y ese límite es menor que D (no hay forma de "descansar" de él). En cualquier otro caso (al menos dos lugares con límite $>0$), siempre es posible: se alterna un solo día en el segundo mejor lugar con una racha completa en el de mayor límite (el día en el segundo lugar reinicia la racha del primero), empezando por el segundo lugar, y se repite este patrón hasta completar los D días. Este patrón simple es suficiente porque no hay ningún límite en el número TOTAL de veces que se puede volver a un lugar, solo en la racha consecutiva.
 
 \graybold{Ejercicio aplicado}
 

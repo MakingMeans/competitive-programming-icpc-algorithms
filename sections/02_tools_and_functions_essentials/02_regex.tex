@@ -40,7 +40,7 @@ Patrón & Significado \\ \hline
 \regex{\textbackslash d} & Dígito \\ \hline
 \regex{\textbackslash D} & No dígito \\ \hline
 \regex{\textbackslash w} & Letra, número o \_ \\ \hline
-\regex{\textbackslash W} & No alfanumérico \\ \hline
+\regex{\textbackslash W} & Ni letra, ni número, ni \_ \\ \hline
 \regex{\textbackslash s} & Espacio en blanco \\ \hline
 \regex{\textbackslash S} & No espacio \\ \hline
 + & Una o más repeticiones \\ \hline
@@ -54,7 +54,7 @@ Patrón & Significado \\ \hline
 (?:) & Grupo sin captura \\ \hline
 | & OR lógico \\ \hline
 \^{} & Inicio del string \\ \hline
-\$ & Final del string \\ \hline
+\$ & Final (o antes de un \texttt{\textbackslash n} final) \\ \hline
 \end{tabular}
 \end{center}
 
@@ -82,7 +82,7 @@ limpio = re.sub(r'[^a-zA-Z0-9]', '', s)
 \begin{tabular}{|l|l|}
 \hline
 Patrón & Detecta \\ \hline
-\texttt{\textbackslash d+} & Enteros positivos \\ \hline
+\texttt{\textbackslash d+} & Secuencias de dígitos \\ \hline
 \texttt{-?\textbackslash d+} & Enteros con signo \\ \hline
 \texttt{\textbackslash d+\textbackslash.\textbackslash d+} & Números decimales \\ \hline
 \texttt{[A-Za-z]+} & Palabras \\ \hline
@@ -105,7 +105,7 @@ Extraer todos los enteros.
 re.findall(r'-?\d+', s)
 \end{lstlisting}
 
-Extraer únicamente números positivos.
+Extraer las secuencias de dígitos. Ojo: de \texttt{-5} toma el \texttt{5}; para enteros con signo, \texttt{-?\textbackslash d+}.
 
 \begin{lstlisting}[language=Python]
 re.findall(r'\d+', s)
@@ -176,7 +176,7 @@ re.search(r'ICPC', s)
 \subsubsection{Compilar una expresión regular}
 
 Cuando un mismo patrón será utilizado muchas veces, es recomendable compilarlo una única vez.
-Esto evita recompilar la expresión regular en cada llamada.
+Así la expresión se compila una sola vez de forma explícita. El módulo \texttt{re} ya guarda en caché las expresiones usadas, así que solo se ahorra la búsqueda en esa caché.
 
 \begin{lstlisting}[language=Python]
 pat = re.compile(r'-?\d+')

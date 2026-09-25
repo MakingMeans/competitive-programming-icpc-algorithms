@@ -45,7 +45,7 @@ def solve():
         return
  
     used = [False] * m
-    ptr = [0] * (n + 1)              # guarda las ids de las aristas
+    ptr = [0] * (n + 1)              # siguiente posicion a revisar en adj[v]
     path = []
     stack = [1]
     while stack:

@@ -69,19 +69,19 @@ Hacer esto para todas las máscaras de $n$ bits cuesta \bigO{\pow{3}{n}}, no
 Los enteros de Python no se desbordan: factoriales, productos de números de
 \ten{18} o potencias enormes se calculan exactos, sin \texttt{long long} ni módulo
 forzado. Dos advertencias. Operar con números de miles de dígitos ya no cuesta
-\bigO{1}. Y desde Python 3.11, convertir entre entero y texto un número de más de
+\bigO{1}. Y desde Python 3.11 (y desde los parches de seguridad 3.7.14, 3.8.14, 3.9.14 y 3.10.7), convertir entre entero y texto un número de más de
 4300 dígitos lanza \texttt{ValueError}, tanto al imprimirlo como al leerlo con
 \texttt{int()}:
 
 \begin{lstlisting}[language=Python]
 import sys, math
-if hasattr(sys, "set_int_max_str_digits"):   # solo existe desde 3.11
+if hasattr(sys, "set_int_max_str_digits"):   # no existe si no hay limite
     sys.set_int_max_str_digits(0)            # 0 = sin limite
 print(math.factorial(2000))                  # 5736 digitos
 \end{lstlisting}
 
 El \texttt{hasattr} hace que la misma línea sirva en cualquier versión: en las
-anteriores a 3.11 no hay límite y la función no existe.
+versiones sin el límite, la función no existe.
 
 \vspace{0.3cm}
 \subsubsection{Números reales}

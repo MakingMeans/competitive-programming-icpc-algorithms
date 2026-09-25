@@ -65,7 +65,8 @@ def kasai(s, sa, rank):
     lcp = [0]*n
     h = 0
     # se recorre por POSICION en el texto: al avanzar de i a i+1,
-    # el lcp baja como mucho en 1, asi que h nunca se reinicia a 0
+    # el lcp baja como mucho en 1, asi que h se reaprovecha y no se
+    # recalcula desde 0 (solo se reinicia en el primer sufijo del orden)
     for i in range(n):
         if rank[i] > 0:
             j = sa[rank[i]-1]        # sufijo anterior en orden lexicografico

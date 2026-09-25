@@ -13,13 +13,13 @@
 
 \graybold{Complejidad:} \bigO{n}.
 
-\graybold{Fundamento teórico:} Sea $\text{bal}(p)$ el balance (número de '(' menos número de ')') tras procesar los primeros $p$ caracteres. Un bloque de nivel superior termina exactamente donde $\text{bal}(p) = 0$. Al emparejar una posición $i$ ('(') con una posición $j$ (')'), $i<j$, el balance de las posiciones ENTRE $i$ y $j-1$ baja en 1 respecto al original (porque ya se "usó" el '(' pero no el ')'); esto rompe la validez del resto si y solo si el balance ORIGINAL en algún punto de ese rango ya era 0 (pues bajaría a -1). Como los únicos puntos con balance 0 son los cierres de bloque, el par es INCOMPATIBLE si y solo si $i$ y $j$ pertenecen a bloques distintos. El total de parejas incompatibles se calcula entonces como (total de parejas $(i,j)$ válidas en toda la secuencia) menos (parejas válidas contando solo dentro de cada bloque por separado). Ambas cantidades se obtienen en un único recorrido llevando un contador de '(' abiertos, global y reiniciado por bloque.
+\graybold{Fundamento teórico:} Sea $\text{bal}(p)$ el balance (número de '(' menos número de ')') tras procesar los primeros $p$ caracteres. Un bloque de nivel superior termina exactamente donde $\text{bal}(p) = 0$. Al emparejar una posición $i$ ('(') con una posición $j$ (')'), $i<j$, el balance de las posiciones ENTRE $i$ y $j-1$ baja en 1 respecto al original (porque ya se "usó" el '(' pero no el ')'); esto rompe la validez del resto si y solo si el balance ORIGINAL en algún punto de ese rango ya era 0 (pues bajaría a -1). Como los únicos puntos con balance 0 son los cierres de bloque, el par es INCOMPATIBLE si y solo si $i$ y $j$ pertenecen a bloques distintos. El total de parejas incompatibles se calcula entonces como (total de parejas $(i,j)$ válidas en toda la secuencia) menos (parejas válidas contando solo dentro de cada bloque por separado). Ambas cantidades se obtienen en un único recorrido llevando un contador de '(' vistos hasta el momento, uno global y otro reiniciado por bloque.
 
 \graybold{Ejercicio aplicado}
 
 Dada una secuencia de N bailarines Yang '(' y Yin ')' (garantizada balanceada), donde cada Yang debe emparejarse con un Yin posterior, contar cuántas parejas $(i,j)$ son "incompatibles": aquellas que, de formarse, impiden que el resto de bailarines encuentre pareja.
 
-\graybold{I/O:} N ≤ \ten{6} → un solo recorrido lineal con lectura total (patrón 2); no hace falta tokenizar por espacios ya que la secuencia es un único string contiguo. Verificado: \aprox{}0.1s en el peor caso.
+\graybold{I/O:} N ≤ \ten{6} → lectura total + tokenización (patrón 2): el primer token es N y el segundo, la secuencia entera como un único string; luego basta un solo recorrido lineal. Verificado: \aprox{}0.1s en el peor caso.
 
 \graybold{Código solución}
 
